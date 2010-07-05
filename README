@@ -1,0 +1,7 @@
+Prototype Ubicomp Lobby Service for Horizon (initially Urban Games project)
+
+Chris Greenhalgh, 2010-07-05
+
+I.e. client(s) talk to the Lobby Service to negotiate access to particular experiences (and experience-specific server support).
+
+Initially implemented to run on Google App Engine.
