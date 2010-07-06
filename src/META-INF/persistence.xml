@@ -11,6 +11,7 @@
             <property name="datanucleus.NontransactionalWrite" value="true"/> 
             <property name="datanucleus.ConnectionURL" value="appengine"/> 
         </properties> 
+        <class>uk.ac.horizon.ug.lobby.model.GameTemplate</class>
     </persistence-unit> 
  
 </persistence>
