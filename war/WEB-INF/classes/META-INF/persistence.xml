@@ -11,7 +11,15 @@
             <property name="datanucleus.NontransactionalWrite" value="true"/> 
             <property name="datanucleus.ConnectionURL" value="appengine"/> 
         </properties> 
+        <!-- not required on GAE
         <class>uk.ac.horizon.ug.lobby.model.GameTemplate</class>
+        <class>uk.ac.horizon.ug.lobby.model.GameClientTemplate</class>
+        <class>uk.ac.horizon.ug.lobby.model.GameServer</class>
+        <class>uk.ac.horizon.ug.lobby.model.GameInstance</class>
+        <class>uk.ac.horizon.ug.lobby.model.GameInstanceSlot</class>
+        <class>uk.ac.horizon.ug.lobby.model.GameClient</class>
+        <class>uk.ac.horizon.ug.lobby.model.Account</class>
+         -->
     </persistence-unit> 
  
 </persistence>

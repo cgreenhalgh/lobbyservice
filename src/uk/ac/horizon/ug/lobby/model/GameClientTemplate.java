@@ -1,4 +1,20 @@
 /**
+ * Copyright 2010 The University of Nottingham
+ * 
+ * This file is part of lobbyservice.
+ *
+ *  lobbyservice is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU Affero General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  lobbyservice is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Affero General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Affero General Public License
+ *  along with lobbyservice.  If not, see <http://www.gnu.org/licenses/>.
  * 
  */
 package uk.ac.horizon.ug.lobby.model;
@@ -43,4 +59,120 @@ public class GameClientTemplate {
      * the marketplace. See http://developer.android.com/guide/publishing/publishing.html
      */
     private String applicationMarketId;
+    /** is this client-type location-specific? */
+    private boolean locationSpecific;
+	/**
+	 * 
+	 */
+	public GameClientTemplate() {
+		super();
+	}
+	/**
+	 * @return the key
+	 */
+	public Key getKey() {
+		return key;
+	}
+	/**
+	 * @param key the key to set
+	 */
+	public void setKey(Key key) {
+		this.key = key;
+	}
+	/**
+	 * @return the gameTemplateId
+	 */
+	public String getGameTemplateId() {
+		return gameTemplateId;
+	}
+	/**
+	 * @param gameTemplateId the gameTemplateId to set
+	 */
+	public void setGameTemplateId(String gameTemplateId) {
+		this.gameTemplateId = gameTemplateId;
+	}
+	/**
+	 * @return the title
+	 */
+	public String getTitle() {
+		return title;
+	}
+	/**
+	 * @param title the title to set
+	 */
+	public void setTitle(String title) {
+		this.title = title;
+	}
+	/**
+	 * @return the clientType
+	 */
+	public String getClientType() {
+		return clientType;
+	}
+	/**
+	 * @param clientType the clientType to set
+	 */
+	public void setClientType(String clientType) {
+		this.clientType = clientType;
+	}
+	/**
+	 * @return the minMajorVersion
+	 */
+	public int getMinMajorVersion() {
+		return minMajorVersion;
+	}
+	/**
+	 * @param minMajorVersion the minMajorVersion to set
+	 */
+	public void setMinMajorVersion(int minMajorVersion) {
+		this.minMajorVersion = minMajorVersion;
+	}
+	/**
+	 * @return the minMinorVersion
+	 */
+	public int getMinMinorVersion() {
+		return minMinorVersion;
+	}
+	/**
+	 * @param minMinorVersion the minMinorVersion to set
+	 */
+	public void setMinMinorVersion(int minMinorVersion) {
+		this.minMinorVersion = minMinorVersion;
+	}
+	/**
+	 * @return the minUpdateVersion
+	 */
+	public int getMinUpdateVersion() {
+		return minUpdateVersion;
+	}
+	/**
+	 * @param minUpdateVersion the minUpdateVersion to set
+	 */
+	public void setMinUpdateVersion(int minUpdateVersion) {
+		this.minUpdateVersion = minUpdateVersion;
+	}
+	/**
+	 * @return the applicationLaunchId
+	 */
+	public String getApplicationLaunchId() {
+		return applicationLaunchId;
+	}
+	/**
+	 * @param applicationLaunchId the applicationLaunchId to set
+	 */
+	public void setApplicationLaunchId(String applicationLaunchId) {
+		this.applicationLaunchId = applicationLaunchId;
+	}
+	/**
+	 * @return the applicationMarketId
+	 */
+	public String getApplicationMarketId() {
+		return applicationMarketId;
+	}
+	/**
+	 * @param applicationMarketId the applicationMarketId to set
+	 */
+	public void setApplicationMarketId(String applicationMarketId) {
+		this.applicationMarketId = applicationMarketId;
+	}
 }

@@ -19,15 +19,25 @@
  */
 package uk.ac.horizon.ug.lobby.model;
 
-import java.util.UUID;
-
 /**
  * @author cmg
  *
  */
-public class GUIDFactory {
-	/** get a GUID (actually a UUID at the mo) */
-	private static synchronized String newGUID() {
-		return UUID.randomUUID().toString();
-	}
+public enum GameInstanceStatus {
+	POSSIBLE,
+	PLANNED,
+	CANCELLED,
+	PREPARING, // transition to READY
+	READY,
+	STARTING, // transition to ACTIVE
+	ACTIVE,
+	ENDING, // transition to ENDED
+	ENDED,
+	ERROR, // temporary
+	FAILED, // permanent
+	STOPPING, // deliberate, transition to STOPPED
+	STOPPED, 
+	PAUSING, // resumable, transition to PAUSED
+	PAUSED,
+	RESUMING; // transition to ACTIVE (from PAUSED)
 }

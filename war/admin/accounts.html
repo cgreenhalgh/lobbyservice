@@ -1,0 +1,48 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!-- The HTML 4.01 Transitional DOCTYPE declaration-->
+<!-- above set at the top of the file will set     -->
+<!-- the browser's rendering engine into           -->
+<!-- "Quirks Mode". Replacing this declaration     -->
+<!-- with a "Standards Mode" doctype is supported, -->
+<!-- but may lead to some differences in layout.   -->
+
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <title>Accounts</title>
+    
+    <script type = "text/javascript" src="../resources/jquery-1.4.2.min.js"></script>
+    <script type = "text/javascript" src="../resources/jquery.json-2.2.min.js"></script>
+    <script type="text/javascript">
+    	$(document).ready(function() {
+    		$('<tr id="accounts_status"><td>Loading data...</td></tr>').replaceAll('#accounts_status');
+        	$.getJSON('ListAccounts',function(json) {
+            	//$('<tr><td>Read '+json+' ('+json.length+' items, array='+$.isArray(json)+', json='+$.toJSON(json)+')</td></tr>').appendTo('#accounts');
+        		//$('<tr id="accounts_status"><td>'+data+'</td>').replaceAll('#accounts_status');
+        	    $('#accounts_status').remove();
+        	    var acct;
+				for (acct in json) {
+					// this is so... weird
+					if (!$.isPlainObject(acct))
+						acct = json[acct];
+		        	//$('<tr><td>'+acct+' (json='+$.toJSON(acct)+' '+acct.nickname+')</td><td>'+acct.gameTemplateQuota+'</td></tr>').appendTo('#accounts');						
+		        	$('<tr><td>'+acct.nickname+'</td><td>'+acct.gameTemplateQuota+'</td></tr>').appendTo('#accounts');						
+				}
+        	});
+    	});
+    </script>
+  </head>
+
+  <body>
+    <h1>Accounts</h1>
+    <table id="accounts" border="1">
+      <tr style="font-weight:bold;">
+        <td >Nickname</td><td>Game Template Quota</td>        
+      </tr>
+      <tr id="accounts_status">
+        <td>Loading page...</td>        
+      </tr>
+    </table>
+
+  </body>
+</html>

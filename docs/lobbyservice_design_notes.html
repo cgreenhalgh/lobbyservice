@@ -1,59 +1,108 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <head>
+
+  
   <meta content="text/html; charset=ISO-8859-1" http-equiv="content-type">
+
+  
   <title>Lobby Service Design Notes</title>
 </head>
+
+
 <body>
+
 <h1>Lobby Service Design Notes</h1>
-<p>Chris Greenhalgh, 2010-07-05</p>
-<p>See also game server design notes, including initial thoughts about lobby service interaction: <a href="http://github.com/cgreenhalgh/droolstest/raw/master/docs/urban-game-server-design-notes.html">urban-game-server-design-notes.html</a></p>
+
+<p>Chris Greenhalgh, 2010-08-17</p>
 <h2>Client interaction</h2>
+
 <p>There are two main client interactions:</p>
+
 <ol>
+
   <li>list available games (for this client)</li>
+
   <li>join specific game</li>
+
 </ol>
-The first interaction is based on a previously downloaded (probably statically served) lobby service description file. <br>
+<p>
+The first interaction is based on a previously downloaded (probably statically served) lobby service description file.&nbsp;</p>
+See <a href="lobbyservice_interaction_notes.html">lobbyservice_interaction_notes.html</a> for more details of the proposed interaction.
 <h2>Data Model</h2>
+
 <p>Main entities:</p>
+
 <ul>
+
   <li>Client -&nbsp;device, typically</li>
+
   <li>User - person with some sort of account [e.g. for admin / orchestration, or instead of ticketing]</li>
-  <li>Game Server -&nbsp;specific game server, e.g. droolstest instance [for internal management, e.g status tracking, instance creation]</li>
+
+  <li>Game Server -&nbsp;specific game server, e.g. droolstest
+instance [for internal management, e.g status tracking, instance
+creation]</li>
+
   <li>Game Template - information about a family of similar game
 instances, which might be useful to create them, c.f. a droolstest
-template. May be linked to a particular Game Server or perhaps a type of Game Server. [for internal management and&nbsp;instance creation/lifecycle; also user concept c.f. film and showing]</li>
+template. May be linked to a particular Game Server or perhaps a type
+of Game Server. [for internal management and&nbsp;instance
+creation/lifecycle; also user concept c.f. film and showing]</li>
+
   <li>Game Instance - a specific (potentially multi-user) game instance, e.g. a droolstest "session"</li>
+
   <li>Game Instance Slot - a particular client's involvement with a particular game instance, c.f. droolstest "conversation"</li>
+
   <li>Ticket - a lobby-generated credential which allows a Client access to a Lobby and/or Game Instance</li>
+
   <li>Client Filter - client black/white list</li>
+
   <li>Network Filter - network black/white list</li>
+
 </ul>
+
 And some key Protocol objects:<br>
+
 <ul>
+
   <li>Client Description - e.g. IMEI, user, capabilities/application versions, etc.</li>
+
   <li>Lobby Response - e.g. challenge, game(s), ...</li>
+
   <li>Partial Game Description (or Game Pattern) - (partial) description of a game (or set of related games)</li>
+
   <li>Game Server Referral - information given to the client in on successful join request to allow it to enter the actual game.</li>
+
 </ul>
+
 <h2>Use Cases</h2>
+
 Initial use case(s):<br>
+
 <h3>Use case: Exploding Places July test</h3>
+
 <p>Loan devices. Custom (game-specific) application. 4 (?)
 pre-scheduled game instances. 10 (?) slots per game instance. Single
 game server. Single game instance active at one time (may be same
 instance reused).</p>
+
 <p>=&gt;</p>
+
 <p>Single GameServer. Small number of per-configured Game Instances
 (possibly from a single Game Template). Each with a fixed (?) set of
 Slots. Possibly with associated Tickets.</p>
+
 <h3>Use case: Droolstest / Hyperplace development</h3>
+
 <p>Own(ish) devices. Generic application download (could be from marketplace).&nbsp;</p>
+
 <p>=&gt;</p>
+
 <p>Single Game Server and Game Template per development / developer.
 Game Instance created on demand? &nbsp;Slots created/allocated on
 demand.&nbsp;</p>
+
 <p></p>
+
 </body>
 </html>
