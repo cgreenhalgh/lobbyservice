@@ -1,4 +1,11 @@
-<!-- Indices written at Tue, 17 Aug 2010 16:51:59 UTC -->
+<!-- Indices written at Tue, 17 Aug 2010 22:31:19 UTC -->
 
-<datastore-indexes/>
+<datastore-indexes>
 
+    <!-- Used 1 time in query history -->
+    <datastore-index kind="Account" ancestor="false" source="auto">
+        <property name="gameTemplateQuota" direction="desc"/>
+        <property name="userId" direction="asc"/>
+    </datastore-index>
+
+</datastore-indexes>

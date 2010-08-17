@@ -13,6 +13,10 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
 		<servlet-class>uk.ac.horizon.ug.lobby.admin.ListAccountsServlet</servlet-class>
 	</servlet>
 	<servlet>
+		<servlet-name>UpdateAccount</servlet-name>
+		<servlet-class>uk.ac.horizon.ug.lobby.admin.UpdateAccountServlet</servlet-class>
+	</servlet>
+	<servlet>
 		<servlet-name>GetUserAccount</servlet-name>
 		<servlet-class>uk.ac.horizon.ug.lobby.user.GetUserAccountServlet</servlet-class>
 	</servlet>
@@ -23,6 +27,10 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
 	<servlet-mapping>
 		<servlet-name>ListAccounts</servlet-name>
 		<url-pattern>/admin/ListAccounts</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>UpdateAccount</servlet-name>
+		<url-pattern>/admin/UpdateAccount</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>GetUserAccount</servlet-name>
