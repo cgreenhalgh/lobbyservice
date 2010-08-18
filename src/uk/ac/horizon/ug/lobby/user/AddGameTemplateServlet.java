@@ -42,6 +42,7 @@ import org.json.JSONObject;
 import org.json.JSONWriter;
 
 import uk.ac.horizon.ug.lobby.Constants;
+import uk.ac.horizon.ug.lobby.RequestException;
 import uk.ac.horizon.ug.lobby.model.Account;
 import uk.ac.horizon.ug.lobby.model.EMF;
 import uk.ac.horizon.ug.lobby.model.GUIDFactory;
@@ -63,16 +64,7 @@ public class AddGameTemplateServlet extends HttpServlet implements Constants {
 	@Override
 	public void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException {
-		//logger.info("Get: contextPath="+req.getContextPath()+", pathInfo="+req.getPathInfo()+", queryString="+req.getQueryString());
-        UserService userService = UserServiceFactory.getUserService(); 
-        
-        User user = userService.getCurrentUser();
-        if (user==null) {
-        	logger.warning("getCurrentUser failed");
-        	resp.sendError(HttpServletResponse.SC_UNAUTHORIZED, "User is not authenticated");
-        	return;
-        }
-
+		
         GameTemplateInfo gameTemplateInfo = null;
 		try {
 			BufferedReader r = req.getReader();
@@ -83,15 +75,20 @@ public class AddGameTemplateServlet extends HttpServlet implements Constants {
 			gameTemplateInfo = JSONUtils.parseGameTemplateInfo(json);
 		}
 		catch (JSONException je) {
-			throw new IOException(je);
+			resp.sendError(HttpServletResponse.SC_BAD_REQUEST, je.toString());
+			return;
 		}
         
+		Account account = null;
+		try {
+			account = AccountUtils.getAccount(req);
+		}catch (RequestException re) {
+			resp.sendError(re.getErrorCode(), re.getMessage());
+			return;
+		}
 		EntityManager em = EMF.get().createEntityManager();
 		try {
-			Query q = em.createQuery("SELECT x FROM "+Account.class.getName()+" x WHERE x."+USER_ID+" = :"+USER_ID);
-			q.setParameter(USER_ID, user.getUserId());
-			Account account = (Account)q.getSingleResult();
-			q = em.createQuery("SELECT COUNT(x) FROM "+GameTemplate.class.getName()+" x WHERE x."+OWNER_ID+" = :"+OWNER_ID);
+			Query q = em.createQuery("SELECT COUNT(x) FROM "+GameTemplate.class.getName()+" x WHERE x."+OWNER_ID+" = :"+OWNER_ID);
 			q.setParameter(OWNER_ID, account.getKey());
 			int count = (Integer)q.getSingleResult();
 

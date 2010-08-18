@@ -42,19 +42,21 @@ import uk.ac.horizon.ug.lobby.RequestException;
 import uk.ac.horizon.ug.lobby.model.Account;
 import uk.ac.horizon.ug.lobby.model.EMF;
 import uk.ac.horizon.ug.lobby.model.GameClientTemplate;
+import uk.ac.horizon.ug.lobby.model.GameServer;
 import uk.ac.horizon.ug.lobby.model.GameTemplate;
 import uk.ac.horizon.ug.lobby.protocol.JSONUtils;
 
 /** 
- * Get all Accounts (admin view).
+ * Get all user's GameServers (users view).
  * 
  * @author cmg
  *
  */
 @SuppressWarnings("serial")
-public class GetUserGameTemplatesServlet extends HttpServlet implements Constants {
-	static Logger logger = Logger.getLogger(GetUserGameTemplatesServlet.class.getName());
+public class GetUserGameServersServlet extends HttpServlet implements Constants {
+	static Logger logger = Logger.getLogger(GetUserGameServersServlet.class.getName());
 	
+	@SuppressWarnings("unchecked")
 	@Override
 	public void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException {
@@ -69,14 +71,14 @@ public class GetUserGameTemplatesServlet extends HttpServlet implements Constant
 
 		EntityManager em = EMF.get().createEntityManager();
 		try {
-			Query q = em.createQuery("SELECT x FROM "+GameTemplate.class.getName()+" x WHERE x."+OWNER_ID+" = :"+OWNER_ID);
+			Query q = em.createQuery("SELECT x FROM "+GameServer.class.getName()+" x WHERE x."+OWNER_ID+" = :"+OWNER_ID);
 			q.setParameter(OWNER_ID, account.getKey());
-			List<GameTemplate> gameTemplates = (List<GameTemplate>)q.getResultList();
+			List<GameServer> gss = (List<GameServer>)q.getResultList();
 			
 			Writer w = JSONUtils.getResponseWriter(resp);
 			JSONWriter jw = new JSONWriter(w);
 			try {
-				JSONUtils.writeGameTemplates(jw, gameTemplates);
+				JSONUtils.writeGameServers(jw, gss);
 			} catch (JSONException je) {
 				throw new IOException(je);
 			}

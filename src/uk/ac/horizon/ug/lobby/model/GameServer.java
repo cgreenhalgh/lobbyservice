@@ -19,6 +19,8 @@
  */
 package uk.ac.horizon.ug.lobby.model;
 
+import java.util.List;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -38,8 +40,12 @@ public class GameServer {
     @Id 
     @GeneratedValue(strategy = GenerationType.IDENTITY) 
     private Key key; 
-    /** server type, e.g. GAME_TEMPLATE_SPECIFIC */
+	/** owner Account */
+	private Key ownerId;
+    /** server type, i.e. protocol/interaction paradigm e.g. EXPLODING_PLACES */
     private GameServerType type;
+    /** supported game template id */
+    private String gameTemplateId;
     /** base URL, e.g. http://host:port/ */
     private String baseUrl;
     /** shared secret */
@@ -73,6 +79,18 @@ public class GameServer {
 	 */
 	public GameServerType getType() {
 		return type;
+	}
+	/**
+	 * @return the ownerId
+	 */
+	public Key getOwnerId() {
+		return ownerId;
+	}
+	/**
+	 * @param ownerId the ownerId to set
+	 */
+	public void setOwnerId(Key ownerId) {
+		this.ownerId = ownerId;
 	}
 	/**
 	 * @param type the type to set
@@ -139,6 +157,18 @@ public class GameServer {
 	 */
 	public void setTargetStatus(GameServerStatus targetStatus) {
 		this.targetStatus = targetStatus;
+	}
+	/**
+	 * @return the gameTemplateId
+	 */
+	public String getGameTemplateId() {
+		return gameTemplateId;
+	}
+	/**
+	 * @param gameTemplateId the gameTemplateId to set
+	 */
+	public void setGameTemplateId(String gameTemplateId) {
+		this.gameTemplateId = gameTemplateId;
 	}
     
 }

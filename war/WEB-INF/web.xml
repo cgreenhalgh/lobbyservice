@@ -32,6 +32,18 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
 		<servlet-name>AddGameTemplate</servlet-name>
 		<servlet-class>uk.ac.horizon.ug.lobby.user.AddGameTemplateServlet</servlet-class>
 	</servlet>
+	<servlet>
+		<servlet-name>GetUserGameServers</servlet-name>
+		<servlet-class>uk.ac.horizon.ug.lobby.user.GetUserGameServersServlet</servlet-class>
+	</servlet>
+	<servlet>
+		<servlet-name>UserGameServer</servlet-name>
+		<servlet-class>uk.ac.horizon.ug.lobby.user.UserGameServerServlet</servlet-class>
+	</servlet>
+	<servlet>
+		<servlet-name>AddGameServer</servlet-name>
+		<servlet-class>uk.ac.horizon.ug.lobby.user.AddGameServerServlet</servlet-class>
+	</servlet>
 	<servlet-mapping>
 		<servlet-name>Lobbyservice</servlet-name>
 		<url-pattern>/lobbyservice/*</url-pattern>
@@ -59,6 +71,18 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
 	<servlet-mapping>
 		<servlet-name>UserGameTemplate</servlet-name>
 		<url-pattern>/user/UserGameTemplate/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>GetUserGameServers</servlet-name>
+		<url-pattern>/user/GetUserGameServers</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>AddGameServer</servlet-name>
+		<url-pattern>/user/AddGameServer</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>UserGameServer</servlet-name>
+		<url-pattern>/user/UserGameServer/*</url-pattern>
 	</servlet-mapping>
 	<welcome-file-list>
 		<welcome-file>index.html</welcome-file>

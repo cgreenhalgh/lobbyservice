@@ -1,0 +1,189 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!-- The HTML 4.01 Transitional DOCTYPE declaration-->
+<!-- above set at the top of the file will set     -->
+<!-- the browser's rendering engine into           -->
+<!-- "Quirks Mode". Replacing this declaration     -->
+<!-- with a "Standards Mode" doctype is supported, -->
+<!-- but may lead to some differences in layout.   -->
+
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <title>User Game Servers</title>
+    
+    <script type = "text/javascript" src="../resources/jquery-1.4.2.min.js"></script>
+    <script type = "text/javascript" src="../resources/jquery.json-2.2.min.js"></script>
+    <script type="text/javascript">
+    	// editing a game template?
+    	var current_game_template = null;
+    	// start here...
+    	$.ajaxSetup({cache:false});
+    	function get_templates() {
+        	// loading...
+       	    $('#templates_status').remove();
+    	    $('.game_template').remove();
+    		$('<tr id="templates_status"><td>Loading data...</td></tr>').appendTo('#templates');
+        	$.getJSON('GetUserGameServers',function(json) {
+        	    $('#templates_status').remove();
+        	    var item;
+				for (item in json) {
+					// this is so... weird - acct initially seems to be array index
+					if (!$.isPlainObject(item))
+						item = json[item];
+		        	$('<tr class="game_template"><td>'+item.type+'</td><td>'+item.gameTemplateId+'</td><td>'+item.baseUrl+'</td><td>'+item.targetStatus+'</td><td>'+item.lastKnownStatus+'</td><td>'+item.lastKnownStatusTime+'</td><td><input type="button" value="edit" onclick="select_template(\''+item.key+'\')"/></td></tr>').appendTo('#templates');
+				}
+        	});
+    	}
+
+    	function get_template_options() {
+        	// loading...
+       	    $('select[name=gameTemplateId] > option').remove();
+       	    $('select[name=gameTemplateId]').append('<option label="Loading..." selected="true"/>');
+        	$.getJSON('GetUserGameTemplates',function(json) {
+           	    $('select[name=gameTemplateId] > option').remove();
+           	    //alert('got '+json.length+' template options: '+json);
+        	    for (var i=0; i<json.length; i++) {
+            	    var item = json[i];
+               	    $('select[name=gameTemplateId]').append('<option label="'+item.title+'" value="'+item.id+'"/>'+item.title+'</option>');
+               	}
+        	});
+    	}
+    	
+    	$(document).ready(function() {
+        	get_templates();
+        	get_template_options();
+    	});
+
+    	function add_field(form, obj, name, input_name) {
+        	if (!input_name)
+            	input_name = name;
+        	var value = $(':input[name='+input_name+']',form).attr('value');
+        	if (value!=null && value!='')
+            	obj[name] = value;
+    	}
+    	function add_select_field(form, obj, name, input_name) {
+        	if (!input_name)
+            	input_name = name;
+        	var value = $('select[name='+name+'] > option[selected]').attr('value');
+        	if (value!=null && value!='')
+            	obj[name] = value;
+    	}
+    	// called from form submit for add template
+    	function add_game_template(form) {
+        	var gt = {};
+        	add_field(form, gt, 'type');
+        	//add_field(form, gt, 'gameTemplateId');
+        	add_select_field(form, gt, 'gameTemplateId');
+        	add_field(form, gt, 'baseUrl');
+        	add_select_field(form, gt, 'targetStatus');
+        	add_field(form, gt, 'lobbySharedSecret');
+
+    		var data = $.toJSON(gt);
+    		//alert('Request: '+data);
+    		if (current_game_template==null) {
+	    		$.ajax({url: 'AddGameServer', 
+	        		type: 'POST',
+	        		contentType: 'application/json',
+	        		processData: false,
+	        		data: data,
+	        		dataType: 'text',
+	        		success: function success(data, status) {
+	        			get_templates();
+	        			alert('Added server ('+status+')');
+	    			},
+	    			error: function error(req, status) {
+	        			alert('Error adding server ('+req.status+': '+req.statusText+')');
+	    			}
+	    		});
+    		} else {
+        		// edit
+	    		$.ajax({url: 'UserGameServer/'+current_game_template.key, 
+	        		type: 'POST',
+	        		contentType: 'application/json',
+	        		processData: false,
+	        		data: data,
+	        		dataType: 'text',
+	        		success: function success(data, status) {
+	        			get_templates();
+	        			alert('Updated server ('+status+')');
+	    			},
+	    			error: function error(req, status) {
+	        			alert('Error updating server ('+req.status+': '+req.statusText+')');
+	    			}
+	    		});
+    		}    	
+        	//alert('add '+$.toJSON(gt));
+        	return false;
+    	}
+    	// reset game template form to add 
+    	function reset_game_template(form) {
+        	current_game_template = null;
+        	$(':input[type=submit]').attr('value','Add game server');
+        	$('tr').filter('.client_template').remove();
+        	return true;
+    	}
+    	// reset game template form to add 
+    	function select_template(id) {
+        	//alert('select template '+id);
+        	current_game_template = null;
+        	$(':input[type=submit]').attr('value','Update game server');
+        	$(':input[name=key]').attr('value',id);
+        	$(':input[name=type]').attr('value','Loading data...');
+        	$.getJSON('UserGameServer/'+id, function(data) {
+            	//alert('received '+$.toJSON(data));
+            	current_game_template = data;
+            	$(':input[name=type]').attr('value',data.type);
+            	//$(':input[name=gameTemplateId]').attr('value',data.gameTemplateId);
+				$('select[name=gameTemplateId] > option[selected]').removeAttr('selected');
+				if (data.gameTemplateId!=null && data.gameTemplateId!='')
+					$('select[name=gameTemplateId] > option[name='+data.gameTemplateId+']').attr('selected','true');
+				$(':input[name=baseUrl]').attr('value',data.baseUrl);
+            	//$(':input[name=targetStatus]').attr('value',data.targetStatus);
+				$('select[name=targetStatus] > option[selected]').removeAttr('selected');
+				if (data.targetStatus!=null && data.targetStatus!='')
+					$('select[name=targetStatus] > option[name='+data.targetStatus+']').attr('selected','true');
+            	$(':input[name=lobbySharedSecret]').attr('value',data.lobbySharedSecret);
+        	});
+        	return false;
+    	}
+    </script>
+  </head>
+
+  <body>
+    <h1>User Game Servers</h1>
+    <h2>Current Servers</h2>
+    <table id="templates" border="1">
+      <tr style="font-weight:bold;">
+        <td >type</td><td>game template id</td><td>base url</td><td>target status</td><td>last known status</td><td>last known status time</td>
+      </tr>
+      <tr id="templates_status">
+        <td>Loading page...</td>        
+      </tr>
+    </table>
+	<p><input type="button" value="Refresh" onclick="get_templates()"/></p>
+	
+	<h2>Game Server</h2>
+	<form action="dummy" onsubmit="return add_game_template(this)">
+		<table border="1">
+			<tr><td>key</td><td><input type="text" name="key" readonly="readonly"/></td></tr>
+			<tr><td>type</td><td><input type="text" name="type"/></td></tr>
+			<tr><td>game template id</td><td>
+				<!-- <input type="text" name="gameTemplateId"/>  -->
+				<select name="gameTemplateId">
+				</select>
+			</td></tr>
+			<tr><td>base url</td><td><input type="text" name="baseUrl"/></td></tr>
+			<tr><td>lobby shared secret</td><td><input type="text" name="lobbySharedSecret"/></td></tr>
+			<tr><td>target status</td><td>
+				<!-- <input type="text" name="targetStatus"/> -->
+				<select name="targetStatus">
+					<option label="Unspecified" value="" selected="true"></option>
+					<option label="UP" value="UP">UP</option>
+					<option label="STOPPED" value="STOPPED">STOPPED</option>
+				</select>
+			</td></tr>
+		</table>
+		<p><input type="submit" value="Add game server"/><input type="reset" value="Reset/New" onclick="reset_game_template(this)"/></p>
+	</form>
+  </body>
+</html>

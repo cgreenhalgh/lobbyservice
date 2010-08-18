@@ -19,10 +19,11 @@
  */
 package uk.ac.horizon.ug.lobby.model;
 
-/**
+/** Essentially should identify the protocol/paradigm for interacting with the server.
+ * 
  * @author cmg
  *
  */
 public enum GameServerType {
-	GAME_TEMPLATE_SPECIFIC
+	EXPLODING_PLACES
 }

@@ -36,9 +36,14 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONWriter;
 
+import com.google.appengine.api.datastore.KeyFactory;
+
 import uk.ac.horizon.ug.lobby.Constants;
 import uk.ac.horizon.ug.lobby.model.Account;
 import uk.ac.horizon.ug.lobby.model.GameClientTemplate;
+import uk.ac.horizon.ug.lobby.model.GameServer;
+import uk.ac.horizon.ug.lobby.model.GameServerStatus;
+import uk.ac.horizon.ug.lobby.model.GameServerType;
 import uk.ac.horizon.ug.lobby.model.GameTemplate;
 
 /** JSON marshall/unmarshall utils
@@ -223,5 +228,92 @@ public class JSONUtils implements Constants {
 				throw new JSONException("Unsupported key '"+key+"' in GameClientTemplate: "+json);
 		}
 		return gct;
+	}
+	/** write GameServer object for user 
+	 * @throws JSONException */
+	public static void writeGameServers(JSONWriter jw, List<GameServer> gss) throws JSONException {
+		jw.array();
+		for (GameServer gs : gss) {
+			writeGameServer(jw, gs);
+		}
+		jw.endArray();
+	}
+	/** write GameServer object for user 
+	 * @throws JSONException */
+	public static void writeGameServer(JSONWriter jw, GameServer gs) throws JSONException {
+		jw.object();
+		if (gs.getBaseUrl()!=null) {
+			jw.key(BASE_URL);
+			jw.value(gs.getBaseUrl());
+		}
+		if (gs.getGameTemplateId()!=null) {
+			jw.key(GAME_TEMPLATE_ID);
+			jw.value(gs.getGameTemplateId());
+		}
+		if (gs.getKey()!=null) {
+			jw.key(KEY);
+			jw.value(KeyFactory.keyToString(gs.getKey()));
+		}
+		if (gs.getLastKnownStatus()!=null) {
+			jw.key(LAST_KNOWN_STATUS);
+			jw.value(gs.getLastKnownStatus().toString());
+		}
+		if (gs.getLastKnownStatusTime()!=0) {
+			jw.key(LAST_KNOWN_STATUS_TIME);
+			jw.value(gs.getLastKnownStatusTime());
+		}
+		if (gs.getLobbySharedSecret()!=null) {
+			jw.key(LOBBY_SHARED_SECRET);
+			jw.value(gs.getLobbySharedSecret());
+		}
+		if (gs.getTargetStatus()!=null) {
+			jw.key(TARGET_STATUS);
+			jw.value(gs.getTargetStatus().toString());
+		}
+		if (gs.getType()!=null) {
+			jw.key(TYPE);
+			jw.value(gs.getType().toString());
+		}
+		jw.endObject();
+	}
+	/** parse JSON Object to GameTemplateInfo, i.e. GameTemplate with optional GameClientTemplates 
+	 * @throws JSONException */
+	public static GameServer parseGameServer(JSONObject json) throws JSONException {
+		GameServer gs = new GameServer();
+		Iterator keys = json.keys();
+		while(keys.hasNext()) {
+			String key = (String)keys.next();
+			if (key.equals(BASE_URL))
+				gs.setBaseUrl(json.getString(BASE_URL));
+			else if (key.equals(GAME_TEMPLATE_ID))
+				gs.setGameTemplateId(json.getString(GAME_TEMPLATE_ID));
+			else if (key.equals(KEY))
+				gs.setKey(KeyFactory.stringToKey(json.getString(KEY)));
+			else if (key.equals(LAST_KNOWN_STATUS))
+				gs.setLastKnownStatus(GameServerStatus.valueOf(json.getString(LAST_KNOWN_STATUS)));
+			else if (key.equals(LAST_KNOWN_STATUS_TIME))
+				gs.setLastKnownStatusTime(json.getInt(LAST_KNOWN_STATUS_TIME));
+			else if (key.equals(LOBBY_SHARED_SECRET))
+				gs.setLobbySharedSecret(json.getString(LOBBY_SHARED_SECRET));
+			else if (key.equals(TARGET_STATUS))
+				gs.setTargetStatus(GameServerStatus.valueOf(json.getString(TARGET_STATUS)));
+			else if (key.equals(TYPE))
+				gs.setType(GameServerType.valueOf(json.getString(TYPE)));
+			else
+				throw new JSONException("Unsupported key '"+key+"' in GameServer: "+json);
+		}
+		return gs;
+	}
+	/** set GameServer as response 
+	 * @throws IOException */
+	public static void sendGameServer(HttpServletResponse resp, GameServer gs) throws IOException {
+		Writer w = JSONUtils.getResponseWriter(resp);
+		JSONWriter jw = new JSONWriter(w);
+		try {
+			JSONUtils.writeGameServer(jw, gs);	
+		} catch (JSONException je) {
+			throw new IOException(je);
+		}
+		w.close();
 	}
 }

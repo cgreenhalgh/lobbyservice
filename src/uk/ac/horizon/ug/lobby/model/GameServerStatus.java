@@ -24,6 +24,7 @@ package uk.ac.horizon.ug.lobby.model;
  *
  */
 public enum GameServerStatus {
+	UNKNOWN,
 	DOES_NOT_EXIST,
 	STOPPED,
 	DOWN,
