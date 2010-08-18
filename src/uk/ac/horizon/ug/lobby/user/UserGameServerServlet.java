@@ -137,6 +137,8 @@ public class UserGameServerServlet extends HttpServlet implements Constants {
 				gs.setLobbySharedSecret(ngs.getLobbySharedSecret());
 			if (ngs.getType()!=null)
 				gs.setType(ngs.getType());
+			if (ngs.getTitle()!=null)
+				gs.setTitle(ngs.getTitle());
 
 			em.merge(gs);
 		} catch (RequestException e) {

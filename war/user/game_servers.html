@@ -30,7 +30,7 @@
 					// this is so... weird - acct initially seems to be array index
 					if (!$.isPlainObject(item))
 						item = json[item];
-		        	$('<tr class="game_template"><td>'+item.type+'</td><td>'+item.gameTemplateId+'</td><td>'+item.baseUrl+'</td><td>'+item.targetStatus+'</td><td>'+item.lastKnownStatus+'</td><td>'+item.lastKnownStatusTime+'</td><td><input type="button" value="edit" onclick="select_template(\''+item.key+'\')"/></td></tr>').appendTo('#templates');
+		        	$('<tr class="game_template"><td>'+item.title+'</td><td>'+item.type+'</td><td>'+item.gameTemplateId+'</td><td>'+item.baseUrl+'</td><td>'+item.targetStatus+'</td><td>'+item.lastKnownStatus+'</td><td>'+item.lastKnownStatusTime+'</td><td><input type="button" value="edit" onclick="select_template(\''+item.key+'\')"/></td></tr>').appendTo('#templates');
 				}
         	});
     	}
@@ -72,6 +72,7 @@
     	function add_game_template(form) {
         	var gt = {};
         	add_field(form, gt, 'type');
+        	add_field(form, gt, 'title');
         	//add_field(form, gt, 'gameTemplateId');
         	add_select_field(form, gt, 'gameTemplateId');
         	add_field(form, gt, 'baseUrl');
@@ -133,6 +134,7 @@
             	//alert('received '+$.toJSON(data));
             	current_game_template = data;
             	$(':input[name=type]').attr('value',data.type);
+            	$(':input[name=title]').attr('value',data.title);
             	//$(':input[name=gameTemplateId]').attr('value',data.gameTemplateId);
 				$('select[name=gameTemplateId] > option[selected]').removeAttr('selected');
 				if (data.gameTemplateId!=null && data.gameTemplateId!='')
@@ -154,7 +156,7 @@
     <h2>Current Servers</h2>
     <table id="templates" border="1">
       <tr style="font-weight:bold;">
-        <td >type</td><td>game template id</td><td>base url</td><td>target status</td><td>last known status</td><td>last known status time</td>
+        <td>title</td><td >type</td><td>game template id</td><td>base url</td><td>target status</td><td>last known status</td><td>last known status time</td>
       </tr>
       <tr id="templates_status">
         <td>Loading page...</td>        
@@ -166,6 +168,7 @@
 	<form action="dummy" onsubmit="return add_game_template(this)">
 		<table border="1">
 			<tr><td>key</td><td><input type="text" name="key" readonly="readonly"/></td></tr>
+			<tr><td>title</td><td><input type="text" name="title"/></td></tr>
 			<tr><td>type</td><td><input type="text" name="type"/></td></tr>
 			<tr><td>game template id</td><td>
 				<!-- <input type="text" name="gameTemplateId"/>  -->

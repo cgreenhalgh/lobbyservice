@@ -42,6 +42,8 @@ public class GameServer {
     private Key key; 
 	/** owner Account */
 	private Key ownerId;
+	/** title/name */
+	private String title;
     /** server type, i.e. protocol/interaction paradigm e.g. EXPLODING_PLACES */
     private GameServerType type;
     /** supported game template id */
@@ -73,6 +75,18 @@ public class GameServer {
 	 */
 	public void setKey(Key key) {
 		this.key = key;
+	}
+	/**
+	 * @return the title
+	 */
+	public String getTitle() {
+		return title;
+	}
+	/**
+	 * @param title the title to set
+	 */
+	public void setTitle(String title) {
+		this.title = title;
 	}
 	/**
 	 * @return the type

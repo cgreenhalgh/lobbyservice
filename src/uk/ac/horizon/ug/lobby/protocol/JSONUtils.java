@@ -258,6 +258,10 @@ public class JSONUtils implements Constants {
 			jw.key(LAST_KNOWN_STATUS);
 			jw.value(gs.getLastKnownStatus().toString());
 		}
+		if (gs.getTitle()!=null) {
+			jw.key(TITLE);
+			jw.value(gs.getTitle().toString());
+		}
 		if (gs.getLastKnownStatusTime()!=0) {
 			jw.key(LAST_KNOWN_STATUS_TIME);
 			jw.value(gs.getLastKnownStatusTime());
@@ -299,6 +303,8 @@ public class JSONUtils implements Constants {
 				gs.setTargetStatus(GameServerStatus.valueOf(json.getString(TARGET_STATUS)));
 			else if (key.equals(TYPE))
 				gs.setType(GameServerType.valueOf(json.getString(TYPE)));
+			else if (key.equals(TITLE))
+				gs.setTitle(json.getString(TITLE));
 			else
 				throw new JSONException("Unsupported key '"+key+"' in GameServer: "+json);
 		}
