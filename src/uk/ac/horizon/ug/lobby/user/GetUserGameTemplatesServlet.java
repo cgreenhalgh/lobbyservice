@@ -42,6 +42,7 @@ import uk.ac.horizon.ug.lobby.model.Account;
 import uk.ac.horizon.ug.lobby.model.EMF;
 import uk.ac.horizon.ug.lobby.model.GameClientTemplate;
 import uk.ac.horizon.ug.lobby.model.GameTemplate;
+import uk.ac.horizon.ug.lobby.protocol.JSONUtils;
 
 /** 
  * Get all Accounts (admin view).
@@ -53,16 +54,12 @@ import uk.ac.horizon.ug.lobby.model.GameTemplate;
 public class GetUserGameTemplatesServlet extends HttpServlet implements Constants {
 	static Logger logger = Logger.getLogger(GetUserGameTemplatesServlet.class.getName());
 	
+	@Override
 	public void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException {
 		//logger.info("Get: contextPath="+req.getContextPath()+", pathInfo="+req.getPathInfo()+", queryString="+req.getQueryString());
         UserService userService = UserServiceFactory.getUserService(); 
         
-        if (req.getUserPrincipal() == null) { 
-        	logger.warning("getUserPrinciple failed");
-        	resp.sendError(HttpServletResponse.SC_UNAUTHORIZED, "User is not authenticated");
-        	return;
-        }
         User user = userService.getCurrentUser();
         if (user==null) {
         	logger.warning("getCurrentUser failed");
@@ -79,32 +76,10 @@ public class GetUserGameTemplatesServlet extends HttpServlet implements Constant
 			q.setParameter(OWNER_ID, account.getKey());
 			List<GameTemplate> gameTemplates = (List<GameTemplate>)q.getResultList();
 			
-			resp.setCharacterEncoding(ENCODING);
-			resp.setContentType(JSON_MIME_TYPE);		
-			Writer w = new OutputStreamWriter(resp.getOutputStream(), ENCODING);
+			Writer w = JSONUtils.getResponseWriter(resp);
 			JSONWriter jw = new JSONWriter(w);
 			try {
-				jw.array();
-				for (GameTemplate gameTemplate : gameTemplates) {
-					jw.key(ID);
-					jw.value(gameTemplate.getId());
-					jw.key(TITLE);
-					jw.value(gameTemplate.getTitle());
-					jw.key(DESCRIPTION);
-					jw.value(gameTemplate.getDescription());
-					jw.key(LANG);
-					jw.value(gameTemplate.getLang());
-					jw.key(CLIENT_TEMPLATES);
-					Query q2 = em.createQuery("SELECT x FROM "+GameClientTemplate.class.getName()+" x WHERE x."+GAME_TEMPLATE_ID+" = :"+GAME_TEMPLATE_ID);
-					q.setParameter(GAME_TEMPLATE_ID, gameTemplate.getId());
-					List<GameClientTemplate> gameClientTemplates = (List<GameClientTemplate>)q.getResultList();
-					jw.array();
-					for (GameClientTemplate gameClientTemplate : gameClientTemplates) {
-						// TODO
-					}
-					jw.endArray();
-				}
-				jw.endArray();
+				JSONUtils.writeGameTemplates(jw, gameTemplates);
 			} catch (JSONException je) {
 				throw new IOException(je);
 			}

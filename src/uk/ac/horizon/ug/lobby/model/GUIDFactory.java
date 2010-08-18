@@ -27,7 +27,7 @@ import java.util.UUID;
  */
 public class GUIDFactory {
 	/** get a GUID (actually a UUID at the mo) */
-	private static synchronized String newGUID() {
+	public static synchronized String newGUID() {
 		return UUID.randomUUID().toString();
 	}
 }

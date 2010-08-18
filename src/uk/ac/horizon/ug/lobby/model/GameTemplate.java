@@ -23,6 +23,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 
 import com.google.appengine.api.datastore.Key;
+import com.google.appengine.api.datastore.KeyFactory;
 
 /**
  * @author cmg
@@ -32,7 +33,7 @@ import com.google.appengine.api.datastore.Key;
 public class GameTemplate {
 	/** globally unique (random) ID and primary key */
 	@Id
-	private String id;
+	private Key key;
 	/** title */
 	private String title;
 	/** description */
@@ -41,6 +42,9 @@ public class GameTemplate {
 	private String lang;
 	/** owner Account */
 	private Key ownerId;
+	public static Key idToKey(String id) {
+		return KeyFactory.createKey(GameTemplate.class.getSimpleName(), id);
+	}
 	/**
 	 */
 	public GameTemplate() {
@@ -51,19 +55,30 @@ public class GameTemplate {
 	 */
 	public GameTemplate(String id) {
 		super();
-		this.id = id;
+		this.key = idToKey(id);
 	}
 	/**
 	 * @return the id
 	 */
 	public String getId() {
-		return id;
+		if (key==null)
+			return null;
+		return key.getName();
+	}
+	public void setId(String id) {
+		key = idToKey(id);
 	}
 	/**
-	 * @param id the id to set
+	 * @return the key
 	 */
-	public void setId(String id) {
-		this.id = id;
+	public Key getKey() {
+		return key;
+	}
+	/**
+	 * @param key the key to set
+	 */
+	public void setKey(Key key) {
+		this.key = key;
 	}
 	/**
 	 * @return the title
@@ -112,6 +127,15 @@ public class GameTemplate {
 	 */
 	public void setOwnerId(Key ownerId) {
 		this.ownerId = ownerId;
+	}
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "GameTemplate [description=" + description + ", key=" + key
+				+ ", lang=" + lang + ", ownerId=" + ownerId + ", title="
+				+ title + "]";
 	}
 	
 }

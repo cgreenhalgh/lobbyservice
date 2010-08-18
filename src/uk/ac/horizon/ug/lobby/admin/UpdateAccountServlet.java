@@ -40,6 +40,7 @@ import org.json.JSONObject;
 import uk.ac.horizon.ug.lobby.Constants;
 import uk.ac.horizon.ug.lobby.model.Account;
 import uk.ac.horizon.ug.lobby.model.EMF;
+import uk.ac.horizon.ug.lobby.protocol.JSONUtils;
 
 /** 
  * Update account (admin view).
@@ -58,6 +59,7 @@ public class UpdateAccountServlet extends HttpServlet implements Constants {
 		
 		EntityManager em = EMF.get().createEntityManager();
 		//EntityTransaction tx = em.getTransaction();
+		Account account = null;
 		try {
 			//tx.begin();
 			BufferedReader r = req.getReader();
@@ -70,7 +72,7 @@ public class UpdateAccountServlet extends HttpServlet implements Constants {
 			String userId = json.getString(USER_ID);
 			Query q = em.createQuery("SELECT x FROM "+Account.class.getName()+" x WHERE "+USER_ID+" = :"+USER_ID);
 			q.setParameter(USER_ID, userId);
-			Account account = (Account)q.getSingleResult();
+			account = (Account)q.getSingleResult();
 			if (json.has(GAME_TEMPLATE_QUOTA)) {
 				account.setGameTemplateQuota(json.getInt(GAME_TEMPLATE_QUOTA));
 				logger.info("Updated account "+userId+" gameTemplateQuota to "+account.getGameTemplateQuota());
@@ -84,7 +86,7 @@ public class UpdateAccountServlet extends HttpServlet implements Constants {
 		finally {
 			em.close();
 		}
-		resp.setStatus(HttpServletResponse.SC_OK);
-		resp.getOutputStream().close();		
+
+		JSONUtils.sendAccount(resp, account);
 	}
 }

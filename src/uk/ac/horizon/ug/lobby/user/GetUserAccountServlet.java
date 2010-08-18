@@ -38,8 +38,10 @@ import org.json.JSONException;
 import org.json.JSONWriter;
 
 import uk.ac.horizon.ug.lobby.Constants;
+import uk.ac.horizon.ug.lobby.RequestException;
 import uk.ac.horizon.ug.lobby.model.Account;
 import uk.ac.horizon.ug.lobby.model.EMF;
+import uk.ac.horizon.ug.lobby.protocol.JSONUtils;
 
 /** 
  * Get all Accounts (admin view).
@@ -53,63 +55,11 @@ public class GetUserAccountServlet extends HttpServlet implements Constants {
 	
 	public void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException {
-		//logger.info("Get: contextPath="+req.getContextPath()+", pathInfo="+req.getPathInfo()+", queryString="+req.getQueryString());
-        UserService userService = UserServiceFactory.getUserService(); 
-        
-        if (req.getUserPrincipal() == null) { 
-        	logger.warning("getUserPrinciple failed");
-        	resp.sendError(HttpServletResponse.SC_UNAUTHORIZED, "User is not authenticated");
-        	return;
-        }
-        User user = userService.getCurrentUser();
-        if (user==null) {
-        	logger.warning("getCurrentUser failed");
-        	resp.sendError(HttpServletResponse.SC_UNAUTHORIZED, "User is not authenticated");
-        	return;
-        }
-        
-		EntityManager em = EMF.get().createEntityManager();
 		try {
-			Query q = em.createQuery("SELECT x FROM "+Account.class.getName()+" x WHERE x.userId = :userId");
-			q.setParameter("userId", user.getUserId());
-			List<Account> accounts = (List<Account>)q.getResultList();
-			Account account = null;
-			if (accounts.size()==0) {
-				logger.info("Creating new Account for "+user.getUserId()+": email="+user.getEmail()+", nickname="+user.getNickname());
-				account = new Account();
-				account.setUserId(user.getUserId());
-				account.setNickname(user.getNickname());
-				// can't create by default
-				account.setGameTemplateQuota(0);
-				em.persist(account);
-			}
-			else {
-				account = accounts.get(0);
-				if (accounts.size()>1) {
-					logger.warning("Found "+accounts.size()+" Accounts for userId "+user.getUserId());
-				}
-			}
-			
-			resp.setCharacterEncoding(ENCODING);
-			resp.setContentType(JSON_MIME_TYPE);		
-			Writer w = new OutputStreamWriter(resp.getOutputStream(), ENCODING);
-			JSONWriter jw = new JSONWriter(w);
-			try {
-				jw.object();
-				jw.key("userId");
-				jw.value(account.getUserId());
-				jw.key("nickname");
-				jw.value(account.getNickname());
-				jw.key("gameTemplateQuota");
-				jw.value(account.getGameTemplateQuota());
-				jw.endObject();
-			} catch (JSONException je) {
-				throw new IOException(je);
-			}
-			w.close();
-		}
-		finally {
-			em.close();
+			Account account = AccountUtils.getAccount(req);
+			JSONUtils.sendAccount(resp, account);
+		} catch (RequestException e) {
+			resp.sendError(e.getErrorCode(), e.getMessage());
 		}
 	}
 }

@@ -12,5 +12,12 @@ public interface Constants {
 	public static final String LANG = "lang";
 	public static final String GAME_TEMPLATE_ID = "gameTemplateId";
 	public static final String CLIENT_TEMPLATES = "clientTemplates";
-	
+	public static final String CLIENT_TYPE = "clientType";
+	public static final String MIN_MINOR_VERSION = "minMinorVersion";
+	public static final String MIN_MAJOR_VERSION = "minMajorVersion";
+	public static final String MIN_UPDATE_VERSION = "minUpdateVersion";
+	public static final String APPLICATION_LAUNCH_ID = "applicationLaunchId";
+	public static final String APPLICATION_MARKET_ID = "applicationMarketId";
+	public static final String LOCATION_SPECIFIC = "locationSpecific";
+
 }
