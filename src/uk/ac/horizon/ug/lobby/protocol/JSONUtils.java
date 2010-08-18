@@ -41,6 +41,8 @@ import com.google.appengine.api.datastore.KeyFactory;
 import uk.ac.horizon.ug.lobby.Constants;
 import uk.ac.horizon.ug.lobby.model.Account;
 import uk.ac.horizon.ug.lobby.model.GameClientTemplate;
+import uk.ac.horizon.ug.lobby.model.GameInstance;
+import uk.ac.horizon.ug.lobby.model.GameInstanceStatus;
 import uk.ac.horizon.ug.lobby.model.GameServer;
 import uk.ac.horizon.ug.lobby.model.GameServerStatus;
 import uk.ac.horizon.ug.lobby.model.GameServerType;
@@ -317,6 +319,101 @@ public class JSONUtils implements Constants {
 		JSONWriter jw = new JSONWriter(w);
 		try {
 			JSONUtils.writeGameServer(jw, gs);	
+		} catch (JSONException je) {
+			throw new IOException(je);
+		}
+		w.close();
+	}
+	/** write GameInstances for user 
+	 * @throws JSONException */
+	public static void writeGameInstances(JSONWriter jw, List<GameInstance> gss) throws JSONException {
+		jw.array();
+		for (GameInstance gs : gss) {
+			writeGameInstance(jw, gs);
+		}
+		jw.endArray();
+	}
+	/** write GameInstance object for user 
+	 * @throws JSONException */
+	public static void writeGameInstance(JSONWriter jw, GameInstance gs) throws JSONException {
+		jw.object();
+		if (gs.getBaseUrl()!=null) {
+			jw.key(BASE_URL);
+			jw.value(gs.getBaseUrl());
+		}
+		jw.key(END_TIME);
+		jw.value(gs.getEndTime());
+		if (gs.getGameServerId()!=null) {
+			jw.key(GAME_SERVER_ID);
+			jw.value(KeyFactory.keyToString(gs.getGameServerId()));
+		}
+		if (gs.getGameTemplateId()!=null) {
+			jw.key(GAME_TEMPLATE_ID);
+			jw.value(gs.getGameTemplateId());
+		}
+		if (gs.getKey()!=null) {
+			jw.key(KEY);
+			jw.value(KeyFactory.keyToString(gs.getKey()));
+		}
+		jw.key(LATITUDE_E6);
+		jw.value(gs.getLatitudeE6());
+		jw.key(LONGITUDE_E6);
+		jw.value(gs.getLongitudeE6());
+		jw.key(RADIUS_METRES);
+		jw.value(gs.getRadiusMetres());
+		jw.key(START_TIME);
+		jw.value(gs.getStartTime());
+		if (gs.getStatus()!=null) {
+			jw.key(STATUS);
+			jw.value(gs.getStatus().toString());
+		}
+		if (gs.getTitle()!=null) {
+			jw.key(TITLE);
+			jw.value(gs.getTitle());
+		}
+		jw.endObject();
+	}
+	/** parse JSON Object to GameInstance
+	 * @throws JSONException */
+	public static GameInstance parseGameInstance(JSONObject json) throws JSONException {
+		GameInstance gs = new GameInstance();
+		Iterator keys = json.keys();
+		while(keys.hasNext()) {
+			String key = (String)keys.next();
+			if (key.equals(BASE_URL))
+				gs.setBaseUrl(json.getString(BASE_URL));
+			else if (key.equals(END_TIME))
+				gs.setEndTime(json.getLong(END_TIME));
+			else if (key.equals(GAME_SERVER_ID))
+				gs.setGameServerId(KeyFactory.stringToKey(json.getString(GAME_SERVER_ID)));
+			else if (key.equals(GAME_TEMPLATE_ID))
+				gs.setGameTemplateId(json.getString(GAME_TEMPLATE_ID));
+			else if (key.equals(KEY))
+				gs.setKey(KeyFactory.stringToKey(json.getString(KEY)));
+			else if (key.equals(LATITUDE_E6))
+				gs.setLatitudeE6(json.getInt(LATITUDE_E6));
+			else if (key.equals(LONGITUDE_E6))
+				gs.setLongitudeE6(json.getInt(LONGITUDE_E6));
+			else if (key.equals(RADIUS_METRES))
+				gs.setRadiusMetres(json.getDouble(RADIUS_METRES));
+			else if (key.equals(START_TIME))
+				gs.setStartTime(json.getLong(START_TIME));
+			else if (key.equals(STATUS))
+				gs.setStatus(GameInstanceStatus.valueOf(json.getString(STATUS)));
+			else if (key.equals(TITLE))
+				gs.setTitle(json.getString(TITLE));
+			else
+				throw new JSONException("Unsupported key '"+key+"' in GameInstance: "+json);
+		}
+		return gs;
+	}
+	/** set GameInstance as response 
+	 * @throws IOException */
+	public static void sendGameInstance(HttpServletResponse resp, GameInstance gs) throws IOException {
+		Writer w = JSONUtils.getResponseWriter(resp);
+		JSONWriter jw = new JSONWriter(w);
+		try {
+			JSONUtils.writeGameInstance(jw, gs);	
 		} catch (JSONException je) {
 			throw new IOException(je);
 		}

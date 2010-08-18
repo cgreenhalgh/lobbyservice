@@ -40,6 +40,8 @@ public class GameInstance {
     private String gameTemplateId;
     /** server */
     private Key gameServerId;
+    /** title */
+    private String title;
     /** start time */
     private long startTime;
     /** end time */
@@ -92,6 +94,54 @@ public class GameInstance {
 	 */
 	public void setGameServerId(Key gameServerId) {
 		this.gameServerId = gameServerId;
+	}
+	/**
+	 * @return the title
+	 */
+	public String getTitle() {
+		return title;
+	}
+	/**
+	 * @param title the title to set
+	 */
+	public void setTitle(String title) {
+		this.title = title;
+	}
+	/**
+	 * @return the latitudeE6
+	 */
+	public int getLatitudeE6() {
+		return latitudeE6;
+	}
+	/**
+	 * @param latitudeE6 the latitudeE6 to set
+	 */
+	public void setLatitudeE6(int latitudeE6) {
+		this.latitudeE6 = latitudeE6;
+	}
+	/**
+	 * @return the longitudeE6
+	 */
+	public int getLongitudeE6() {
+		return longitudeE6;
+	}
+	/**
+	 * @param longitudeE6 the longitudeE6 to set
+	 */
+	public void setLongitudeE6(int longitudeE6) {
+		this.longitudeE6 = longitudeE6;
+	}
+	/**
+	 * @return the radiusMetres
+	 */
+	public double getRadiusMetres() {
+		return radiusMetres;
+	}
+	/**
+	 * @param radiusMetres the radiusMetres to set
+	 */
+	public void setRadiusMetres(double radiusMetres) {
+		this.radiusMetres = radiusMetres;
 	}
 	/**
 	 * @return the startTime

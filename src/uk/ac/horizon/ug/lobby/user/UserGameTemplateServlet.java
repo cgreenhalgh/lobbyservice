@@ -61,7 +61,7 @@ import uk.ac.horizon.ug.lobby.protocol.JSONUtils;
 public class UserGameTemplateServlet extends HttpServlet implements Constants {
 	static Logger logger = Logger.getLogger(UserGameTemplateServlet.class.getName());
 	
-	private String getGameTemplateId(HttpServletRequest req) throws RequestException {
+	public static String getGameTemplateId(HttpServletRequest req) throws RequestException {
 		String id = req.getPathInfo();
 		if (id!=null && id.startsWith("/"))
 			id = id.substring(1);
@@ -70,11 +70,11 @@ public class UserGameTemplateServlet extends HttpServlet implements Constants {
 		return id;
 	}
 
-	private GameTemplate getGameTemplate(HttpServletRequest req, EntityManager em) throws RequestException {
+	public static GameTemplate getGameTemplate(HttpServletRequest req, EntityManager em) throws RequestException {
 		Account account = AccountUtils.getAccount(req);
 		return getGameTemplate(req, em, account);
 	}
-	private GameTemplate getGameTemplate(HttpServletRequest req, EntityManager em, Account account) throws RequestException {
+	public static GameTemplate getGameTemplate(HttpServletRequest req, EntityManager em, Account account) throws RequestException {
 		String id = getGameTemplateId(req);
 		
 		Key key = GameTemplate.idToKey(id);
