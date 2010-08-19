@@ -19,6 +19,47 @@
     	var game_template_id = null;
     	// start here...
     	$.ajaxSetup({cache:false});
+
+    	function format(text,len) {
+        	var str = String(text);
+        	while (str.length<2) 
+            	str = '0'+str;
+        	return str;
+    	}
+		function prettyTimeToString(time) {
+			if (time==0)
+				return "Unspecified";
+			var date = new Date(time);
+			// TZ?
+			var str = format(date.getUTCFullYear(),4)+'-'+format(date.getUTCMonth()+1,2)+'-'+format(date.getUTCDate(),2)+' '+
+			format(date.getUTCHours(),2)+':'+format(date.getUTCMinutes(),2)+':'+format(date.getUTCSeconds(),2);
+			if (date.getTimezoneOffset()!=0)
+				str = str+' Z ('+date.getTimezoneOffset()+')';
+				//date.toUTCString();
+			return str;
+		}
+		function timeToString(time) {
+			var date = new Date(time);
+			var str = format(date.getUTCFullYear(),4)+format(date.getUTCMonth()+1,2)+format(date.getUTCDate(),2)+'T'+
+			format(date.getUTCHours(),2)+format(date.getUTCMinutes(),2)+format(date.getUTCSeconds(),2)+'Z';
+			return str;
+		}
+		function stringToTime(str) {
+			var date = new Date(0);
+			var match = /\d\d\d\d\d\d\d\d[T]\d\d\d\d\d\d[Z]/ .exec(str);
+			if (match==null) 
+				alert('Unable to parse time '+str);
+			else {
+				date.setUTCFullYear(str.substr(0,4));
+				date.setUTCMonth(Number(str.substr(4,2))-1);
+				date.setUTCDate(str.substr(6,2));
+				date.setUTCHours(str.substr(9,2));
+				date.setUTCMinutes(str.substr(11,2));
+				date.setUTCSeconds(str.substr(13,2));
+			}
+			return date.getTime();				
+		}
+    	
     	function get_templates() {
         	// loading...
        	    $('#templates_status').remove();
@@ -32,7 +73,7 @@
 					if (!$.isPlainObject(item))
 						item = json[item];
 					//<td>title</td><td >game server id</td><td>start time</td><td>end time</td><td>latitude(E6)</td><td>longitude(E6)</td><td>radius (metres)</td><td>status</td><td>base url</td>
-		        	$('<tr class="game_template"><td>'+item.title+'</td><td>'+item.gameServerId+'</td><td>'+item.startTime+'</td><td>'+item.endTime+'</td><td>'+item.latitudeE6+'</td><td>'+item.longitudeE6+'</td><td>'+item.radiusMetres+'</td><td>'+item.nominalStatus+'</td><td>'+item.baseUrl+'</td><td><input type="button" value="edit" onclick="select_template(\''+item.key+'\')"/></td></tr>').appendTo('#templates');
+		        	$('<tr class="game_template"><td>'+item.title+'</td><td>'+timeToString(item.startTime)+'</td><td>'+timeToString(item.endTime)+'</td><td>'+item.latitudeE6+'</td><td>'+item.longitudeE6+'</td><td>'+item.radiusMetres+'</td><td>'+item.nominalStatus+'</td><td>'+item.baseUrl+'</td><!-- <td>'+item.gameServerId+'</td> --><td><input type="button" value="edit" onclick="select_template(\''+item.key+'\')"/></td></tr>').appendTo('#templates');
 				}
         	});
     	}
@@ -80,7 +121,7 @@
                	}
         	});
     	}
-    	
+
     	$(document).ready(function() {
         	//get_templates();
         	get_template_options();
@@ -93,6 +134,13 @@
         	var value = $(':input[name='+input_name+']',form).attr('value');
         	if (value!=null && value!='')
             	obj[name] = value;
+    	}
+    	function add_time_field(form, obj, name, input_name) {
+        	if (!input_name)
+            	input_name = name;
+        	var value = $(':input[name='+input_name+']',form).attr('value');
+        	if (value!=null && value!='')
+            	obj[name] = stringToTime(value);
     	}
     	function add_number_field(form, obj, name, input_name) {
         	if (!input_name)
@@ -117,8 +165,8 @@
         	add_field(form, gt, 'baseUrl');
         	//add_field(form, gt, 'status');
         	add_select_field(form, gt, 'nominalStatus');
-        	add_number_field(form, gt, 'startTime');
-        	add_number_field(form, gt, 'endTime');
+        	add_time_field(form, gt, 'startTime');
+        	add_time_field(form, gt, 'endTime');
         	add_number_field(form, gt, 'latitudeE6');
         	add_number_field(form, gt, 'longitudeE6');
         	add_number_field(form, gt, 'radiusMetres');
@@ -180,8 +228,8 @@
 				$('select[name=gameServerId] > option[selected]').removeAttr('selected');
 				if (data.gameServerId!=null && data.gameServerId!='')
 					$('select[name=gameServerId] > option[value='+data.gameServerId+']').attr('selected','true');
-            	$(':input[name=startTime]').attr('value',data.startTime);
-            	$(':input[name=endTime]').attr('value',data.endTime);
+            	$(':input[name=startTime]').attr('value',timeToString(data.startTime));
+            	$(':input[name=endTime]').attr('value',timeToString(data.endTime));
             	$(':input[name=latitudeE6]').attr('value',data.latitudeE6);
             	$(':input[name=longitudeE6]').attr('value',data.longitudeE6);
             	$(':input[name=radiusMetres]').attr('value',data.radiusMetres);
@@ -203,6 +251,14 @@
 
   <body>
     <h1>User Game Instances</h1>
+    
+    <p>Time: 
+    <script>
+    	var now = new Date().getTime();
+    	document.write(now+' = '+prettyTimeToString(now)+', '+timeToString(now))
+    </script>
+    </p>
+    
     <h2>Game Template</h2>
     
     <select name="gameTemplateId" onchange="update_game_template_id()">
@@ -211,7 +267,7 @@
     <h2>Current Instances</h2>
     <table id="templates" border="1">
       <tr style="font-weight:bold;">
-        <td>title</td><td >game server id</td><td>start time</td><td>end time</td><td>latitude(E6)</td><td>longitude(E6)</td><td>radius (metres)</td><td>nominal status</td><td>base url</td>
+        <td>title</td><td>start time</td><td>end time</td><td>latitude(E6)</td><td>longitude(E6)</td><td>radius (metres)</td><td>nominal status</td><td>base url</td><!-- <td >game server id</td> -->
       </tr>
       <tr id="templates_status">
         <td>Select template...</td>        
@@ -228,8 +284,8 @@
 			    <select name="gameServerId" onchange="update_game_server_id()">
 				</select>	
 			</td></tr>
-			<tr><td>start time</td><td><input type="text" name="startTime"/></td></tr>
-			<tr><td>end time</td><td><input type="text" name="endTime"/></td></tr>
+			<tr><td>start time</td><td><input type="text" name="startTime" value="19700101T000000Z"/></td></tr>
+			<tr><td>end time</td><td><input type="text" name="endTime" value="19700101T000000Z"/></td></tr>
 			<tr><td>latitude (E6)</td><td><input type="text" name="latitudeE6"/></td></tr>
 			<tr><td>longitude (E6)</td><td><input type="text" name="longitudeE6"/></td></tr>
 			<tr><td>radius (metres)</td><td><input type="text" name="radiusMetres"/></td></tr>
