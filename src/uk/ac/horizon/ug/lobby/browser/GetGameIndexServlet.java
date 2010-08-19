@@ -47,6 +47,7 @@ import uk.ac.horizon.ug.lobby.model.GameClientTemplate;
 import uk.ac.horizon.ug.lobby.model.GameIndex;
 import uk.ac.horizon.ug.lobby.model.GameTemplate;
 import uk.ac.horizon.ug.lobby.model.GameTemplateVisibility;
+import uk.ac.horizon.ug.lobby.model.ServerConfiguration;
 import uk.ac.horizon.ug.lobby.protocol.GameTemplateInfo;
 import uk.ac.horizon.ug.lobby.protocol.JSONUtils;
 
@@ -64,7 +65,8 @@ public class GetGameIndexServlet extends HttpServlet implements Constants {
 	public void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException {
 		
-		GameIndex gi = ConfigurationUtils.getConfigurationGameIndex();
+		ServerConfiguration sc = ConfigurationUtils.getServerConfiguration();
+		GameIndex gi = sc.getGameIndex();
 		
 		EntityManager em = EMF.get().createEntityManager();
 		try {
@@ -84,6 +86,7 @@ public class GetGameIndexServlet extends HttpServlet implements Constants {
 				for (GameClientTemplate gct : gcts) 
 					;
 				gti.setGameClientTemplates(gcts);
+				gti.setQueryUrl(makeQueryUrl(sc, gt));
 				gtis.add(gti);
 			}
 			gi.setItems(gtis);
@@ -92,5 +95,23 @@ public class GetGameIndexServlet extends HttpServlet implements Constants {
 			em.close();
 		}
 		JSONUtils.sendGameIndex(resp, gi);
+	}
+
+	private static final String DEFAULT_BASE_URL = "http://localhost:8888/";
+	private static final String QUERY_PATH = "browser/QueryGameTemplate/";
+	private String makeQueryUrl(ServerConfiguration sc, GameTemplate gt) {
+		StringBuilder sb = new StringBuilder();
+		if (sc.getBaseUrl()==null) {
+			logger.warning("Server BaseURL not configured");
+			sb.append(DEFAULT_BASE_URL);
+		}
+		else {
+			sb.append(sc.getBaseUrl());
+			if (!sc.getBaseUrl().endsWith("/"))
+				sb.append("/");			
+		}
+		sb.append(QUERY_PATH);
+		sb.append(gt.getId());
+		return sb.toString();
 	}
 }

@@ -69,7 +69,8 @@ public class GameIndex {
 	private static final String CONFIGURATION_NAME = "configuration";
 	/** get default key */
 	public static Key getConfigurationKey() {
-		return KeyFactory.createKey(GameIndex.class.getSimpleName(), CONFIGURATION_NAME);
+		Key parentKey = ServerConfiguration.getConfigurationKey();
+		return KeyFactory.createKey(parentKey, GameIndex.class.getSimpleName(), CONFIGURATION_NAME);
 	}
 	/** cons */
 	public GameIndex() {		

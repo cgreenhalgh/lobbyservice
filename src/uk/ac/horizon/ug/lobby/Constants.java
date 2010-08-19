@@ -6,6 +6,7 @@ public interface Constants {
 	public static final String BASE_URL = "baseUrl";	
 	public static final String CLIENT_TEMPLATES = "clientTemplates";
 	public static final String CLIENT_TYPE = "clientType";
+	public static final String QUERY_URL = "queryUrl";
 	public static final String DESCRIPTION = "description";
 	public static final String DOCS = "docs";
 	public static final String ENCODING = "UTF-8";

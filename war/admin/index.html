@@ -25,6 +25,7 @@
     	//alert('set ttlMinutes to '+config.ttlMinutes);
     	set_input_from_field(document,config,'ttlMinutes');
     	set_input_from_field(document,config,'imageUrl');
+    	set_input_from_field(document,config,'baseUrl');
 	}
 	function get_config() {
     	$.getJSON('AdminGameIndex',refresh_config);
@@ -39,6 +40,7 @@
     	add_field(form, gt, 'language');
     	add_int_field(form, gt, 'ttlMinutes');
     	add_field(form, gt, 'imageUrl');
+    	add_field(form, gt, 'baseUrl');
 		var data = $.toJSON(gt);
 		$.ajax({url: 'AdminGameIndex', 
     		type: 'POST',
@@ -77,6 +79,7 @@
 		<tr><td>Language</td><td><input type="text" name="language"/></td></tr>
 		<tr><td>TTL (minutes)</td><td><input type="text" name="ttlMinutes"/></td></tr>
 		<tr><td>Image URL</td><td><input type="text" name="imageUrl"/></td></tr>
+		<tr><td>Server base URL</td><td><input type="text" name="baseUrl"/></td></tr>
 		<tr><td><input type="submit" value="Update" /></td></tr>
 	</table>
 	</form>

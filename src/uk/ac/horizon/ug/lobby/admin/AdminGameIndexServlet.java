@@ -42,6 +42,7 @@ import uk.ac.horizon.ug.lobby.Constants;
 import uk.ac.horizon.ug.lobby.model.Account;
 import uk.ac.horizon.ug.lobby.model.EMF;
 import uk.ac.horizon.ug.lobby.model.GameIndex;
+import uk.ac.horizon.ug.lobby.model.ServerConfiguration;
 import uk.ac.horizon.ug.lobby.protocol.JSONUtils;
 
 /** 
@@ -58,8 +59,8 @@ public class AdminGameIndexServlet extends HttpServlet implements Constants {
 	public void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException {
 		
-		GameIndex gi = ConfigurationUtils.getConfigurationGameIndex();
-		JSONUtils.sendGameIndex(resp, gi);
+		ServerConfiguration sc = ConfigurationUtils.getServerConfiguration();
+		JSONUtils.sendServerConfiguration(resp, sc);
 	}
 
 	/* (non-Javadoc)
@@ -69,20 +70,16 @@ public class AdminGameIndexServlet extends HttpServlet implements Constants {
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
 
+		// force create
+		ServerConfiguration sc = ConfigurationUtils.getServerConfiguration();
+		GameIndex gi = sc.getGameIndex();
+		
 		EntityManager em = EMF.get().createEntityManager();
-		GameIndex gi = null;
 		try {
 			BufferedReader r = req.getReader();
 			String line = r.readLine();
 			JSONObject json = new JSONObject(line);
 
-			gi = em.find(GameIndex.class, GameIndex.getConfigurationKey());
-			if (gi==null) {
-				logger.info("Creating configuration GameIndex (on update)");
-				gi = new GameIndex();
-				gi.setKey(GameIndex.getConfigurationKey());
-				em.persist(gi);
-			}
 			Iterator keys = json.keys();
 			while(keys.hasNext()) {
 				String key = (String)keys.next();
@@ -104,11 +101,14 @@ public class AdminGameIndexServlet extends HttpServlet implements Constants {
 					gi.setTitle(json.getString(key));
 				else if (key.equals(TTL_MINUTES))
 					gi.setTtlMinutes(json.getInt(key));
+				else if (key.equals(BASE_URL))
+					sc.setBaseUrl(json.getString(key));
 				else 
 					throw new JSONException("Unsupported key '"+key+"' in GameIndex: "+json);
 			}
 			// ? 
 			em.merge(gi);
+			em.merge(sc);
 		} catch (JSONException e) {
 			resp.sendError(HttpServletResponse.SC_BAD_REQUEST, e.toString());
 			return;
@@ -116,6 +116,6 @@ public class AdminGameIndexServlet extends HttpServlet implements Constants {
 		finally {
 			em.close();
 		}
-		JSONUtils.sendGameIndex(resp, gi);
+		JSONUtils.sendServerConfiguration(resp, sc);
 	}
 }

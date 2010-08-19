@@ -33,6 +33,8 @@ public class GameTemplateInfo {
 	private GameTemplate gameTemplate;
 	/** client templates */
 	private List<GameClientTemplate> gameClientTemplates;
+	/** game (template)-specific URL for lobby client interaction */
+	private String queryUrl;
 	/** cons */
 	public GameTemplateInfo() {		
 	}
@@ -59,6 +61,18 @@ public class GameTemplateInfo {
 	 */
 	public void setGameClientTemplates(List<GameClientTemplate> gameClientTemplates) {
 		this.gameClientTemplates = gameClientTemplates;
+	}
+	/**
+	 * @return the queryUrl
+	 */
+	public String getQueryUrl() {
+		return queryUrl;
+	}
+	/**
+	 * @param queryUrl the queryUrl to set
+	 */
+	public void setQueryUrl(String queryUrl) {
+		this.queryUrl = queryUrl;
 	}
 	
 }

@@ -22,10 +22,12 @@ package uk.ac.horizon.ug.lobby;
 import java.util.logging.Logger;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityTransaction;
 
 import uk.ac.horizon.ug.lobby.admin.AdminGameIndexServlet;
 import uk.ac.horizon.ug.lobby.model.EMF;
 import uk.ac.horizon.ug.lobby.model.GameIndex;
+import uk.ac.horizon.ug.lobby.model.ServerConfiguration;
 
 /**
  * @author cmg
@@ -39,6 +41,11 @@ public class ConfigurationUtils {
 	public static final String GENERATOR_NAME = "Horizon LobbyService 1.0";
 	/** get configuration GameIndex */
 	public static GameIndex getConfigurationGameIndex() {
+		ServerConfiguration sc = getServerConfiguration();
+		return sc.getGameIndex();
+	}
+	/** get ServerConfiguration including GameIndex */
+	public static ServerConfiguration getServerConfiguration() {
 		EntityManager em = EMF.get().createEntityManager();
 		try {
 			GameIndex gi = em.find(GameIndex.class, GameIndex.getConfigurationKey());
@@ -47,12 +54,21 @@ public class ConfigurationUtils {
 				gi = new GameIndex();
 				gi.setKey(GameIndex.getConfigurationKey());
 				em.persist(gi);
+				// split transactions in case of add ServerConfiguration
 			}
 			gi.setDocs(DOCS_URL);
 			gi.setGenerator(GENERATOR_NAME);
-			return gi;
+			ServerConfiguration sc = em.find(ServerConfiguration.class, ServerConfiguration.getConfigurationKey());
+			if (sc==null) {
+				logger.info("Creating ServerConfiguration");
+				sc = new ServerConfiguration();
+				sc.setKey(ServerConfiguration.getConfigurationKey());
+				em.persist(sc);
+			}
+			sc.setGameIndex(gi);
+			return sc;
 		}
-		finally {
+		finally {			
 			em.close();
 		}
 	}

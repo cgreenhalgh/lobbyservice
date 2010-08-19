@@ -51,6 +51,7 @@ import uk.ac.horizon.ug.lobby.model.GameServerStatus;
 import uk.ac.horizon.ug.lobby.model.GameServerType;
 import uk.ac.horizon.ug.lobby.model.GameTemplate;
 import uk.ac.horizon.ug.lobby.model.GameTemplateVisibility;
+import uk.ac.horizon.ug.lobby.model.ServerConfiguration;
 
 /** JSON marshall/unmarshall utils
  * 
@@ -73,16 +74,16 @@ public class JSONUtils implements Constants {
 	/** write GameTemplateInfo
 	 * @throws JSONException */
 	public static void writeGameTemplate(JSONWriter jw, GameTemplateInfo gameTemplateInfo) throws JSONException {
-		writeGameTemplate(jw, gameTemplateInfo.getGameTemplate(), gameTemplateInfo.getGameClientTemplates());
+		writeGameTemplate(jw, gameTemplateInfo.getGameTemplate(), gameTemplateInfo.getGameClientTemplates(), gameTemplateInfo.getQueryUrl());
 	}
 	/** write GameTemplate summary 
 	 * @throws JSONException */
 	public static void writeGameTemplate(JSONWriter jw, GameTemplate gameTemplate) throws JSONException {
-		writeGameTemplate(jw, gameTemplate, null);
+		writeGameTemplate(jw, gameTemplate, null, null);
 	}
 	/** write GameTemplate summary 
 	 * @throws JSONException */
-	public static void writeGameTemplate(JSONWriter jw, GameTemplate gameTemplate, List<GameClientTemplate> gameClientTemplates) throws JSONException {
+	public static void writeGameTemplate(JSONWriter jw, GameTemplate gameTemplate, List<GameClientTemplate> gameClientTemplates, String queryUrl) throws JSONException {
 		jw.object();
 		if (gameTemplate.getId()!=null) {
 			jw.key(ID);
@@ -144,6 +145,10 @@ public class JSONUtils implements Constants {
 				jw.endObject();
 			}	
 			jw.endArray();
+		}
+		if (queryUrl!=null) {
+			jw.key(QUERY_URL);
+			jw.value(queryUrl);
 		}
 		jw.endObject();
 	}
@@ -472,6 +477,11 @@ public class JSONUtils implements Constants {
 	/** write GameIndex object for user 
 	 * @throws JSONException */
 	public static void writeGameIndex(JSONWriter jw, GameIndex gs) throws JSONException {
+		writeGameIndex(jw, gs, null);
+	}
+	/** write GameIndex object for user 
+	 * @throws JSONException */
+	public static void writeGameIndex(JSONWriter jw, GameIndex gs, ServerConfiguration sc) throws JSONException {
 		jw.object();
 		if (gs.getDescription()!=null) {
 			jw.key(DESCRIPTION);
@@ -517,6 +527,13 @@ public class JSONUtils implements Constants {
 			}
 			jw.endArray();
 		}
+		if (sc!=null) {
+			// config special case
+			if (sc.getBaseUrl()!=null) {
+				jw.key(BASE_URL);
+				jw.value(sc.getBaseUrl());
+			}
+		}
 		jw.endObject();
 	}
 	/** set GameIndex as response 
@@ -526,6 +543,18 @@ public class JSONUtils implements Constants {
 		JSONWriter jw = new JSONWriter(w);
 		try {
 			JSONUtils.writeGameIndex(jw, gi);	
+		} catch (JSONException je) {
+			throw new IOException(je);
+		}
+		w.close();
+	}
+	/** set GameIndex as response 
+	 * @throws IOException */
+	public static void sendServerConfiguration(HttpServletResponse resp, ServerConfiguration sc) throws IOException {
+		Writer w = JSONUtils.getResponseWriter(resp);
+		JSONWriter jw = new JSONWriter(w);
+		try {
+			JSONUtils.writeGameIndex(jw, sc.getGameIndex(), sc);	
 		} catch (JSONException je) {
 			throw new IOException(je);
 		}
