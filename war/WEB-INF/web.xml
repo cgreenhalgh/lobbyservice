@@ -9,6 +9,10 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
 		<servlet-class>uk.ac.horizon.ug.lobby.LobbyserviceServlet</servlet-class>
 	</servlet>
 	<servlet>
+		<servlet-name>AdminGameIndex</servlet-name>
+		<servlet-class>uk.ac.horizon.ug.lobby.admin.AdminGameIndexServlet</servlet-class>
+	</servlet>
+	<servlet>
 		<servlet-name>ListAccounts</servlet-name>
 		<servlet-class>uk.ac.horizon.ug.lobby.admin.ListAccountsServlet</servlet-class>
 	</servlet>
@@ -56,9 +60,17 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
 		<servlet-name>UserGameInstance</servlet-name>
 		<servlet-class>uk.ac.horizon.ug.lobby.user.UserGameInstanceServlet</servlet-class>
 	</servlet>
+	<servlet>
+		<servlet-name>GetGameIndex</servlet-name>
+		<servlet-class>uk.ac.horizon.ug.lobby.browser.GetGameIndexServlet</servlet-class>
+	</servlet>
 	<servlet-mapping>
 		<servlet-name>Lobbyservice</servlet-name>
 		<url-pattern>/lobbyservice/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>AdminGameIndex</servlet-name>
+		<url-pattern>/admin/AdminGameIndex</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>ListAccounts</servlet-name>
@@ -107,6 +119,10 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
 	<servlet-mapping>
 		<servlet-name>UserGameInstance</servlet-name>
 		<url-pattern>/user/UserGameInstance/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>GetGameIndex</servlet-name>
+		<url-pattern>/browser/GetGameIndex</url-pattern>
 	</servlet-mapping>
 	<welcome-file-list>
 		<welcome-file>index.html</welcome-file>

@@ -41,6 +41,8 @@ import com.google.appengine.api.datastore.KeyFactory;
 import uk.ac.horizon.ug.lobby.Constants;
 import uk.ac.horizon.ug.lobby.model.Account;
 import uk.ac.horizon.ug.lobby.model.GameClientTemplate;
+import uk.ac.horizon.ug.lobby.model.GameClientType;
+import uk.ac.horizon.ug.lobby.model.GameIndex;
 import uk.ac.horizon.ug.lobby.model.GameInstance;
 import uk.ac.horizon.ug.lobby.model.GameInstanceNominalStatus;
 import uk.ac.horizon.ug.lobby.model.GameInstanceStatus;
@@ -48,6 +50,7 @@ import uk.ac.horizon.ug.lobby.model.GameServer;
 import uk.ac.horizon.ug.lobby.model.GameServerStatus;
 import uk.ac.horizon.ug.lobby.model.GameServerType;
 import uk.ac.horizon.ug.lobby.model.GameTemplate;
+import uk.ac.horizon.ug.lobby.model.GameTemplateVisibility;
 
 /** JSON marshall/unmarshall utils
  * 
@@ -93,9 +96,21 @@ public class JSONUtils implements Constants {
 			jw.key(DESCRIPTION);
 			jw.value(gameTemplate.getDescription());
 		}
-		if (gameTemplate.getLang()!=null) {
-			jw.key(LANG);
-			jw.value(gameTemplate.getLang());
+		if (gameTemplate.getLanguage()!=null) {
+			jw.key(LANGUAGE);
+			jw.value(gameTemplate.getLanguage());
+		}
+		if (gameTemplate.getLink()!=null) {
+			jw.key(LINK);
+			jw.value(gameTemplate.getLink());
+		}
+		if (gameTemplate.getImageUrl()!=null) {
+			jw.key(IMAGE_URL);
+			jw.value(gameTemplate.getImageUrl());
+		}
+		if (gameTemplate.getVisibility()!=null) {
+			jw.key(VISIBILITY);
+			jw.value(gameTemplate.getVisibility().toString());
 		}
 		if (gameClientTemplates!=null) {
 			jw.key(CLIENT_TEMPLATES);
@@ -108,7 +123,7 @@ public class JSONUtils implements Constants {
 				}
 				if (gameClientTemplate.getClientType()!=null) {
 					jw.key(CLIENT_TYPE);
-					jw.value(gameClientTemplate.getClientType());
+					jw.value(gameClientTemplate.getClientType().toString());
 				}
 				jw.key(MIN_MAJOR_VERSION);
 				jw.value(gameClientTemplate.getMinMajorVersion());
@@ -137,6 +152,15 @@ public class JSONUtils implements Constants {
 	public static void writeGameTemplates(JSONWriter jw, List<GameTemplate> gameTemplates) throws JSONException {
 		jw.array();
 		for (GameTemplate gameTemplate : gameTemplates) {
+			writeGameTemplate(jw, gameTemplate);
+		}
+		jw.endArray();
+	}
+	/** write GameTemplates details
+	 * @throws JSONException */
+	public static void writeGameTemplateInfos(JSONWriter jw, List<GameTemplateInfo> gameTemplates) throws JSONException {
+		jw.array();
+		for (GameTemplateInfo gameTemplate : gameTemplates) {
 			writeGameTemplate(jw, gameTemplate);
 		}
 		jw.endArray();
@@ -186,10 +210,16 @@ public class JSONUtils implements Constants {
 				gt.setTitle(json.getString(TITLE));
 			else if (key.equals(DESCRIPTION))
 				gt.setDescription(json.getString(DESCRIPTION));
-			else if (key.equals(LANG))
-				gt.setLang(json.getString(LANG));
+			else if (key.equals(LANGUAGE))
+				gt.setLanguage(json.getString(LANGUAGE));
+			else if (key.equals(LINK))
+				gt.setLink(json.getString(LINK));
+			else if (key.equals(IMAGE_URL))
+				gt.setImageUrl(json.getString(IMAGE_URL));
 			else if (key.equals(ID))
 				gt.setId(json.getString(ID));
+			else if (key.equals(VISIBILITY))
+				gt.setVisibility(GameTemplateVisibility.valueOf(json.getString(VISIBILITY)));
 			else if (key.equals(CLIENT_TEMPLATES)) {
 				JSONArray jarray = json.getJSONArray(CLIENT_TEMPLATES);
 				List<GameClientTemplate> gcts = new LinkedList<GameClientTemplate>();
@@ -214,7 +244,7 @@ public class JSONUtils implements Constants {
 			if (key.equals(TITLE))
 				gct.setTitle(json.getString(TITLE));
 			else if (key.equals(CLIENT_TYPE))
-				gct.setClientType(json.getString(CLIENT_TYPE));
+				gct.setClientType(GameClientType.valueOf(json.getString(CLIENT_TYPE)));
 			else if (key.equals(MIN_MAJOR_VERSION))
 				gct.setMinMajorVersion(json.getInt(MIN_MAJOR_VERSION));
 			else if (key.equals(MIN_MINOR_VERSION))
@@ -434,6 +464,68 @@ public class JSONUtils implements Constants {
 		JSONWriter jw = new JSONWriter(w);
 		try {
 			JSONUtils.writeGameInstance(jw, gs);	
+		} catch (JSONException je) {
+			throw new IOException(je);
+		}
+		w.close();
+	}
+	/** write GameIndex object for user 
+	 * @throws JSONException */
+	public static void writeGameIndex(JSONWriter jw, GameIndex gs) throws JSONException {
+		jw.object();
+		if (gs.getDescription()!=null) {
+			jw.key(DESCRIPTION);
+			jw.value(gs.getDescription());
+		}
+		if (gs.getDocs()!=null) {
+			jw.key(DOCS);
+			jw.value(gs.getDocs());
+		}
+		if (gs.getGenerator()!=null) {
+			jw.key(GENERATOR);
+			jw.value(gs.getGenerator());
+		}
+		if (gs.getImageUrl()!=null) {
+			jw.key(IMAGE_URL);
+			jw.value(gs.getImageUrl());
+		}
+		if (gs.getLanguage()!=null) {
+			jw.key(LANGUAGE);
+			jw.value(gs.getLanguage());
+		}
+		if (gs.getLastBuildDate()!=0) {
+			jw.key(LAST_BUILD_DATE);
+			jw.value(gs.getLastBuildDate());
+		}
+		if (gs.getLink()!=null) {
+			jw.key(LINK);
+			jw.value(gs.getLink());
+		}
+		if (gs.getTitle()!=null) {
+			jw.key(TITLE);
+			jw.value(gs.getTitle());
+		}
+		if (gs.getTtlMinutes()!=0) {
+			jw.key(TTL_MINUTES);
+			jw.value(gs.getTtlMinutes());
+		}
+		if (gs.getItems()!=null) {
+			jw.key(ITEMS);
+			jw.array();
+			for (GameTemplateInfo gti : gs.getItems()) {
+				writeGameTemplate(jw, gti);
+			}
+			jw.endArray();
+		}
+		jw.endObject();
+	}
+	/** set GameIndex as response 
+	 * @throws IOException */
+	public static void sendGameIndex(HttpServletResponse resp, GameIndex gi) throws IOException {
+		Writer w = JSONUtils.getResponseWriter(resp);
+		JSONWriter jw = new JSONWriter(w);
+		try {
+			JSONUtils.writeGameIndex(jw, gi);	
 		} catch (JSONException je) {
 			throw new IOException(je);
 		}

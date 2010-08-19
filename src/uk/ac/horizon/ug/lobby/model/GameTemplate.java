@@ -34,14 +34,20 @@ public class GameTemplate {
 	/** globally unique (random) ID and primary key */
 	@Id
 	private Key key;
-	/** title */
+	/** title  (cf. RSS2.0 item, required unless description present)*/
 	private String title;
-	/** description */
+	/** description (cf. RSS2.0 item, required unless title present) */
 	private String description;
-	/** (default) language code */
-	private String lang;
+	/** link (URL) - to human-readable information about the game  (cf. RSS2.0 item, required) */
+	private String link;
+	/** image url - thumbnail for index (cf. RSS2.0 channel) */
+	private String imageUrl;
+	/** (default) language code (cf. RSS2.0 item) */
+	private String language;
 	/** owner Account */
 	private Key ownerId;
+	/** visibility - i.e. seen by browsers or not*/
+	private GameTemplateVisibility visibility;
 	public static Key idToKey(String id) {
 		return KeyFactory.createKey(GameTemplate.class.getSimpleName(), id);
 	}
@@ -104,17 +110,18 @@ public class GameTemplate {
 	public void setDescription(String description) {
 		this.description = description;
 	}
+	
 	/**
-	 * @return the lang
+	 * @return the language
 	 */
-	public String getLang() {
-		return lang;
+	public String getLanguage() {
+		return language;
 	}
 	/**
-	 * @param lang the lang to set
+	 * @param language the language to set
 	 */
-	public void setLang(String lang) {
-		this.lang = lang;
+	public void setLanguage(String language) {
+		this.language = language;
 	}
 	/**
 	 * @return the ownerId
@@ -128,14 +135,51 @@ public class GameTemplate {
 	public void setOwnerId(Key ownerId) {
 		this.ownerId = ownerId;
 	}
+	/**
+	 * @return the visibility
+	 */
+	public GameTemplateVisibility getVisibility() {
+		return visibility;
+	}
+	/**
+	 * @param visibility the visibility to set
+	 */
+	public void setVisibility(GameTemplateVisibility visibility) {
+		this.visibility = visibility;
+	}
+	/**
+	 * @return the link
+	 */
+	public String getLink() {
+		return link;
+	}
+	/**
+	 * @param link the link to set
+	 */
+	public void setLink(String link) {
+		this.link = link;
+	}
+	/**
+	 * @return the imageUrl
+	 */
+	public String getImageUrl() {
+		return imageUrl;
+	}
+	/**
+	 * @param imageUrl the imageUrl to set
+	 */
+	public void setImageUrl(String imageUrl) {
+		this.imageUrl = imageUrl;
+	}
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public String toString() {
-		return "GameTemplate [description=" + description + ", key=" + key
-				+ ", lang=" + lang + ", ownerId=" + ownerId + ", title="
-				+ title + "]";
+		return "GameTemplate [description=" + description + ", imageUrl="
+				+ imageUrl + ", key=" + key + ", language=" + language
+				+ ", link=" + link + ", ownerId=" + ownerId + ", title="
+				+ title + ", visibility=" + visibility + "]";
 	}
 	
 }

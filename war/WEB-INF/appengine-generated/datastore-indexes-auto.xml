@@ -1,4 +1,11 @@
-<!-- Indices written at Thu, 19 Aug 2010 09:16:28 UTC -->
+<!-- Indices written at Thu, 19 Aug 2010 15:20:21 UTC -->
 
-<datastore-indexes/>
+<datastore-indexes>
 
+    <!-- Used 1 time in query history -->
+    <datastore-index kind="GameTemplate" ancestor="false" source="auto">
+        <property name="visibility" direction="asc"/>
+        <property name="title" direction="asc"/>
+    </datastore-index>
+
+</datastore-indexes>

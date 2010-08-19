@@ -10,6 +10,54 @@
   <head>
     <meta http-equiv="content-type" content="text/html; charset=UTF-8">
     <title>Hello App Engine Administrator</title>
+   
+    <script type = "text/javascript" src="../resources/jquery-1.4.2.min.js"></script>
+    <script type = "text/javascript" src="../resources/jquery.json-2.2.min.js"></script>
+    <script type = "text/javascript" src="../resources/common_utils.js"></script>
+    <script type="text/javascript">
+	// start here...
+	$.ajaxSetup({cache:false});
+	function refresh_config(config) {
+    	set_input_from_field(document,config,'title');
+    	set_input_from_field(document,config,'description');
+    	set_input_from_field(document,config,'link', 'link_url');
+    	set_input_from_field(document,config,'language');
+    	//alert('set ttlMinutes to '+config.ttlMinutes);
+    	set_input_from_field(document,config,'ttlMinutes');
+    	set_input_from_field(document,config,'imageUrl');
+	}
+	function get_config() {
+    	$.getJSON('AdminGameIndex',refresh_config);
+	}
+	$(document).ready(get_config());
+
+	function update_config(form) {
+    	var gt = {};
+    	add_field(form, gt, 'title');
+    	add_field(form, gt, 'description');
+    	add_field(form, gt, 'link', 'link_url');
+    	add_field(form, gt, 'language');
+    	add_int_field(form, gt, 'ttlMinutes');
+    	add_field(form, gt, 'imageUrl');
+		var data = $.toJSON(gt);
+		$.ajax({url: 'AdminGameIndex', 
+    		type: 'POST',
+    		contentType: 'application/json',
+    		processData: false,
+    		data: data,
+    		dataType: 'json',
+    		success: function success(data, status) {
+    			//data = $.parseJSON(data);
+    			//alert('Updated config ('+status+'): data='+data+' ('+$.toJSON(data)+')');
+    			refresh_config(data);
+			},
+			error: function error(req, status) {
+    			alert('Error updating config ('+req.status+': '+req.statusText+')');
+			}
+		});
+		return false;
+	}	
+    </script>
   </head>
 
   <body>
@@ -18,14 +66,19 @@
       <tr>
         <td colspan="2"><a href="accounts.html">Accounts</a></td>        
       </tr>
-      <tr></tr>
-      <tr>
-        <td colspan="2" style="font-weight:bold;">Available Servlets:</td>        
-      </tr>
-      <tr>
-        <td>List Accounts (JSON)</td><td><a href="ListAccounts">ListAccounts</a></td>
-      </tr>
     </table>
 
+	<h2>Configuration</h2>
+	<form onsubmit="return update_config(this)" action="dummy">
+	<table border="1">
+		<tr><td>Title</td><td><input type="text" name="title" value="Loading..."/></td></tr>
+		<tr><td>Description</td><td><input type="text" name="description"/></td></tr>
+		<tr><td>Link</td><td><input type="text" name="link_url"/></td></tr>
+		<tr><td>Language</td><td><input type="text" name="language"/></td></tr>
+		<tr><td>TTL (minutes)</td><td><input type="text" name="ttlMinutes"/></td></tr>
+		<tr><td>Image URL</td><td><input type="text" name="imageUrl"/></td></tr>
+		<tr><td><input type="submit" value="Update" /></td></tr>
+	</table>
+	</form>
   </body>
 </html>

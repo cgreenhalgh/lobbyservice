@@ -13,6 +13,7 @@
     
     <script type = "text/javascript" src="../resources/jquery-1.4.2.min.js"></script>
     <script type = "text/javascript" src="../resources/jquery.json-2.2.min.js"></script>
+    <script type = "text/javascript" src="../resources/common_utils.js"></script>
     <script type="text/javascript">
     	// editing a game template?
     	var current_game_template = null;
@@ -20,46 +21,7 @@
     	// start here...
     	$.ajaxSetup({cache:false});
 
-    	function format(text,len) {
-        	var str = String(text);
-        	while (str.length<2) 
-            	str = '0'+str;
-        	return str;
-    	}
-		function prettyTimeToString(time) {
-			if (time==0)
-				return "Unspecified";
-			var date = new Date(time);
-			// TZ?
-			var str = format(date.getUTCFullYear(),4)+'-'+format(date.getUTCMonth()+1,2)+'-'+format(date.getUTCDate(),2)+' '+
-			format(date.getUTCHours(),2)+':'+format(date.getUTCMinutes(),2)+':'+format(date.getUTCSeconds(),2);
-			if (date.getTimezoneOffset()!=0)
-				str = str+' Z ('+date.getTimezoneOffset()+')';
-				//date.toUTCString();
-			return str;
-		}
-		function timeToString(time) {
-			var date = new Date(time);
-			var str = format(date.getUTCFullYear(),4)+format(date.getUTCMonth()+1,2)+format(date.getUTCDate(),2)+'T'+
-			format(date.getUTCHours(),2)+format(date.getUTCMinutes(),2)+format(date.getUTCSeconds(),2)+'Z';
-			return str;
-		}
-		function stringToTime(str) {
-			var date = new Date(0);
-			var match = /\d\d\d\d\d\d\d\d[T]\d\d\d\d\d\d[Z]/ .exec(str);
-			if (match==null) 
-				alert('Unable to parse time '+str);
-			else {
-				date.setUTCFullYear(str.substr(0,4));
-				date.setUTCMonth(Number(str.substr(4,2))-1);
-				date.setUTCDate(str.substr(6,2));
-				date.setUTCHours(str.substr(9,2));
-				date.setUTCMinutes(str.substr(11,2));
-				date.setUTCSeconds(str.substr(13,2));
-			}
-			return date.getTime();				
-		}
-    	
+
     	function get_templates() {
         	// loading...
        	    $('#templates_status').remove();

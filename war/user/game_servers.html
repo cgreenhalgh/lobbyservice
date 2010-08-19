@@ -13,6 +13,7 @@
     
     <script type = "text/javascript" src="../resources/jquery-1.4.2.min.js"></script>
     <script type = "text/javascript" src="../resources/jquery.json-2.2.min.js"></script>
+    <script type = "text/javascript" src="../resources/common_utils.js"></script>
     <script type="text/javascript">
     	// editing a game template?
     	var current_game_template = null;
@@ -54,20 +55,6 @@
         	get_template_options();
     	});
 
-    	function add_field(form, obj, name, input_name) {
-        	if (!input_name)
-            	input_name = name;
-        	var value = $(':input[name='+input_name+']',form).attr('value');
-        	if (value!=null && value!='')
-            	obj[name] = value;
-    	}
-    	function add_select_field(form, obj, name, input_name) {
-        	if (!input_name)
-            	input_name = name;
-        	var value = $('select[name='+name+'] > option[selected]').attr('value');
-        	if (value!=null && value!='')
-            	obj[name] = value;
-    	}
     	// called from form submit for add template
     	function add_game_template(form) {
         	var gt = {};

@@ -13,6 +13,7 @@
     
     <script type = "text/javascript" src="../resources/jquery-1.4.2.min.js"></script>
     <script type = "text/javascript" src="../resources/jquery.json-2.2.min.js"></script>
+    <script type = "text/javascript" src="../resources/common_utils.js"></script>
     <script type="text/javascript">
     	// editing a game template?
     	var current_game_template = null;
@@ -30,7 +31,7 @@
 					// this is so... weird - acct initially seems to be array index
 					if (!$.isPlainObject(item))
 						item = json[item];
-		        	$('<tr class="game_template"><td>'+item.id+'</td><td>'+item.title+'</td><td>'+item.description+'</td><td>'+item.lang+'</td><td><input type="button" value="edit" onclick="select_template(\''+item.id+'\')"/></td></tr>').appendTo('#templates');
+		        	$('<tr class="game_template"><td>'+item.id+'</td><td>'+item.title+'</td><td>'+item.visibility+'</td><td>'+item.description+'</td><td>'+item.language+'</td><td><input type="button" value="edit" onclick="select_template(\''+item.id+'\')"/></td></tr>').appendTo('#templates');
 				}
         	});
     	}
@@ -45,7 +46,10 @@
     	var client_row = '<tr class="client_template"><td><input type="button" value="Remove" name="remove" onclick="remove_client_row(this)"/></td>'+
     	'<td><table>'+
     	'<tr><td>Title</td><td><input type="text" name="client_title"/></td></tr>'+
-    	'<tr><td>Type</td><td><input type="text" name="clientType"/></td></tr>'+
+    	'<tr><td>Type</td><td><select name="clientType">'+
+    	//<input type="text" name="clientType"/>    	
+    	'<option label="Android" value="ANDROID">Android</option>'+
+    	'</select></td></tr>'+
     	'<tr><td>Location-specific</td><td><input type="checkbox" name="locationSpecific"/></td></tr>'+
     	'<tr><td>Min major version</td><td><input type="text" name="minMajorVersion"/></td></tr>'+
     	'<tr><td>Min minor version</td><td><input type="text" name="minMinorVersion"/></td></tr>'+
@@ -57,33 +61,16 @@
 			$('#client_more').before(client_row);
     	}
 
-    	function add_field(form, obj, name, input_name) {
-        	if (!input_name)
-            	input_name = name;
-        	var value = $(':input[name='+input_name+']',form).attr('value');
-        	if (value!=null && value!='')
-            	obj[name] = value;
-    	}
-    	function add_int_field(form, obj, name, input_name) {
-        	if (!input_name)
-            	input_name = name;
-        	var value = $(':input[name='+input_name+']',form).attr('value');
-        	if (value!=null && value!='')
-            	obj[name] = Number(value);
-    	}
-    	function add_boolean_field(form, obj, name, input_name) {
-        	if (!input_name)
-            	input_name = name;
-        	var value = $(':input[name='+input_name+']',form).attr('checked');
-        	if (value!=null && value!='')
-            	obj[name] = Boolean(value);
-    	}
     	// called from form submit for add template
     	function add_game_template(form) {
         	var gt = {};
         	add_field(form, gt, 'title');
         	add_field(form, gt, 'description');
-        	add_field(form, gt, 'lang');
+        	add_field(form, gt, 'language');
+        	add_field(form, gt, 'link');
+        	add_field(form, gt, 'imageUrl');
+        	add_select_field(form, gt, 'visibility');
+        	//alert('visibility = '+gt.visibility);
         	gt.clientTemplates = [];
         	var client_templates;
         	client_templates = $('tr',form).filter('.client_template');
@@ -92,7 +79,7 @@
             	var gct = {};
             	gt.clientTemplates.push(gct);
             	add_field(el, gct, 'title', 'client_title');
-            	add_field(el, gct, 'clientType');
+            	add_select_field(el, gct, 'clientType');
             	add_boolean_field(el, gct, 'locationSpecific');
             	add_field(el, gct, 'applicationLaunchId');
             	add_field(el, gct, 'applicationMarketId');
@@ -156,23 +143,26 @@
         	$.getJSON('UserGameTemplate/'+id, function(data) {
             	//alert('received '+$.toJSON(data));
             	current_game_template = data;
-            	$(':input[name=title]').attr('value',data.title);
-            	$(':input[name=description]').attr('value',data.description);
-            	$(':input[name=lang]').attr('value',data.lang);
+            	set_input_from_field(document,data,'title');
+            	set_input_from_field(document,data,'description');
+            	set_input_from_field(document,data,'language');
+            	set_input_from_field(document,data,'link');
+            	set_input_from_field(document,data,'imageUrl');
+            	set_select_from_field(document,data,'visibility');
         	    var item;
 				for (item in data.clientTemplates) {
 					// this is so... weird - acct initially seems to be array index
 					if (!$.isPlainObject(item))
 						item = data.clientTemplates[item];
 					var row = $(client_row);
-					$(':input[name=client_title]',row).attr('value',item.title);
-					$(':input[name=clientType]',row).attr('value',item.clientType);
-					$(':input[name=locationSpecific]',row).attr('checked',item.locationSpecific);
-					$(':input[name=minMajorVersion]',row).attr('value',item.minMajorVersion);
-					$(':input[name=minMinorVersion]',row).attr('value',item.minMinorVersion);
-					$(':input[name=minUpdateVersion]',row).attr('value',item.minUpdateVersion);
-					$(':input[name=applicationLaunchId]',row).attr('value',item.applicationLaunchId);
-					$(':input[name=applicationMarketId]',row).attr('value',item.applicationMarketId);
+	            	set_input_from_field(row,item,'title','client_title');
+	            	set_select_from_field(row,item,'clientType');
+	            	set_checkbox_from_field(row,item,'locationSpecific');
+	            	set_input_from_field(row,item,'minMajorVersion');
+	            	set_input_from_field(row,item,'minMinorVersion');
+	            	set_input_from_field(row,item,'minUpdateVersion');
+	            	set_input_from_field(row,item,'applicationLaunchId');
+	            	set_input_from_field(row,item,'applicationMarketId');
 					$('#client_more').before(row);			
 				}
         	});
@@ -186,7 +176,7 @@
     <h2>Current Templates</h2>
     <table id="templates" border="1">
       <tr style="font-weight:bold;">
-        <td >id</td><td>title</td><td>description</td><td>language</td>
+        <td >id</td><td>title</td><td>visibility</td><td>description</td><td>language</td>
       </tr>
       <tr id="templates_status">
         <td>Loading page...</td>        
@@ -199,8 +189,16 @@
 		<table border="1">
 			<tr><td>id</td><td><input type="text" name="id" readonly="readonly"/></td></tr>
 			<tr><td>title</td><td><input type="text" name="title"/></td></tr>
+			<tr><td>visibility</td><td>
+				<select name="visibility">
+					<option label="HIDDEN" value="HIDDEN">PUBLIC</option>
+					<option label="PUBLIC" value="PUBLIC">PUBLIC</option>
+				</select>
+			</td></tr>
 			<tr><td>description</td><td><textarea name="description"></textarea></td></tr>
-			<tr><td>lang</td><td><input type="text" name="lang"/></td></tr>
+			<tr><td>language</td><td><input type="text" name="language"/></td></tr>
+			<tr><td>image url</td><td><input type="text" name="imageUrl"/></td></tr>
+			<tr><td>link (url)</td><td><input type="text" name="link"/></td></tr>
 		</table>
 		<p>Clients:</p>
 		<table border="1">

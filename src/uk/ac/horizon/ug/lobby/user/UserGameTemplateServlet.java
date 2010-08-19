@@ -86,7 +86,8 @@ public class UserGameTemplateServlet extends HttpServlet implements Constants {
 		EntityManager em = EMF.get().createEntityManager();
 		try {
 			GameTemplate gt = getGameTemplate(req, em);
-			Query q = em.createQuery("SELECT x FROM GameClientTemplate x WHERE x.gameTemplateId = :gameTemplateId ORDER BY x.title ASC");
+			// Note: can't  "ORDER BY x.title ASC" as title may be null in which case GAE won't match it.
+			Query q = em.createQuery("SELECT x FROM GameClientTemplate x WHERE x.gameTemplateId = :gameTemplateId");
 			q.setParameter(GAME_TEMPLATE_ID, gt.getId());
 			List<GameClientTemplate> gameClientTemplates = (List<GameClientTemplate>)q.getResultList();
 			GameTemplateInfo gti = new GameTemplateInfo();

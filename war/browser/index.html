@@ -1,0 +1,67 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!-- The HTML 4.01 Transitional DOCTYPE declaration-->
+<!-- above set at the top of the file will set     -->
+<!-- the browser's rendering engine into           -->
+<!-- "Quirks Mode". Replacing this declaration     -->
+<!-- with a "Standards Mode" doctype is supported, -->
+<!-- but may lead to some differences in layout.   -->
+
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <title>Lobby Browser</title>
+    <script type = "text/javascript" src="../resources/jquery-1.4.2.min.js"></script>
+    <script type = "text/javascript" src="../resources/jquery.json-2.2.min.js"></script>
+    <script type = "text/javascript" src="../resources/common_utils.js"></script>
+    <script type = "text/javascript">
+		$.ajaxSetup({cache:false});
+		function load_index() {
+			var table = $('#index');
+			$('tr',table).remove();
+			table.append('<tr><td>Loading...</td></tr>');
+    		$.getJSON('GetGameIndex',function(index) {
+    			$('tr',table).remove();
+    			var image = '';
+    			if (index.imageUrl!=undefined) {
+					image = '<img src="'+index.imageUrl+'" alt="image"/>';
+    			}
+				table.append('<tr><td>'+image+'</td><td>'+
+						'<h2><a href="'+index.link+'">'+index.title+'</a></h2>'+
+						'<p>'+index.description+'</p>'+
+						'</td></tr>');
+				for (var i=0; i<index.items.length; i++) {
+					var item = index.items[i];
+	    			var image = '';
+	    			if (index.imageUrl!=undefined) {
+						image = '<img src="'+index.imageUrl+'" alt="image"/>';
+	    			}
+					var clients = '';
+					for (var ci=0; ci<item.clientTemplates.length; ci++) {
+						var ct = item.clientTemplates[ci];
+						clients = clients+'<td>'+ct.title+
+						'<br>('+ct.clientType+' '+ct.minMajorVersion+'.'+ct.minMinorVersion+'.'+ct.minUpdateVersion+')</td>';
+					}
+					table.append('<tr><td>'+image+'</td><td>'+
+							'<h3><a href="'+item.link+'">'+item.title+'</a></h3>'+
+							'<p>'+item.description+'</p>'+
+							'<p><table border="1"><tr>'+
+							clients+
+							'</tr></table></p>'+
+							'</td></tr>');							
+				}
+			});
+		}
+	
+		//$(document).ready(...);
+	
+    </script>
+  </head>
+
+  <body>
+    <h1>Lobby Browser</h1>
+    <p><a href="GetGameIndex">GetGameIndex (JSON)</a></p>
+    <table border="1" id="index">
+    </table>
+    <p><input type="button" value="Load" onclick="load_index()"/></p>
+  </body>
+</html>

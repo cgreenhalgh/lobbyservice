@@ -41,9 +41,7 @@ public class GameClientTemplate {
     /** client template title */
     private String title;
     /** client type, e.g. "Android" */
-    private String clientType;
-    /** Android client type */
-    public static final String CLIENT_TYPE_ANDROID = "Android";
+    private GameClientType clientType;
     /** min major version */
     private int minMajorVersion;
     /** min minor version (or 0) */
@@ -106,13 +104,13 @@ public class GameClientTemplate {
 	/**
 	 * @return the clientType
 	 */
-	public String getClientType() {
+	public GameClientType getClientType() {
 		return clientType;
 	}
 	/**
 	 * @param clientType the clientType to set
 	 */
-	public void setClientType(String clientType) {
+	public void setClientType(GameClientType clientType) {
 		this.clientType = clientType;
 	}
 	/**
