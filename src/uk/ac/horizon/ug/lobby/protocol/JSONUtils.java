@@ -42,6 +42,7 @@ import uk.ac.horizon.ug.lobby.Constants;
 import uk.ac.horizon.ug.lobby.model.Account;
 import uk.ac.horizon.ug.lobby.model.GameClientTemplate;
 import uk.ac.horizon.ug.lobby.model.GameInstance;
+import uk.ac.horizon.ug.lobby.model.GameInstanceNominalStatus;
 import uk.ac.horizon.ug.lobby.model.GameInstanceStatus;
 import uk.ac.horizon.ug.lobby.model.GameServer;
 import uk.ac.horizon.ug.lobby.model.GameServerStatus;
@@ -336,6 +337,11 @@ public class JSONUtils implements Constants {
 	/** write GameInstance object for user 
 	 * @throws JSONException */
 	public static void writeGameInstance(JSONWriter jw, GameInstance gs) throws JSONException {
+		writeGameInstance(jw, gs, null, null);
+	}
+	/** write GameInstance object for user 
+	 * @throws JSONException */
+	public static void writeGameInstance(JSONWriter jw, GameInstance gs, GameTemplate gameTemplate, GameServer gameServer) throws JSONException {
 		jw.object();
 		if (gs.getBaseUrl()!=null) {
 			jw.key(BASE_URL);
@@ -359,6 +365,10 @@ public class JSONUtils implements Constants {
 		jw.value(gs.getLatitudeE6());
 		jw.key(LONGITUDE_E6);
 		jw.value(gs.getLongitudeE6());
+		if (gs.getNominalStatus()!=null) {
+			jw.key(NOMINAL_STATUS);
+			jw.value(gs.getNominalStatus().toString());
+		}
 		jw.key(RADIUS_METRES);
 		jw.value(gs.getRadiusMetres());
 		jw.key(START_TIME);
@@ -370,6 +380,14 @@ public class JSONUtils implements Constants {
 		if (gs.getTitle()!=null) {
 			jw.key(TITLE);
 			jw.value(gs.getTitle());
+		}
+		if (gameTemplate!=null) {
+			jw.key(GAME_TEMPLATE);
+			writeGameTemplate(jw, gameTemplate);
+		}
+		if (gameServer!=null) {
+			jw.key(GAME_SERVER);
+			writeGameServer(jw, gameServer);
 		}
 		jw.endObject();
 	}
@@ -394,6 +412,8 @@ public class JSONUtils implements Constants {
 				gs.setLatitudeE6(json.getInt(LATITUDE_E6));
 			else if (key.equals(LONGITUDE_E6))
 				gs.setLongitudeE6(json.getInt(LONGITUDE_E6));
+			else if (key.equals(NOMINAL_STATUS))
+				gs.setNominalStatus(GameInstanceNominalStatus.valueOf(json.getString(NOMINAL_STATUS)));
 			else if (key.equals(RADIUS_METRES))
 				gs.setRadiusMetres(json.getDouble(RADIUS_METRES));
 			else if (key.equals(START_TIME))
@@ -409,7 +429,7 @@ public class JSONUtils implements Constants {
 	}
 	/** set GameInstance as response 
 	 * @throws IOException */
-	public static void sendGameInstance(HttpServletResponse resp, GameInstance gs) throws IOException {
+	public static void sendGameInstance(HttpServletResponse resp, GameInstance gs, GameTemplate gameTemplate, GameServer gameServer) throws IOException {
 		Writer w = JSONUtils.getResponseWriter(resp);
 		JSONWriter jw = new JSONWriter(w);
 		try {

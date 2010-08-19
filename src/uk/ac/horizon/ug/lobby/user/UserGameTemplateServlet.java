@@ -43,6 +43,7 @@ import org.json.JSONObject;
 import org.json.JSONWriter;
 
 import uk.ac.horizon.ug.lobby.Constants;
+import uk.ac.horizon.ug.lobby.HttpUtils;
 import uk.ac.horizon.ug.lobby.RequestException;
 import uk.ac.horizon.ug.lobby.model.Account;
 import uk.ac.horizon.ug.lobby.model.EMF;
@@ -60,22 +61,13 @@ import uk.ac.horizon.ug.lobby.protocol.JSONUtils;
 @SuppressWarnings("serial")
 public class UserGameTemplateServlet extends HttpServlet implements Constants {
 	static Logger logger = Logger.getLogger(UserGameTemplateServlet.class.getName());
-	
-	public static String getGameTemplateId(HttpServletRequest req) throws RequestException {
-		String id = req.getPathInfo();
-		if (id!=null && id.startsWith("/"))
-			id = id.substring(1);
-		if (id==null || id.length()==0)
-			throw new RequestException(HttpServletResponse.SC_BAD_REQUEST, "No GameTemplate specified in path");
-		return id;
-	}
 
 	public static GameTemplate getGameTemplate(HttpServletRequest req, EntityManager em) throws RequestException {
 		Account account = AccountUtils.getAccount(req);
 		return getGameTemplate(req, em, account);
 	}
 	public static GameTemplate getGameTemplate(HttpServletRequest req, EntityManager em, Account account) throws RequestException {
-		String id = getGameTemplateId(req);
+		String id = HttpUtils.getIdFromPath(req);
 		
 		Key key = GameTemplate.idToKey(id);
 		GameTemplate gt = em.find(GameTemplate.class, key);

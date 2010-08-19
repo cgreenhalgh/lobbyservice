@@ -32,7 +32,7 @@
 					if (!$.isPlainObject(item))
 						item = json[item];
 					//<td>title</td><td >game server id</td><td>start time</td><td>end time</td><td>latitude(E6)</td><td>longitude(E6)</td><td>radius (metres)</td><td>status</td><td>base url</td>
-		        	$('<tr class="game_template"><td>'+item.title+'</td><td>'+item.gameServerId+'</td><td>'+item.startTime+'</td><td>'+item.endTime+'</td><td>'+item.latitudeE6+'</td><td>'+item.longitudeE6+'</td><td>'+item.radiusMetres+'</td><td>'+item.status+'</td><td>'+item.baseUrl+'</td><td><input type="button" value="edit" onclick="select_template(\''+item.key+'\')"/></td></tr>').appendTo('#templates');
+		        	$('<tr class="game_template"><td>'+item.title+'</td><td>'+item.gameServerId+'</td><td>'+item.startTime+'</td><td>'+item.endTime+'</td><td>'+item.latitudeE6+'</td><td>'+item.longitudeE6+'</td><td>'+item.radiusMetres+'</td><td>'+item.nominalStatus+'</td><td>'+item.baseUrl+'</td><td><input type="button" value="edit" onclick="select_template(\''+item.key+'\')"/></td></tr>').appendTo('#templates');
 				}
         	});
     	}
@@ -51,17 +51,32 @@
                	}
         	});
     	}
-    	
+
+    	var game_servers = null;
+    	function select_game_server(i) {
+			//alert('select game server '+i+', and '+game_servers.length+' servers');
+			//+': '+game_servers[i].baseUrl);
+			if (i>=0 && game_servers!=null && i<game_servers.length) {
+            	$(':input[name=baseUrl]').attr('value',game_servers[i].baseUrl);				
+			}
+    	}
+    	function update_game_server_id() {
+        	var game_server_index = $('select[name=gameServerId] > option[selected]').index()-1;
+        	select_game_server(game_server_index);
+        }
     	function get_server_options() {
         	// loading...
        	    $('select[name=gameServerId] > option').remove();
        	    $('select[name=gameServerId]').append('<option label="Loading..." selected="true"/>');
         	$.getJSON('GetUserGameServers',function(json) {
+            	game_servers = json;
            	    $('select[name=gameServerId] > option').remove();
-           	    //alert('got '+json.length+' template options: '+json);
+           	    $('select[name=gameServerId]').append('<option label="Unspecified" value=""/>');
+           	    //alert('got '+json.length+' game server template options: '+json);
         	    for (var i=0; i<json.length; i++) {
             	    var item = json[i];
-               	    $('select[name=gameServerId]').append('<option value="'+item.key+'"/>'+item.title+' ('+item.type+')</option>');
+            	    //alert('item '+i+'='+item);
+               	    $('select[name=gameServerId]').append('<option label="'+item.title+' ('+item.type+')" value="'+item.key+'"/>'+item.title+' ('+item.type+')</option>');
                	}
         	});
     	}
@@ -100,8 +115,8 @@
         	add_field(form, gt, 'title');
         	gt.gameTemplateId = game_template_id;
         	add_field(form, gt, 'baseUrl');
-        	add_field(form, gt, 'status');
-        	//add_select_field(form, gt, 'targetStatus');
+        	//add_field(form, gt, 'status');
+        	add_select_field(form, gt, 'nominalStatus');
         	add_number_field(form, gt, 'startTime');
         	add_number_field(form, gt, 'endTime');
         	add_number_field(form, gt, 'latitudeE6');
@@ -154,8 +169,7 @@
     	// reset game template form to add 
     	function select_template(id) {
         	//alert('select template '+id);
-        	current_game_templ
-        	ate = null;
+        	current_game_template = null;
         	$(':input[type=submit]').attr('value','Update game instance');
         	$(':input[name=key]').attr('value',id);
         	$(':input[name=title]').attr('value','Loading data...');
@@ -171,7 +185,10 @@
             	$(':input[name=latitudeE6]').attr('value',data.latitudeE6);
             	$(':input[name=longitudeE6]').attr('value',data.longitudeE6);
             	$(':input[name=radiusMetres]').attr('value',data.radiusMetres);
-            	$(':input[name=status]').attr('value',data.status);
+            	//$(':input[name=status]').attr('value',data.status);
+				$('select[name=nominalStatus] > option[selected]').removeAttr('selected');
+				if (data.nominalStatus!=null && data.nominalStatus!='')
+					$('select[name=nominalStatus] > option[value='+data.nominalStatus+']').attr('selected','true');
             	$(':input[name=baseUrl]').attr('value',data.baseUrl);
         	});
         	return false;
@@ -194,7 +211,7 @@
     <h2>Current Instances</h2>
     <table id="templates" border="1">
       <tr style="font-weight:bold;">
-        <td>title</td><td >game server id</td><td>start time</td><td>end time</td><td>latitude(E6)</td><td>longitude(E6)</td><td>radius (metres)</td><td>status</td><td>base url</td>
+        <td>title</td><td >game server id</td><td>start time</td><td>end time</td><td>latitude(E6)</td><td>longitude(E6)</td><td>radius (metres)</td><td>nominal status</td><td>base url</td>
       </tr>
       <tr id="templates_status">
         <td>Select template...</td>        
@@ -208,7 +225,7 @@
 			<tr><td>key</td><td><input type="text" name="key" readonly="readonly"/></td></tr>
 			<tr><td>title</td><td><input type="text" name="title"/></td></tr>
 			<tr><td>game server id</td><td>
-			    <select name="gameServerId">
+			    <select name="gameServerId" onchange="update_game_server_id()">
 				</select>	
 			</td></tr>
 			<tr><td>start time</td><td><input type="text" name="startTime"/></td></tr>
@@ -216,13 +233,17 @@
 			<tr><td>latitude (E6)</td><td><input type="text" name="latitudeE6"/></td></tr>
 			<tr><td>longitude (E6)</td><td><input type="text" name="longitudeE6"/></td></tr>
 			<tr><td>radius (metres)</td><td><input type="text" name="radiusMetres"/></td></tr>
-			<tr><td>status</td><td>
-				<input type="text" name="status"/> 
-				<!-- <select name="targetStatus">
+			<tr><td>nominal status</td><td>
+				<!-- <input type="text" name="nominalStatus"/>  -->
+				<select name="nominalStatus">
 					<option label="Unspecified" value="" selected="true"></option>
-					<option label="UP" value="UP">UP</option>
-					<option label="STOPPED" value="STOPPED">STOPPED</option>
-				</select>  -->
+					<option label="POSSIBLE" value="POSSIBLE">POSSIBLE</option>
+					<option label="PLANNED" value="PLANNED">PLANNED</option>
+					<option label="AVAILABLE" value="AVAILABLE">AVAILABLE</option>
+					<option label="ENDED" value="ENDED">ENDED</option>
+					<option label="TEMPORARILY_UNAVAILABLE" value="TEMPORARILY_UNAVAILABLE">TEMPORARILY_UNAVAILABLE</option>
+					<option label="ENDED" value="ENDED">ENDED</option>
+				</select>  
 			</td></tr>
 			<tr><td>base url</td><td><input type="text" name="baseUrl"/></td></tr>
 		</table>

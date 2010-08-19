@@ -52,6 +52,10 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
 		<servlet-name>AddGameInstance</servlet-name>
 		<servlet-class>uk.ac.horizon.ug.lobby.user.AddGameInstanceServlet</servlet-class>
 	</servlet>
+	<servlet>
+		<servlet-name>UserGameInstance</servlet-name>
+		<servlet-class>uk.ac.horizon.ug.lobby.user.UserGameInstanceServlet</servlet-class>
+	</servlet>
 	<servlet-mapping>
 		<servlet-name>Lobbyservice</servlet-name>
 		<url-pattern>/lobbyservice/*</url-pattern>
@@ -99,6 +103,10 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
 	<servlet-mapping>
 		<servlet-name>GetUserGameInstances</servlet-name>
 		<url-pattern>/user/GetUserGameInstances/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>UserGameInstance</servlet-name>
+		<url-pattern>/user/UserGameInstance/*</url-pattern>
 	</servlet-mapping>
 	<welcome-file-list>
 		<welcome-file>index.html</welcome-file>

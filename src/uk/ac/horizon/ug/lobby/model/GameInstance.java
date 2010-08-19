@@ -52,6 +52,8 @@ public class GameInstance {
     private int longitudeE6;
     /** radius metres (or 0) */
     private double radiusMetres;
+    /** current nominal status */
+    private GameInstanceNominalStatus nominalStatus;
     /** current/last known status */
     private GameInstanceStatus status;
     /** game instance base url (several games may be hosted by the same GameServer) */
@@ -190,6 +192,18 @@ public class GameInstance {
 	 */
 	public void setBaseUrl(String baseUrl) {
 		this.baseUrl = baseUrl;
+	}
+	/**
+	 * @return the nominalStatus
+	 */
+	public GameInstanceNominalStatus getNominalStatus() {
+		return nominalStatus;
+	}
+	/**
+	 * @param nominalStatus the nominalStatus to set
+	 */
+	public void setNominalStatus(GameInstanceNominalStatus nominalStatus) {
+		this.nominalStatus = nominalStatus;
 	}
     
 }

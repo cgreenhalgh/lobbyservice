@@ -43,6 +43,7 @@ import org.json.JSONObject;
 import org.json.JSONWriter;
 
 import uk.ac.horizon.ug.lobby.Constants;
+import uk.ac.horizon.ug.lobby.HttpUtils;
 import uk.ac.horizon.ug.lobby.RequestException;
 import uk.ac.horizon.ug.lobby.model.Account;
 import uk.ac.horizon.ug.lobby.model.EMF;
@@ -62,21 +63,12 @@ import uk.ac.horizon.ug.lobby.protocol.JSONUtils;
 public class UserGameServerServlet extends HttpServlet implements Constants {
 	static Logger logger = Logger.getLogger(UserGameServerServlet.class.getName());
 	
-	private String getGameServerId(HttpServletRequest req) throws RequestException {
-		String id = req.getPathInfo();
-		if (id!=null && id.startsWith("/"))
-			id = id.substring(1);
-		if (id==null || id.length()==0)
-			throw new RequestException(HttpServletResponse.SC_BAD_REQUEST, "No GameServer specified in path");
-		return id;
-	}
-
 	private GameServer getGameServer(HttpServletRequest req, EntityManager em) throws RequestException {
 		Account account = AccountUtils.getAccount(req);
 		return getGameServer(req, em, account);
 	}
 	private GameServer getGameServer(HttpServletRequest req, EntityManager em, Account account) throws RequestException {
-		String id = getGameServerId(req);
+		String id = HttpUtils.getIdFromPath(req);
 		
 		Key key = KeyFactory.stringToKey(id);
 		GameServer gs = em.find(GameServer.class, key);

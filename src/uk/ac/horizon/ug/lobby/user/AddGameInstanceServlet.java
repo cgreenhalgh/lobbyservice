@@ -77,26 +77,26 @@ public class AddGameInstanceServlet extends HttpServlet implements Constants {
 			return;
 		}
 		EntityManager em = EMF.get().createEntityManager();
+		GameServer gs = null;
+		GameTemplate gt = null;
 		try {
 			// not sure when to enforce this...
-//			if (gi.getGameServerId()==null) {
-//				resp.sendError(HttpServletResponse.SC_BAD_REQUEST,"Add GameInstance must have gameServerId");
-//				return;
-//			}
-//			GameServer gs = em.find(GameServer.class, gi.getGameServerId());
-//			if (gs==null) {
-//				resp.sendError(HttpServletResponse.SC_BAD_REQUEST,"Add GameInstance GameServer '"+gi.getGameServerId()+"' unknown");
-//				return;
-//			}
-//			if (!KeyFactory.keyToString(gs.getOwnerId()).equals(KeyFactory.keyToString(account.getKey()))) {
-//				resp.sendError(HttpServletResponse.SC_FORBIDDEN,"Add GameInstance GameServer '"+gi.getGameServerId()+"' not owned by "+account.getNickname());
-//				return;				
-//			}
+			if (gi.getGameServerId()!=null) {
+				gs = em.find(GameServer.class, gi.getGameServerId());
+				if (gs==null) {
+					resp.sendError(HttpServletResponse.SC_BAD_REQUEST,"Add GameInstance GameServer '"+gi.getGameServerId()+"' unknown");
+					return;
+				}
+				if (!KeyFactory.keyToString(gs.getOwnerId()).equals(KeyFactory.keyToString(account.getKey()))) {
+					resp.sendError(HttpServletResponse.SC_FORBIDDEN,"Add GameInstance GameServer '"+gi.getGameServerId()+"' not owned by "+account.getNickname());
+					return;				
+				}
+			}
 			if (gi.getGameTemplateId()==null) {
 				resp.sendError(HttpServletResponse.SC_BAD_REQUEST,"Add GameInstance must have gameTemplateId");
 				return;
 			}
-			GameTemplate gt = em.find(GameTemplate.class, GameTemplate.idToKey(gi.getGameTemplateId()));
+			gt = em.find(GameTemplate.class, GameTemplate.idToKey(gi.getGameTemplateId()));
 			if (gt==null) {
 				resp.sendError(HttpServletResponse.SC_BAD_REQUEST,"Add GameInstance GameTemplate '"+gi.getGameTemplateId()+"' unknown");
 				return;
@@ -113,6 +113,6 @@ public class AddGameInstanceServlet extends HttpServlet implements Constants {
 			em.close();
 		}
 
-		JSONUtils.sendGameInstance(resp, gi);
+		JSONUtils.sendGameInstance(resp, gi, gt, gs);
 	}
 }
