@@ -16,7 +16,9 @@
     <script type = "text/javascript">
 		$.ajaxSetup({cache:false});
 		var index = null;
+		var index2 = null;
 		var item = null;
+		var item2 = null;
 		
 		function select_game(i) {
 			item = index.items[i];
@@ -26,9 +28,16 @@
 			'<p>'+item.description+'</p></table>');
 		}
 
-		function rebuild_index(json) {
-			var table = $('#index');
-       		index = json;
+		function join_game(i) {
+			item2 = index2.items[i];
+			//alert('select game '+i+': '+item);
+			$('#item2').empty();
+			$('#item2').append('<table><h3><a href="'+item.link+'">'+item.title+'</a></h3>'+
+					'<h2>'+item.subtitle+'</h2>'+
+					'<p>'+item.description+'</p></table>');
+		}
+
+		function rebuild_index(index, table) {
    			$('tr',table).remove();
    			var image = '';
    			if (index.imageUrl!=undefined) {
@@ -66,6 +75,8 @@
 				var button = '';
 				if (item.queryUrl!=undefined)
 					button = '<input type="button" value="Go!" onclick="select_game('+i+')"/>';
+				if (item.joinUrl!=undefined) 
+					button = button+'<input type="button" value="Join!" onclick="join_game('+i+')"/>';
 				table.append('<tr><td>'+image+'</td><td>'+
 						'<h3><a href="'+item.link+'">'+item.title+'</a></h3>'+subtitle+
 						'<p>'+item.description+'</p>'+
@@ -80,7 +91,7 @@
 			var table = $('#index');
 			$('tr',table).remove();
 			table.append('<tr><td>Loading...</td></tr>');
-    		$.getJSON('GetGameIndex', rebuild_index);
+    		$.getJSON('GetGameIndex', function(json) { index=json; rebuild_index(json,table) });
 		}
 		//$(document).ready(...);
 	
@@ -98,10 +109,12 @@
 		    		data: data,
 		    		dataType: 'json',
 		    		success: function success(data, status) {
+						var table = $('#index2');
 		    			//data = $.parseJSON(data);
 		    			//alert('Updated config ('+status+'): data='+data+' ('+$.toJSON(data)+')');
 	    				$('#query_resp',form).attr('value',$.toJSON(data));
-	    				rebuild_index(data);
+	    				index2 = data;
+	    				rebuild_index(data,table);
 					},
 					error: function error(req, status) {
 		    			alert('Error doing query ('+req.status+': '+req.statusText+')');
@@ -112,18 +125,46 @@
 			}
 			return false;
 		}
-	
+
+		function do_join(form) {
+			if (item2==null) {
+				alert('No game instance selected');
+				return false;
+			}
+			var data = $('#join_json',form).attr('value');
+			try {
+				$.ajax({url: item2.joinUrl, 
+		    		type: 'POST',
+		    		contentType: 'application/json',
+		    		processData: false,
+		    		data: data,
+		    		dataType: 'json',
+		    		success: function success(data, status) {
+		    			//data = $.parseJSON(data);
+		    			//alert('Updated config ('+status+'): data='+data+' ('+$.toJSON(data)+')');
+	    				$('#join_resp',form).attr('value',$.toJSON(data));
+					},
+					error: function error(req, status) {
+		    			alert('Error doing join ('+req.status+': '+req.statusText+')');
+					}
+				});
+			} catch (err) {
+				alert('Error attempting join on '+item.joinUrl+': '+err);
+			}
+			return false;
+		}
+		
     </script>
   </head>
 
   <body>
     <h1>Lobby Browser</h1>
     <p><a href="GetGameIndex">GetGameIndex (JSON)</a></p>
-    <h2>Game Index</h2>
+    <h2>Game Template Index</h2>
     <table border="1" id="index">
     </table>
     <p><input type="button" value="Load" onclick="load_index()"/></p>
-    <h2>Chosen Game</h2>
+    <h2>Chosen Game Template</h2>
     <div id="item"></div>
 <!--     <p>Time:
     	<input type="text" value=""/>
@@ -132,7 +173,7 @@
     	<ul>
     		<li>{</li>
     		<li>"version":1</li>
-    		<li>"clientType":"Android"</li>
+    		<li>"clientType":"ANDROID"</li>
     		<li>"clientTitle":"..."</li>
     		<li>"majorVersion":1</li>
     		<li>"minorVersion":1</li>
@@ -162,6 +203,32 @@
 		<p><textarea cols="40" rows="5" id="query_json">{"version":1}</textarea></p>
 		<p><input type="submit" value="Do query"/></p>
 		<p><textarea cols="40" rows="5" id="query_resp"></textarea></p>
+    </form>
+    <h2>Game Instance Index</h2>
+    <table border="1" id="index2">
+    </table>
+    <h2>Chosen Game Instance</h2>
+    <div id="item2"></div>
+<!--     <p>Time:
+    	<input type="text" value=""/>
+    </p> -->
+    <form action="dummy" onsubmit="do_join(this);return false">
+    	<ul>
+    		<li>{</li>
+    		<li>"version":1</li>
+    		<li>"type":"RESERVE" (or "RELEASE" or "PLAY")</li>
+    		<li>"clientType":"ANDROID"</li>
+    		<li>"clientTitle":"..."</li>
+    		<li>"majorVersion":1</li>
+    		<li>"minorVersion":1</li>
+    		<li>"updateVersion":1</li>
+    		<li>"latitudeE6":1</li>
+    		<li>"longitudeE6":1</li>
+    		<li>}</li>
+    	</ul>
+		<p><textarea cols="40" rows="5" id="join_json">{"version":1,"type":"PLAY","clientType":"ANDROID","majorVersion":1,"minorVersion":6,"updateVersion":0}</textarea></p>
+		<p><input type="submit" value="Do join"/></p>
+		<p><textarea cols="40" rows="5" id="join_resp"></textarea></p>
     </form>
   </body>
 </html>

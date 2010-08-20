@@ -22,6 +22,7 @@ public interface Constants {
 	public static final String IMAGE_URL = "imageUrl";
 	public static final String INCLUDE_STARTED = "includeStarted";
 	public static final String ITEMS = "items";
+	public static final String JOIN_URL = "joinUrl";
 	public static final String JSON_MIME_TYPE = "application/json";
 	public static final String KEY = "key";
 	public static final String LANGUAGE = "language";

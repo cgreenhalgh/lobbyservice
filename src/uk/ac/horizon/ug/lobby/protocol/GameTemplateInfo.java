@@ -38,6 +38,8 @@ public class GameTemplateInfo {
 	private List<GameClientTemplate> gameClientTemplates;
 	/** game (template)-specific URL for lobby client interaction */
 	private String queryUrl;
+	/** game (instance)-specific URL for lobby client interaction */
+	private String joinUrl;
 	/** cons */
 	public GameTemplateInfo() {		
 	}
@@ -88,6 +90,18 @@ public class GameTemplateInfo {
 	 */
 	public void setGameInstance(GameInstance gameInstance) {
 		this.gameInstance = gameInstance;
+	}
+	/**
+	 * @return the joinUrl
+	 */
+	public String getJoinUrl() {
+		return joinUrl;
+	}
+	/**
+	 * @param joinUrl the joinUrl to set
+	 */
+	public void setJoinUrl(String joinUrl) {
+		this.joinUrl = joinUrl;
 	}
 	
 }

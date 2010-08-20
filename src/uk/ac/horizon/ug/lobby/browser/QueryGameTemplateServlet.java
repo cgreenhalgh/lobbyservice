@@ -51,6 +51,7 @@ import uk.ac.horizon.ug.lobby.RequestException;
 import uk.ac.horizon.ug.lobby.model.Account;
 import uk.ac.horizon.ug.lobby.model.EMF;
 import uk.ac.horizon.ug.lobby.model.GameClientTemplate;
+import uk.ac.horizon.ug.lobby.model.GameClientType;
 import uk.ac.horizon.ug.lobby.model.GameIndex;
 import uk.ac.horizon.ug.lobby.model.GameInstance;
 import uk.ac.horizon.ug.lobby.model.GameInstanceNominalStatus;
@@ -93,7 +94,8 @@ public class QueryGameTemplateServlet extends HttpServlet implements Constants {
 	public void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException {
 
-		GameIndex gindex = ConfigurationUtils.getConfigurationGameIndex();		
+		ServerConfiguration sc = ConfigurationUtils.getServerConfiguration();
+		GameIndex gindex = sc.getGameIndex();
 
 		EntityManager em = EMF.get().createEntityManager();
 		try {
@@ -106,49 +108,14 @@ public class QueryGameTemplateServlet extends HttpServlet implements Constants {
 			GameTemplate gt = getGameTemplate(req, em);
 			
 			// Check GameClientTemplate for clientType, clientTitle, locationSpecific and version
-			Map<String,Object> qps = new HashMap<String,Object>();
-			StringBuilder qb = new StringBuilder();
-			qb.append("SELECT x FROM GameClientTemplate x WHERE x."+GAME_TEMPLATE_ID+" = :"+GAME_TEMPLATE_ID);
-			qps.put(GAME_TEMPLATE_ID, gt.getId());
-			if (gq.getClientType()!=null) {
-				qb.append(" AND x."+CLIENT_TYPE+" = :"+CLIENT_TYPE);
-				qps.put(CLIENT_TYPE, gq.getClientType());
-			}
-			if (gq.getClientTitle()!=null) {
-				qb.append(" AND x."+CLIENT_TITLE+" = :"+CLIENT_TITLE);
-				qps.put(CLIENT_TITLE, gq.getClientTitle());
-			}
-			// can only check inequality on one value, so make that MAJOR_VERSION
-			if (gq.getMajorVersion()!=null) {
-				qb.append(" AND x."+MIN_MAJOR_VERSION+" <= :"+MAJOR_VERSION);
-				qps.put(MAJOR_VERSION, gq.getMajorVersion());
-			}
-			// post-check minor version & update version
-			Query q = em.createQuery(qb.toString());
-			for (String qp : qps.keySet()) {
-				q.setParameter(qp, qps.get(qp));
-			}
-			List<GameClientTemplate> posgcts = (List<GameClientTemplate>)q.getResultList();
-			// post-filter
+			List<GameClientTemplate> posgcts = getGameClientTemplates(em, gq, gt.getId());
+			logger.info("Game "+gt.getId()+" has "+posgcts.size()+" possible clients");
+			// post-filter - location
 			boolean locationSpecific = false;
 			boolean locationIndependent = false;
 			List<GameClientTemplate> gcts = new LinkedList<GameClientTemplate>();
 			List<GameClientTemplate> noloc_gcts = new LinkedList<GameClientTemplate>();
 			for (GameClientTemplate gct : posgcts) {
-				if (gq.getMajorVersion()!=null && gq.getMajorVersion()==gct.getMinMajorVersion()) {
-					// threshold major - check minor
-					if (gq.getMinorVersion()!=null) {
-						if (gq.getMinorVersion() < gct.getMinMajorVersion())
-							continue; // no good
-						if (gq.getMinorVersion()==gct.getMinMinorVersion()) {
-							// threshold minor - check update
-							if (gq.getUpdateVersion()!=null) {
-								if (gq.getUpdateVersion()<gct.getMinUpdateVersion())
-									continue; // no good
-							}
-						}
-					}
-				}
 				if (gct.isLocationSpecific())
 					locationSpecific = true;
 				else {
@@ -166,8 +133,10 @@ public class QueryGameTemplateServlet extends HttpServlet implements Constants {
 			}
 			logger.info("Found "+gcts.size()+" possible client templates, of which "+noloc_gcts.size()+" location-independent");
 			// Check GameInstance for startTime, endTime, location (if location-specific) and nominalStatus (not CANCELLED)
-			qps = new HashMap<String,Object>();
-			qb = new StringBuilder();
+			Map<String,Object> qps = new HashMap<String,Object>();
+			StringBuilder qb = new StringBuilder();
+			//qps = new HashMap<String,Object>();
+			//qb = new StringBuilder();
 			qb.append("SELECT x FROM GameInstance x WHERE x."+GAME_TEMPLATE_ID+" = :"+GAME_TEMPLATE_ID+" AND x."+NOMINAL_STATUS+" IN ( 'PLANNED', 'POSSIBLE', 'AVAILABLE', 'TEMPORARILY_UNAVAILABLE' )");
 			qps.put(GAME_TEMPLATE_ID, gt.getId());
 			//qps.put(GameInstanceNominalStatus.CANCELLED.toString(), GameInstanceNominalStatus.CANCELLED);
@@ -213,7 +182,7 @@ public class QueryGameTemplateServlet extends HttpServlet implements Constants {
 				qb.append(" ORDER BY x."+START_TIME+" ASC");					
 			
 			logger.info("Query: "+qb.toString());
-			q = em.createQuery(qb.toString());
+			Query q = em.createQuery(qb.toString());
 			for (String qp : qps.keySet()) {
 				q.setParameter(qp, qps.get(qp));
 			}
@@ -309,6 +278,7 @@ public class QueryGameTemplateServlet extends HttpServlet implements Constants {
 					GameTemplateInfo gti = new GameTemplateInfo();
 					gti.setGameTemplate(gt);
 					gti.setGameInstance(gi);
+					gti.setJoinUrl(makeJoinUrl(sc, gi));
 					if (locationOk)
 						gti.setGameClientTemplates(gcts);
 					else 
@@ -331,5 +301,76 @@ public class QueryGameTemplateServlet extends HttpServlet implements Constants {
 		finally {		
 			em.close();
 		}
+	}
+	private List<GameClientTemplate> getGameClientTemplates(EntityManager em,
+			GameQuery gq, String gameTemplateId) {
+		return getGameClientTemplates(em, gq.getClientTitle(), gq.getClientType(), gameTemplateId, gq.getMajorVersion(), gq.getMinorVersion(), gq.getUpdateVersion());
+	}
+	static List<GameClientTemplate> getGameClientTemplates(EntityManager em,
+			String clientTitle, GameClientType clientType,
+			String gameTemplateId, Integer majorVersion, Integer minorVersion,
+			Integer updateVersion) {
+
+		// Check GameClientTemplate for clientType, clientTitle, locationSpecific and version
+		Map<String,Object> qps = new HashMap<String,Object>();
+		StringBuilder qb = new StringBuilder();
+		qb.append("SELECT x FROM GameClientTemplate x WHERE x."+GAME_TEMPLATE_ID+" = :"+GAME_TEMPLATE_ID);
+		qps.put(GAME_TEMPLATE_ID, gameTemplateId);
+		if (clientType!=null) {
+			qb.append(" AND x."+CLIENT_TYPE+" = :"+CLIENT_TYPE);
+			qps.put(CLIENT_TYPE, clientType);
+		}
+		if (clientTitle!=null) {
+			qb.append(" AND x."+CLIENT_TITLE+" = :"+CLIENT_TITLE);
+			qps.put(CLIENT_TITLE, clientTitle);
+		}
+		// can only check inequality on one value, so make that MAJOR_VERSION
+		if (majorVersion!=null) {
+			qb.append(" AND x."+MIN_MAJOR_VERSION+" <= :"+MAJOR_VERSION);
+			qps.put(MAJOR_VERSION, majorVersion);
+		}
+		// post-check minor version & update version
+		Query q = em.createQuery(qb.toString());
+		for (String qp : qps.keySet()) {
+			q.setParameter(qp, qps.get(qp));
+		}
+		List<GameClientTemplate> posgcts = (List<GameClientTemplate>)q.getResultList();
+		// post-filter
+		List<GameClientTemplate> gcts = new LinkedList<GameClientTemplate>();
+		for (GameClientTemplate gct : posgcts) {
+			if (majorVersion!=null && majorVersion==gct.getMinMajorVersion()) {
+				// threshold major - check minor
+				if (minorVersion!=null) {
+					if (minorVersion < gct.getMinMajorVersion())
+						continue; // no good
+					if (minorVersion==gct.getMinMinorVersion()) {
+						// threshold minor - check update
+						if (updateVersion!=null) {
+							if (updateVersion<gct.getMinUpdateVersion())
+								continue; // no good
+						}
+					}
+				}
+			}
+			// add gcts (if location ok)
+			gcts.add(gct);
+		}
+		return gcts;
+	}
+	private static final String JOIN_PATH = "browser/JoinGameInstance/";
+	private String makeJoinUrl(ServerConfiguration sc, GameInstance gi) {
+		StringBuilder sb = new StringBuilder();
+		if (sc.getBaseUrl()==null) {
+			logger.warning("Server BaseURL not configured");
+			sb.append(GetGameIndexServlet.DEFAULT_BASE_URL);
+		}
+		else {
+			sb.append(sc.getBaseUrl());
+			if (!sc.getBaseUrl().endsWith("/"))
+				sb.append("/");			
+		}
+		sb.append(JOIN_PATH);
+		sb.append(KeyFactory.keyToString(gi.getKey()));
+		return sb.toString();
 	}
 }

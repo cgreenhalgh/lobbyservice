@@ -1,4 +1,4 @@
-<!-- Indices written at Fri, 20 Aug 2010 15:43:29 UTC -->
+<!-- Indices written at Fri, 20 Aug 2010 16:40:26 UTC -->
 
 <datastore-indexes>
 
@@ -13,6 +13,13 @@
         <property name="gameTemplateId" direction="asc"/>
         <property name="nominalStatus" direction="asc"/>
         <property name="startTime" direction="asc"/>
+    </datastore-index>
+
+    <!-- Used 1 time in query history -->
+    <datastore-index kind="GameClientTemplate" ancestor="false" source="auto">
+        <property name="clientType" direction="asc"/>
+        <property name="gameTemplateId" direction="asc"/>
+        <property name="minMajorVersion" direction="asc"/>
     </datastore-index>
 
 </datastore-indexes>

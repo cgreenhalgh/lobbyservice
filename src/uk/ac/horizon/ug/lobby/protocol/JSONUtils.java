@@ -74,16 +74,16 @@ public class JSONUtils implements Constants {
 	/** write GameTemplateInfo
 	 * @throws JSONException */
 	public static void writeGameTemplate(JSONWriter jw, GameTemplateInfo gameTemplateInfo) throws JSONException {
-		writeGameTemplate(jw, gameTemplateInfo.getGameTemplate(), gameTemplateInfo.getGameClientTemplates(), gameTemplateInfo.getQueryUrl(), gameTemplateInfo.getGameInstance());
+		writeGameTemplate(jw, gameTemplateInfo.getGameTemplate(), gameTemplateInfo.getGameClientTemplates(), gameTemplateInfo.getQueryUrl(), gameTemplateInfo.getGameInstance(), gameTemplateInfo.getJoinUrl());
 	}
 	/** write GameTemplate summary 
 	 * @throws JSONException */
 	public static void writeGameTemplate(JSONWriter jw, GameTemplate gameTemplate) throws JSONException {
-		writeGameTemplate(jw, gameTemplate, null, null, null);
+		writeGameTemplate(jw, gameTemplate, null, null, null, null);
 	}
 	/** write GameTemplate summary 
 	 * @throws JSONException */
-	public static void writeGameTemplate(JSONWriter jw, GameTemplate gameTemplate, List<GameClientTemplate> gameClientTemplates, String queryUrl, GameInstance gameInstance) throws JSONException {
+	public static void writeGameTemplate(JSONWriter jw, GameTemplate gameTemplate, List<GameClientTemplate> gameClientTemplates, String queryUrl, GameInstance gameInstance, String joinUrl) throws JSONException {
 		jw.object();
 		if (gameTemplate.getId()!=null) {
 			jw.key(ID);
@@ -152,6 +152,10 @@ public class JSONUtils implements Constants {
 		}
 		if (gameInstance!=null) {
 			writeGameInstancePublicFields(jw, gameInstance, true);
+		}
+		if (joinUrl!=null) {
+			jw.key(JOIN_URL);
+			jw.value(joinUrl);
 		}
 		jw.endObject();
 	}
@@ -651,6 +655,36 @@ public class JSONUtils implements Constants {
 				o.setVersion(json.getInt(key));
 			else
 				throw new JSONException("Unsupported key '"+key+"' in GameQuery: "+json);
+		}
+		return o;
+	}
+	/** parse JSON Object to GameJoinRequest
+	 * @throws JSONException */
+	public static GameJoinRequest parseGameJoinRequest(JSONObject json) throws JSONException {
+		GameJoinRequest o = new GameJoinRequest();
+		Iterator keys = json.keys();
+		while(keys.hasNext()) {
+			String key = (String)keys.next();
+			if (key.equals(CLIENT_TITLE))
+				o.setClientTitle(json.getString(key));
+			else if (key.equals(CLIENT_TYPE))
+				o.setClientType(GameClientType.valueOf(json.getString(key)));
+			else if (key.equals(LATITUDE_E6))
+				o.setLatitudeE6(json.getInt(key));
+			else if (key.equals(LONGITUDE_E6))
+				o.setLongitudeE6(json.getInt(key));
+			else if (key.equals(MAJOR_VERSION))
+				o.setMajorVersion(json.getInt(key));
+			else if (key.equals(MINOR_VERSION))
+				o.setMinorVersion(json.getInt(key));
+			else if (key.equals(TYPE))
+				o.setType(GameJoinRequestType.valueOf(json.getString(key)));
+			else if (key.equals(UPDATE_VERSION))
+				o.setUpdateVersion(json.getInt(key));
+			else if (key.equals(VERSION))
+				o.setVersion(json.getInt(key));
+			else
+				throw new JSONException("Unsupported key '"+key+"' in GameJoinRequest: "+json);
 		}
 		return o;
 	}
