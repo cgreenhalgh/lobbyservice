@@ -61,6 +61,40 @@
 			$('#client_more').before(client_row);
     	}
 
+    	function ajax_add_game_template(data) {
+    		$.ajax({url: 'AddGameTemplate', 
+        		type: 'POST',
+        		contentType: 'application/json',
+        		processData: false,
+        		data: data,
+        		dataType: 'text',
+        		success: function success(data, status) {
+        			get_templates();
+        			alert('Added template ('+status+')');
+    			},
+    			error: function error(req, status) {
+        			alert('Error adding template ('+req.status+': '+req.statusText+')');
+    			}
+    		});
+    	}
+    	function ajax_update_game_template(data) {
+    		// edit
+    		$.ajax({url: 'UserGameTemplate/'+current_game_template.id, 
+        		type: 'POST',
+        		contentType: 'application/json',
+        		processData: false,
+        		data: data,
+        		dataType: 'text',
+        		success: function success(data, status) {
+        			get_templates();
+        			alert('Updated template ('+status+')');
+    			},
+    			error: function error(req, status) {
+        			alert('Error updating template ('+req.status+': '+req.statusText+')');
+    			}
+    		});
+    	}
+
     	// called from form submit for add template
     	function add_game_template(form) {
         	var gt = {};
@@ -91,36 +125,9 @@
     		var data = $.toJSON(gt);
     		//alert('Request: '+data);
     		if (current_game_template==null) {
-	    		$.ajax({url: 'AddGameTemplate', 
-	        		type: 'POST',
-	        		contentType: 'application/json',
-	        		processData: false,
-	        		data: data,
-	        		dataType: 'text',
-	        		success: function success(data, status) {
-	        			get_templates();
-	        			alert('Added template ('+status+')');
-	    			},
-	    			error: function error(req, status) {
-	        			alert('Error adding template ('+req.status+': '+req.statusText+')');
-	    			}
-	    		});
+    			ajax_add_game_template(data);
     		} else {
-        		// edit
-	    		$.ajax({url: 'UserGameTemplate/'+current_game_template.id, 
-	        		type: 'POST',
-	        		contentType: 'application/json',
-	        		processData: false,
-	        		data: data,
-	        		dataType: 'text',
-	        		success: function success(data, status) {
-	        			get_templates();
-	        			alert('Updated template ('+status+')');
-	    			},
-	    			error: function error(req, status) {
-	        			alert('Error updating template ('+req.status+': '+req.statusText+')');
-	    			}
-	    		});
+    			ajax_update_game_template(data);
     		}    	
         	//alert('add '+$.toJSON(gt));
         	return false;
@@ -142,6 +149,7 @@
         	$('tr').filter('.client_template').remove();
         	$.getJSON('UserGameTemplate/'+id, function(data) {
             	//alert('received '+$.toJSON(data));
+            	$('#json').attr('value',$.toJSON(data));
             	current_game_template = data;
             	set_input_from_field(document,data,'title');
             	set_input_from_field(document,data,'description');
@@ -167,6 +175,15 @@
 				}
         	});
         	return false;
+    	}
+
+    	function add_json() {
+        	var json = $('#json').attr('value');
+        	ajax_add_game_template(json);
+    	}
+    	function update_json() {
+        	var json = $('#json').attr('value');
+        	ajax_update_game_template(json);
     	}
     </script>
   </head>
@@ -206,6 +223,11 @@
 			<tr id="client_more"><td><input type="button" value="More..." onclick="add_client_row()"/></td></tr>
 		</table>
 		<p><input type="submit" value="Add game template"/><input type="reset" value="Reset/New" onclick="reset_game_template(this)"/></p>
+		<h3>Raw (JSON)</h3>
+		<table>
+		 	<tr><td><textarea id="json" rows="5" cols="40" name="json"></textarea></td></tr>
+		 	<tr><td><input type="button" onclick="add_json()" value="Add game template"/><input type="button" onclick="update_json()" value="Update game template"/></td></tr>
+		</table>
 	</form>
   </body>
 </html>

@@ -45,6 +45,10 @@ public class GameIndex {
     @Id 
     @GeneratedValue(strategy = GenerationType.IDENTITY) 
     private Key key; 
+    /** version - required */
+    private int version;
+    /** 'current' version */
+    public static final int CURRENT_VERSION = 1;
 	/** title (RSS2.0, required) */
 	private String title;
 	/** description (RSS2.0, required) */
@@ -86,6 +90,18 @@ public class GameIndex {
 	 */
 	public void setKey(Key key) {
 		this.key = key;
+	}
+	/**
+	 * @return the version
+	 */
+	public int getVersion() {
+		return version;
+	}
+	/**
+	 * @param version the version to set
+	 */
+	public void setVersion(int version) {
+		this.version = version;
 	}
 	/**
 	 * @return the title

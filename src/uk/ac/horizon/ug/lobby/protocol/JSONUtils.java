@@ -519,6 +519,10 @@ public class JSONUtils implements Constants {
 			jw.key(TTL_MINUTES);
 			jw.value(gs.getTtlMinutes());
 		}
+		if (gs.getVersion()!=0) {
+			jw.key(VERSION);
+			jw.value(gs.getVersion());
+		}
 		if (gs.getItems()!=null) {
 			jw.key(ITEMS);
 			jw.array();
@@ -559,5 +563,83 @@ public class JSONUtils implements Constants {
 			throw new IOException(je);
 		}
 		w.close();
+	}
+	/** parse JSON Object to GameInstance
+	 * @throws JSONException */
+	public static TimeConstraint parseTimeConstraint(JSONObject json) throws JSONException {
+		TimeConstraint o = new TimeConstraint();
+		Iterator keys = json.keys();
+		while(keys.hasNext()) {
+			String key = (String)keys.next();
+			if (key.equals(INCLUDE_STARTED))
+				o.setIncludeStarted(json.getBoolean(key));
+			else if (key.equals(LIMIT_END_TIME))
+				o.setLimitEndTime(json.getBoolean(key));
+			else if (key.equals(MAX_DURATION_MS))
+				o.setMaxDurationMs(json.getLong(key));
+			else if (key.equals(MAX_TIME))
+				o.setMaxTime(json.getLong(key));
+			else if (key.equals(MIN_DURATION_MS))
+				o.setMinDurationMs(json.getLong(key));
+			else if (key.equals(MIN_TIME))
+				o.setMinTime(json.getLong(key));
+			else
+				throw new JSONException("Unsupported key '"+key+"' in TimeConstraint: "+json);
+		}
+		return o;
+	}
+	/** parse JSON Object to GameInstance
+	 * @throws JSONException */
+	public static LocationConstraint parseLocationConstraint(JSONObject json) throws JSONException {
+		LocationConstraint o = new LocationConstraint();
+		Iterator keys = json.keys();
+		while(keys.hasNext()) {
+			String key = (String)keys.next();
+			if (key.equals(LATITUDE_E6))
+				o.setLatitudeE6(json.getInt(key));
+			else if (key.equals(LONGITUDE_E6))
+				o.setLongitudeE6(json.getInt(key));
+			else if (key.equals(RADIUS_METRES))
+				o.setRadiusMetres((float)json.getDouble(key));
+			else if (key.equals(TYPE))
+				o.setType(LocationConstraintType.valueOf(json.getString(key)));
+			else
+				throw new JSONException("Unsupported key '"+key+"' in LocationConstraint: "+json);
+		}
+		return o;
+	}
+	/** parse JSON Object to GameInstance
+	 * @throws JSONException */
+	public static GameQuery parseGameQuery(JSONObject json) throws JSONException {
+		GameQuery o = new GameQuery();
+		Iterator keys = json.keys();
+		while(keys.hasNext()) {
+			String key = (String)keys.next();
+			if (key.equals(CLIENT_TITLE))
+				o.setClientTitle(json.getString(key));
+			else if (key.equals(CLIENT_TYPE))
+				o.setClientType(GameClientType.valueOf(json.getString(key)));
+			else if (key.equals(GAME_TEMPLATE_ID))
+				o.setGameTemplateId(json.getString(key));
+			else if (key.equals(LATITUDE_E6))
+				o.setLatitudeE6(json.getInt(key));
+			else if (key.equals(LOCATION_CONSTRAINT))
+				o.setLocationConstraint(parseLocationConstraint(json.getJSONObject(key)));
+			else if (key.equals(LONGITUDE_E6))
+				o.setLongitudeE6(json.getInt(key));
+			else if (key.equals(MAJOR_VERSION))
+				o.setMajorVersion(json.getInt(key));
+			else if (key.equals(MINOR_VERSION))
+				o.setMinorVersion(json.getInt(key));
+			else if (key.equals(TIME_CONSTRAINT))
+				o.setTimeConstraint(parseTimeConstraint(json.getJSONObject(key)));
+			else if (key.equals(UPDATE_VERSION))
+				o.setUpdateVersion(json.getInt(key));
+			else if (key.equals(VERSION))
+				o.setVersion(json.getInt(key));
+			else
+				throw new JSONException("Unsupported key '"+key+"' in GameQuery: "+json);
+		}
+		return o;
 	}
 }

@@ -58,6 +58,7 @@ public class ConfigurationUtils {
 			}
 			gi.setDocs(DOCS_URL);
 			gi.setGenerator(GENERATOR_NAME);
+			gi.setVersion(GameIndex.CURRENT_VERSION);
 			ServerConfiguration sc = em.find(ServerConfiguration.class, ServerConfiguration.getConfigurationKey());
 			if (sc==null) {
 				logger.info("Creating ServerConfiguration");

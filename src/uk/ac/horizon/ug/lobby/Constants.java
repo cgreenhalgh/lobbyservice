@@ -5,6 +5,7 @@ public interface Constants {
 	public static final String APPLICATION_MARKET_ID = "applicationMarketId";
 	public static final String BASE_URL = "baseUrl";	
 	public static final String CLIENT_TEMPLATES = "clientTemplates";
+	public static final String CLIENT_TITLE = "clientTitle";
 	public static final String CLIENT_TYPE = "clientType";
 	public static final String QUERY_URL = "queryUrl";
 	public static final String DESCRIPTION = "description";
@@ -19,6 +20,7 @@ public interface Constants {
 	public static final String GENERATOR = "generator";
 	public static final String ID = "id";
 	public static final String IMAGE_URL = "imageUrl";
+	public static final String INCLUDE_STARTED = "includeStarted";
 	public static final String ITEMS = "items";
 	public static final String JSON_MIME_TYPE = "application/json";
 	public static final String KEY = "key";
@@ -27,23 +29,34 @@ public interface Constants {
 	public static final String LAST_KNOWN_STATUS = "lastKnownStatus";
 	public static final String LAST_KNOWN_STATUS_TIME = "lastKnownStatusTime";
 	public static final String LATITUDE_E6 = "latitudeE6";
+	public static final String LIMIT_END_TIME = "limitEndTime";
 	public static final String LINK = "link";
 	public static final String LOBBY_SHARED_SECRET = "lobbySharedSecret";
+	public static final String LOCATION_CONSTRAINT = "locationConstraint";
 	public static final String LOCATION_SPECIFIC = "locationSpecific";
 	public static final String LONGITUDE_E6 = "longitudeE6";
+	public static final String MAJOR_VERSION = "majorVersion";
+	public static final String MAX_DURATION_MS = "maxDurationMs";
+	public static final String MAX_TIME = "maxTime";
+	public static final String MIN_DURATION_MS = "minDurationMs";
 	public static final String MIN_MINOR_VERSION = "minMinorVersion";
 	public static final String MIN_MAJOR_VERSION = "minMajorVersion";
 	public static final String MIN_UPDATE_VERSION = "minUpdateVersion";
+	public static final String MIN_TIME = "minTime";
+	public static final String MINOR_VERSION = "minorVersion";
 	public static final String NOMINAL_STATUS = "nominalStatus";
 	public static final String OWNER_ID = "ownerId";
 	public static final String RADIUS_METRES = "radiusMetres";
 	public static final String START_TIME = "startTime";
 	public static final String STATUS = "status";
 	public static final String TARGET_STATUS = "targetStatus";
+	public static final String TIME_CONSTRAINT = "timeConstraint";
 	public static final String TITLE = "title";
 	public static final String TTL_MINUTES = "ttlMinutes";
 	public static final String TYPE = "type";
+	public static final String UPDATE_VERSION = "updateVersion";
 	public static final String USER_ID = "userId";
+	public static final String VERSION = "version";
 	public static final String VISIBILITY = "visibility";
 
 }

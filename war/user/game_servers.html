@@ -55,6 +55,39 @@
         	get_template_options();
     	});
 
+		function ajax_add_game_server(data) {
+			$.ajax({url: 'AddGameServer', 
+	    		type: 'POST',
+	    		contentType: 'application/json',
+	    		processData: false,
+	    		data: data,
+	    		dataType: 'text',
+	    		success: function success(data, status) {
+	    			get_templates();
+	    			alert('Added server ('+status+')');
+				},
+				error: function error(req, status) {
+	    			alert('Error adding server ('+req.status+': '+req.statusText+')');
+				}
+			});
+		}
+		function ajax_update_game_server(data) {
+    		$.ajax({url: 'UserGameServer/'+current_game_template.key, 
+        		type: 'POST',
+        		contentType: 'application/json',
+        		processData: false,
+        		data: data,
+        		dataType: 'text',
+        		success: function success(data, status) {
+        			get_templates();
+        			alert('Updated server ('+status+')');
+    			},
+    			error: function error(req, status) {
+        			alert('Error updating server ('+req.status+': '+req.statusText+')');
+    			}
+    		});
+		}
+    	
     	// called from form submit for add template
     	function add_game_template(form) {
         	var gt = {};
@@ -69,36 +102,10 @@
     		var data = $.toJSON(gt);
     		//alert('Request: '+data);
     		if (current_game_template==null) {
-	    		$.ajax({url: 'AddGameServer', 
-	        		type: 'POST',
-	        		contentType: 'application/json',
-	        		processData: false,
-	        		data: data,
-	        		dataType: 'text',
-	        		success: function success(data, status) {
-	        			get_templates();
-	        			alert('Added server ('+status+')');
-	    			},
-	    			error: function error(req, status) {
-	        			alert('Error adding server ('+req.status+': '+req.statusText+')');
-	    			}
-	    		});
+        		ajax_add_game_server(data);
     		} else {
         		// edit
-	    		$.ajax({url: 'UserGameServer/'+current_game_template.key, 
-	        		type: 'POST',
-	        		contentType: 'application/json',
-	        		processData: false,
-	        		data: data,
-	        		dataType: 'text',
-	        		success: function success(data, status) {
-	        			get_templates();
-	        			alert('Updated server ('+status+')');
-	    			},
-	    			error: function error(req, status) {
-	        			alert('Error updating server ('+req.status+': '+req.statusText+')');
-	    			}
-	    		});
+        		ajax_update_game_server(data);
     		}    	
         	//alert('add '+$.toJSON(gt));
         	return false;
@@ -137,6 +144,14 @@
             	$(':input[name=lobbySharedSecret]').attr('value',data.lobbySharedSecret);
         	});
         	return false;
+    	}
+    	function add_json() {
+        	var json = $('#json').attr('value');
+        	ajax_add_game_server(json);
+    	}
+    	function update_json() {
+        	var json = $('#json').attr('value');
+        	ajax_update_game_server(json);
     	}
     </script>
   </head>
@@ -184,6 +199,11 @@
 			</td></tr>
 		</table>
 		<p><input type="submit" value="Add game server"/><input type="reset" value="Reset/New" onclick="reset_game_template(this)"/></p>
+		<h3>Raw (JSON)</h3>
+		<table>
+		 	<tr><td><textarea id="json" rows="5" cols="40" name="json"></textarea></td></tr>
+		 	<tr><td><input type="button" onclick="add_json()" value="Add game server"/><input type="button" onclick="update_json()" value="Update game server"/></td></tr>
+		</table>
 	</form>
   </body>
 </html>

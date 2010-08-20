@@ -15,11 +15,23 @@
     <script type = "text/javascript" src="../resources/common_utils.js"></script>
     <script type = "text/javascript">
 		$.ajaxSetup({cache:false});
+		var index = null;
+		var item = null;
+		
+		function select_game(i) {
+			item = index.items[i];
+			alert('select game '+i+': '+item);
+			$('#item').empty();
+			$('#item').append('<table><h3><a href="'+item.link+'">'+item.title+'</a></h3>'+
+			'<p>'+item.description+'</p></table>');
+		}
+
 		function load_index() {
 			var table = $('#index');
 			$('tr',table).remove();
 			table.append('<tr><td>Loading...</td></tr>');
-    		$.getJSON('GetGameIndex',function(index) {
+    		$.getJSON('GetGameIndex',function(json) {
+        		index = json;
     			$('tr',table).remove();
     			var image = '';
     			if (index.imageUrl!=undefined) {
@@ -32,8 +44,8 @@
 				for (var i=0; i<index.items.length; i++) {
 					var item = index.items[i];
 	    			var image = '';
-	    			if (index.imageUrl!=undefined) {
-						image = '<img src="'+index.imageUrl+'" alt="image"/>';
+	    			if (item.imageUrl!=undefined) {
+						image = '<img src="'+item.imageUrl+'" alt="image"/>';
 	    			}
 					var clients = '';
 					for (var ci=0; ci<item.clientTemplates.length; ci++) {
@@ -47,7 +59,7 @@
 							'<p><table border="1"><tr>'+
 							clients+
 							'</tr></table></p>'+
-							'</td><td><a href="'+item.queryUrl+'">Go!</a>'+
+							'</td><td><input type="button" value="Go!" onclick="select_game('+i+')"/>'+
 							'</td></tr>');							
 				}
 			});
@@ -61,8 +73,17 @@
   <body>
     <h1>Lobby Browser</h1>
     <p><a href="GetGameIndex">GetGameIndex (JSON)</a></p>
+    <h2>Game Index</h2>
     <table border="1" id="index">
     </table>
     <p><input type="button" value="Load" onclick="load_index()"/></p>
+    <h2>Chosen Game</h2>
+    <div id="item"/>
+    <form action="dummy" onsubmit="">
+	    <table>
+	    	<tr><td>Client type</td><td>TODO</td></tr>
+	    	TODO
+	    </table>
+    </form>
   </body>
 </html>
