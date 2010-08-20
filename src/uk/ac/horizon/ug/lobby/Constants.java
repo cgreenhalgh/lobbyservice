@@ -49,6 +49,7 @@ public interface Constants {
 	public static final String RADIUS_METRES = "radiusMetres";
 	public static final String START_TIME = "startTime";
 	public static final String STATUS = "status";
+	public static final String SUBTITLE = "subtitle";
 	public static final String TARGET_STATUS = "targetStatus";
 	public static final String TIME_CONSTRAINT = "timeConstraint";
 	public static final String TITLE = "title";

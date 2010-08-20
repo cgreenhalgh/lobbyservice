@@ -74,16 +74,16 @@ public class JSONUtils implements Constants {
 	/** write GameTemplateInfo
 	 * @throws JSONException */
 	public static void writeGameTemplate(JSONWriter jw, GameTemplateInfo gameTemplateInfo) throws JSONException {
-		writeGameTemplate(jw, gameTemplateInfo.getGameTemplate(), gameTemplateInfo.getGameClientTemplates(), gameTemplateInfo.getQueryUrl());
+		writeGameTemplate(jw, gameTemplateInfo.getGameTemplate(), gameTemplateInfo.getGameClientTemplates(), gameTemplateInfo.getQueryUrl(), gameTemplateInfo.getGameInstance());
 	}
 	/** write GameTemplate summary 
 	 * @throws JSONException */
 	public static void writeGameTemplate(JSONWriter jw, GameTemplate gameTemplate) throws JSONException {
-		writeGameTemplate(jw, gameTemplate, null, null);
+		writeGameTemplate(jw, gameTemplate, null, null, null);
 	}
 	/** write GameTemplate summary 
 	 * @throws JSONException */
-	public static void writeGameTemplate(JSONWriter jw, GameTemplate gameTemplate, List<GameClientTemplate> gameClientTemplates, String queryUrl) throws JSONException {
+	public static void writeGameTemplate(JSONWriter jw, GameTemplate gameTemplate, List<GameClientTemplate> gameClientTemplates, String queryUrl, GameInstance gameInstance) throws JSONException {
 		jw.object();
 		if (gameTemplate.getId()!=null) {
 			jw.key(ID);
@@ -149,6 +149,9 @@ public class JSONUtils implements Constants {
 		if (queryUrl!=null) {
 			jw.key(QUERY_URL);
 			jw.value(queryUrl);
+		}
+		if (gameInstance!=null) {
+			writeGameInstancePublicFields(jw, gameInstance, true);
 		}
 		jw.endObject();
 	}
@@ -382,8 +385,6 @@ public class JSONUtils implements Constants {
 			jw.key(BASE_URL);
 			jw.value(gs.getBaseUrl());
 		}
-		jw.key(END_TIME);
-		jw.value(gs.getEndTime());
 		if (gs.getGameServerId()!=null) {
 			jw.key(GAME_SERVER_ID);
 			jw.value(KeyFactory.keyToString(gs.getGameServerId()));
@@ -396,6 +397,30 @@ public class JSONUtils implements Constants {
 			jw.key(KEY);
 			jw.value(KeyFactory.keyToString(gs.getKey()));
 		}
+		if (gs.getStatus()!=null) {
+			jw.key(STATUS);
+			jw.value(gs.getStatus().toString());
+		}
+
+		writeGameInstancePublicFields(jw, gs, false);
+
+		if (gameTemplate!=null) {
+			jw.key(GAME_TEMPLATE);
+			writeGameTemplate(jw, gameTemplate);
+		}
+		if (gameServer!=null) {
+			jw.key(GAME_SERVER);
+			writeGameServer(jw, gameServer);
+		}
+
+
+		jw.endObject();
+	}
+	private static void writeGameInstancePublicFields(JSONWriter jw,
+			GameInstance gs, boolean escapeTitle) throws JSONException {
+		// TODO Auto-generated method stub
+		jw.key(END_TIME);
+		jw.value(gs.getEndTime());
 		jw.key(LATITUDE_E6);
 		jw.value(gs.getLatitudeE6());
 		jw.key(LONGITUDE_E6);
@@ -408,23 +433,10 @@ public class JSONUtils implements Constants {
 		jw.value(gs.getRadiusMetres());
 		jw.key(START_TIME);
 		jw.value(gs.getStartTime());
-		if (gs.getStatus()!=null) {
-			jw.key(STATUS);
-			jw.value(gs.getStatus().toString());
-		}
 		if (gs.getTitle()!=null) {
-			jw.key(TITLE);
+			jw.key(escapeTitle ? SUBTITLE : TITLE);
 			jw.value(gs.getTitle());
 		}
-		if (gameTemplate!=null) {
-			jw.key(GAME_TEMPLATE);
-			writeGameTemplate(jw, gameTemplate);
-		}
-		if (gameServer!=null) {
-			jw.key(GAME_SERVER);
-			writeGameServer(jw, gameServer);
-		}
-		jw.endObject();
 	}
 	/** parse JSON Object to GameInstance
 	 * @throws JSONException */

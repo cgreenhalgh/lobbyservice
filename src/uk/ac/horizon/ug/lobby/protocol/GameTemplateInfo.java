@@ -22,6 +22,7 @@ package uk.ac.horizon.ug.lobby.protocol;
 import java.util.List;
 
 import uk.ac.horizon.ug.lobby.model.GameClientTemplate;
+import uk.ac.horizon.ug.lobby.model.GameInstance;
 import uk.ac.horizon.ug.lobby.model.GameTemplate;
 
 /**
@@ -31,6 +32,8 @@ import uk.ac.horizon.ug.lobby.model.GameTemplate;
 public class GameTemplateInfo {
 	/** game template */
 	private GameTemplate gameTemplate;
+	/** game instance - optional - used in responses to GameQuerys */
+	private GameInstance gameInstance;
 	/** client templates */
 	private List<GameClientTemplate> gameClientTemplates;
 	/** game (template)-specific URL for lobby client interaction */
@@ -73,6 +76,18 @@ public class GameTemplateInfo {
 	 */
 	public void setQueryUrl(String queryUrl) {
 		this.queryUrl = queryUrl;
+	}
+	/**
+	 * @return the gameInstance
+	 */
+	public GameInstance getGameInstance() {
+		return gameInstance;
+	}
+	/**
+	 * @param gameInstance the gameInstance to set
+	 */
+	public void setGameInstance(GameInstance gameInstance) {
+		this.gameInstance = gameInstance;
 	}
 	
 }
