@@ -39,7 +39,9 @@ function add_boolean_field(form, obj, name, input_name) {
 		input_name = name;
 	var value = $(':input[name='+input_name+']',form).attr('checked');
 	if (value!=null && value!='')
-		obj[name] = Boolean(value);
+		obj[name] = true;
+	else
+		obj[name] = false;
 }
 
 // set a select option according to a field value

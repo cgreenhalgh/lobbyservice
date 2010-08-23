@@ -137,11 +137,13 @@ public class QueryGameTemplateServlet extends HttpServlet implements Constants {
 			StringBuilder qb = new StringBuilder();
 			//qps = new HashMap<String,Object>();
 			//qb = new StringBuilder();
-			qb.append("SELECT x FROM GameInstance x WHERE x."+GAME_TEMPLATE_ID+" = :"+GAME_TEMPLATE_ID+" AND x."+NOMINAL_STATUS+" IN ( 'PLANNED', 'POSSIBLE', 'AVAILABLE', 'TEMPORARILY_UNAVAILABLE' )");
+			qb.append("SELECT x FROM GameInstance x WHERE x."+GAME_TEMPLATE_ID+" = :"+GAME_TEMPLATE_ID+" AND x."+NOMINAL_STATUS+" IN ( 'PLANNED', 'POSSIBLE', 'AVAILABLE', 'TEMPORARILY_UNAVAILABLE' ) AND x."+VISIBILITY+" = '"+GameTemplateVisibility.PUBLIC.toString()+"'");
 			qps.put(GAME_TEMPLATE_ID, gt.getId());
 			//qps.put(GameInstanceNominalStatus.CANCELLED.toString(), GameInstanceNominalStatus.CANCELLED);
 			//qps.put(GameInstanceNominalStatus.ENDED.toString(), GameInstanceNominalStatus.ENDED);
-			
+			if (gq.getIncludeFullGames()==null || !gq.getIncludeFullGames()) {
+				qb.append(" AND x."+FULL+" = FALSE");
+			}
 			// query constraints
 			// NB GAE only allows range query on one variable - we'll use startTime for now
 			if (gq.getTimeConstraint()!=null) {

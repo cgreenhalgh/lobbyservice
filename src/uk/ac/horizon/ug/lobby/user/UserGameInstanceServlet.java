@@ -172,7 +172,18 @@ public class UserGameInstanceServlet extends HttpServlet implements Constants {
 				gii.gameInstance.setLatitudeE6(ngi.getLatitudeE6());
 			if (ngi.getLongitudeE6()!=0)
 				gii.gameInstance.setLongitudeE6(ngi.getLongitudeE6());
+			// note check of json, not ngi (which has default value(s))
+			if (json.has(MAX_NUM_SLOTS))
+				gii.gameInstance.setMaxNumSlots(ngi.getMaxNumSlots());
+			// note check of json, not ngi (which has default value(s))
+			if (json.has(ALLOW_ANONYMOUS_CLIENTS))
+				gii.gameInstance.setAllowAnonymousClients(ngi.isAllowAnonymousClients());
+			if (ngi.getVisibility()!=null)
+				gii.gameInstance.setVisibility(ngi.getVisibility());
 
+			// cache state
+			gii.gameInstance.setFull(gii.gameInstance.getNumSlotsAllocated()>=gii.gameInstance.getMaxNumSlots());
+			
 			em.merge(gii.gameInstance);
 		} catch (RequestException e) {
 			resp.sendError(e.getErrorCode(), e.getMessage());

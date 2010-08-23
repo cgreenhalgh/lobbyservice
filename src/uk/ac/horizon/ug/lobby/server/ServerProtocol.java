@@ -17,19 +17,24 @@
  *  along with lobbyservice.  If not, see <http://www.gnu.org/licenses/>.
  * 
  */
-package uk.ac.horizon.ug.lobby.model;
+package uk.ac.horizon.ug.lobby.server;
 
-import uk.ac.horizon.ug.lobby.server.ExplodingPlacesServerProtocol;
-import uk.ac.horizon.ug.lobby.server.ServerProtocol;
+import javax.persistence.EntityManager;
 
-/** Essentially should identify the protocol/paradigm for interacting with the server.
+import uk.ac.horizon.ug.lobby.model.Account;
+import uk.ac.horizon.ug.lobby.model.GameClient;
+import uk.ac.horizon.ug.lobby.model.GameInstance;
+import uk.ac.horizon.ug.lobby.model.GameInstanceSlot;
+import uk.ac.horizon.ug.lobby.model.GameServer;
+import uk.ac.horizon.ug.lobby.protocol.GameJoinRequest;
+import uk.ac.horizon.ug.lobby.protocol.GameJoinResponse;
+
+/** generic server control interface (plug-in).
  * 
  * @author cmg
  *
  */
-public enum GameServerType {
-	EXPLODING_PLACES(new ExplodingPlacesServerProtocol());
-	private ServerProtocol serverProtocol;
-	private GameServerType(ServerProtocol serverProtocol) { this.serverProtocol = serverProtocol; }
-	public ServerProtocol serverProtocol() { return serverProtocol; }
+public interface ServerProtocol {
+	/** handle an authenticated "PLAY" request from a client */
+	public void handlePlayRequest(GameJoinRequest gjreq, GameJoinResponse gjresp, GameInstance gi, GameInstanceSlot gs, GameServer server, GameClient gc, Account account, EntityManager em);
 }

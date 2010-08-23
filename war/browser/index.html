@@ -198,6 +198,7 @@
     			<li>"limitEndTime":true</li>
     		</ul>
     		<li>}</li>
+    		<li>"includeFullGames":true</li>
     		<li>}</li>
     	</ul>
 		<p><textarea cols="40" rows="5" id="query_json">{"version":1}</textarea></p>
@@ -216,6 +217,8 @@
     	<ul>
     		<li>{</li>
     		<li>"version":1</li>
+    		<li>"clientId":"..." (for secure ops)</li>
+    		<li>"gameSlotId":"..." (for update ops)</li>
     		<li>"type":"RESERVE" (or "RELEASE" or "PLAY")</li>
     		<li>"clientType":"ANDROID"</li>
     		<li>"clientTitle":"..."</li>

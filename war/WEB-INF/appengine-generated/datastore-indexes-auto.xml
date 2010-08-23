@@ -1,19 +1,6 @@
-<!-- Indices written at Fri, 20 Aug 2010 16:40:26 UTC -->
+<!-- Indices written at Mon, 23 Aug 2010 16:50:42 UTC -->
 
 <datastore-indexes>
-
-    <!-- Used 1 time in query history -->
-    <datastore-index kind="GameTemplate" ancestor="false" source="auto">
-        <property name="visibility" direction="asc"/>
-        <property name="title" direction="asc"/>
-    </datastore-index>
-
-    <!-- Used 4 times in query history -->
-    <datastore-index kind="GameInstance" ancestor="false" source="auto">
-        <property name="gameTemplateId" direction="asc"/>
-        <property name="nominalStatus" direction="asc"/>
-        <property name="startTime" direction="asc"/>
-    </datastore-index>
 
     <!-- Used 1 time in query history -->
     <datastore-index kind="GameClientTemplate" ancestor="false" source="auto">

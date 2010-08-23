@@ -1,9 +1,11 @@
 package uk.ac.horizon.ug.lobby;
 
 public interface Constants {
+	public static final String ALLOW_ANONYMOUS_CLIENTS = "allowAnonymousClients";	
 	public static final String APPLICATION_LAUNCH_ID = "applicationLaunchId";
 	public static final String APPLICATION_MARKET_ID = "applicationMarketId";
 	public static final String BASE_URL = "baseUrl";	
+	public static final String CLIENT_ID = "clientId";
 	public static final String CLIENT_TEMPLATES = "clientTemplates";
 	public static final String CLIENT_TITLE = "clientTitle";
 	public static final String CLIENT_TYPE = "clientType";
@@ -12,8 +14,12 @@ public interface Constants {
 	public static final String DOCS = "docs";
 	public static final String ENCODING = "UTF-8";
 	public static final String END_TIME = "endTime";
+	public static final String FULL = "full";
+	public static final String GAME_CLIENT_KEY = "gameClientKey";
+	public static final String GAME_INSTANCE_KEY = "gameInstanceKey";
 	public static final String GAME_SERVER_ID = "gameServerId";
 	public static final String GAME_SERVER = "gameServer";
+	public static final String GAME_SLOT_ID = "gameSlotId";
 	public static final String GAME_TEMPLATE_ID = "gameTemplateId";
 	public static final String GAME_TEMPLATE = "gameTemplate";
 	public static final String GAME_TEMPLATE_QUOTA = "gameTemplateQuota";
@@ -38,7 +44,9 @@ public interface Constants {
 	public static final String LONGITUDE_E6 = "longitudeE6";
 	public static final String MAJOR_VERSION = "majorVersion";
 	public static final String MAX_DURATION_MS = "maxDurationMs";
+	public static final String MAX_NUM_SLOTS = "maxNumSlots";
 	public static final String MAX_TIME = "maxTime";
+	public static final String MESSAGE = "message";
 	public static final String MIN_DURATION_MS = "minDurationMs";
 	public static final String MIN_MINOR_VERSION = "minMinorVersion";
 	public static final String MIN_MAJOR_VERSION = "minMajorVersion";
@@ -46,12 +54,18 @@ public interface Constants {
 	public static final String MIN_TIME = "minTime";
 	public static final String MINOR_VERSION = "minorVersion";
 	public static final String NOMINAL_STATUS = "nominalStatus";
+	public static final String NUM_SLOTS_ALLOCATED = "numSlotsAllocated";
 	public static final String OWNER_ID = "ownerId";
+	public static final String PLAY_DATA = "playData";
+	public static final String PLAY_TIME = "playTime";
+	public static final String PLAY_URL = "playUrl";
 	public static final String RADIUS_METRES = "radiusMetres";
+	public static final String SEQ_NO = "seqNo";
 	public static final String START_TIME = "startTime";
 	public static final String STATUS = "status";
 	public static final String SUBTITLE = "subtitle";
 	public static final String TARGET_STATUS = "targetStatus";
+	public static final String TIME = "time";
 	public static final String TIME_CONSTRAINT = "timeConstraint";
 	public static final String TITLE = "title";
 	public static final String TTL_MINUTES = "ttlMinutes";

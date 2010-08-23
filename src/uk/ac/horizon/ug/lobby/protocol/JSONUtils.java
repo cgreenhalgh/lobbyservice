@@ -109,7 +109,8 @@ public class JSONUtils implements Constants {
 			jw.key(IMAGE_URL);
 			jw.value(gameTemplate.getImageUrl());
 		}
-		if (gameTemplate.getVisibility()!=null) {
+		// game instance visibility over-rides us if given
+		if (gameTemplate.getVisibility()!=null && (gameInstance==null || gameInstance.getVisibility()==null)) {
 			jw.key(VISIBILITY);
 			jw.value(gameTemplate.getVisibility().toString());
 		}
@@ -423,16 +424,24 @@ public class JSONUtils implements Constants {
 	private static void writeGameInstancePublicFields(JSONWriter jw,
 			GameInstance gs, boolean escapeTitle) throws JSONException {
 		// TODO Auto-generated method stub
+		jw.key(ALLOW_ANONYMOUS_CLIENTS);
+		jw.value(gs.isAllowAnonymousClients());
 		jw.key(END_TIME);
 		jw.value(gs.getEndTime());
+		jw.key(FULL);
+		jw.value(gs.isFull());
 		jw.key(LATITUDE_E6);
 		jw.value(gs.getLatitudeE6());
 		jw.key(LONGITUDE_E6);
 		jw.value(gs.getLongitudeE6());
+		jw.key(MAX_NUM_SLOTS);
+		jw.value(gs.getMaxNumSlots());
 		if (gs.getNominalStatus()!=null) {
 			jw.key(NOMINAL_STATUS);
 			jw.value(gs.getNominalStatus().toString());
 		}
+		jw.key(NUM_SLOTS_ALLOCATED);
+		jw.value(gs.getNumSlotsAllocated());
 		jw.key(RADIUS_METRES);
 		jw.value(gs.getRadiusMetres());
 		jw.key(START_TIME);
@@ -441,6 +450,8 @@ public class JSONUtils implements Constants {
 			jw.key(escapeTitle ? SUBTITLE : TITLE);
 			jw.value(gs.getTitle());
 		}
+		jw.key(VISIBILITY);
+		jw.value(gs.getVisibility().toString());
 	}
 	/** parse JSON Object to GameInstance
 	 * @throws JSONException */
@@ -449,30 +460,36 @@ public class JSONUtils implements Constants {
 		Iterator keys = json.keys();
 		while(keys.hasNext()) {
 			String key = (String)keys.next();
-			if (key.equals(BASE_URL))
-				gs.setBaseUrl(json.getString(BASE_URL));
+			if (key.equals(ALLOW_ANONYMOUS_CLIENTS))
+				gs.setAllowAnonymousClients(json.getBoolean(key));
+			else if (key.equals(BASE_URL))
+				gs.setBaseUrl(json.getString(key));
 			else if (key.equals(END_TIME))
-				gs.setEndTime(json.getLong(END_TIME));
+				gs.setEndTime(json.getLong(key));
 			else if (key.equals(GAME_SERVER_ID))
-				gs.setGameServerId(KeyFactory.stringToKey(json.getString(GAME_SERVER_ID)));
+				gs.setGameServerId(KeyFactory.stringToKey(json.getString(key)));
 			else if (key.equals(GAME_TEMPLATE_ID))
-				gs.setGameTemplateId(json.getString(GAME_TEMPLATE_ID));
+				gs.setGameTemplateId(json.getString(key));
 			else if (key.equals(KEY))
-				gs.setKey(KeyFactory.stringToKey(json.getString(KEY)));
+				gs.setKey(KeyFactory.stringToKey(json.getString(key)));
 			else if (key.equals(LATITUDE_E6))
-				gs.setLatitudeE6(json.getInt(LATITUDE_E6));
+				gs.setLatitudeE6(json.getInt(key));
 			else if (key.equals(LONGITUDE_E6))
-				gs.setLongitudeE6(json.getInt(LONGITUDE_E6));
+				gs.setLongitudeE6(json.getInt(key));
+			else if (key.equals(MAX_NUM_SLOTS))
+				gs.setMaxNumSlots(json.getInt(key));
 			else if (key.equals(NOMINAL_STATUS))
-				gs.setNominalStatus(GameInstanceNominalStatus.valueOf(json.getString(NOMINAL_STATUS)));
+				gs.setNominalStatus(GameInstanceNominalStatus.valueOf(json.getString(key)));
 			else if (key.equals(RADIUS_METRES))
-				gs.setRadiusMetres(json.getDouble(RADIUS_METRES));
+				gs.setRadiusMetres(json.getDouble(key));
 			else if (key.equals(START_TIME))
-				gs.setStartTime(json.getLong(START_TIME));
+				gs.setStartTime(json.getLong(key));
 			else if (key.equals(STATUS))
-				gs.setStatus(GameInstanceStatus.valueOf(json.getString(STATUS)));
+				gs.setStatus(GameInstanceStatus.valueOf(json.getString(key)));
 			else if (key.equals(TITLE))
-				gs.setTitle(json.getString(TITLE));
+				gs.setTitle(json.getString(key));
+			else if (key.equals(VISIBILITY))
+				gs.setVisibility(GameTemplateVisibility.valueOf(json.getString(key)));
 			else
 				throw new JSONException("Unsupported key '"+key+"' in GameInstance: "+json);
 		}
@@ -667,8 +684,12 @@ public class JSONUtils implements Constants {
 			String key = (String)keys.next();
 			if (key.equals(CLIENT_TITLE))
 				o.setClientTitle(json.getString(key));
+			else if (key.equals(CLIENT_ID))
+				o.setClientId(json.getString(key));
 			else if (key.equals(CLIENT_TYPE))
 				o.setClientType(GameClientType.valueOf(json.getString(key)));
+			else if (key.equals(GAME_SLOT_ID))
+				o.setGameSlotId(json.getString(key));
 			else if (key.equals(LATITUDE_E6))
 				o.setLatitudeE6(json.getInt(key));
 			else if (key.equals(LONGITUDE_E6))
@@ -677,6 +698,10 @@ public class JSONUtils implements Constants {
 				o.setMajorVersion(json.getInt(key));
 			else if (key.equals(MINOR_VERSION))
 				o.setMinorVersion(json.getInt(key));
+			else if (key.equals(SEQ_NO))
+				o.setSeqNo(json.getInt(key));
+			else if (key.equals(TIME))
+				o.setTime(json.getLong(key));
 			else if (key.equals(TYPE))
 				o.setType(GameJoinRequestType.valueOf(json.getString(key)));
 			else if (key.equals(UPDATE_VERSION))
@@ -687,5 +712,61 @@ public class JSONUtils implements Constants {
 				throw new JSONException("Unsupported key '"+key+"' in GameJoinRequest: "+json);
 		}
 		return o;
+	}
+	/** write GameJoinResponse object for user 
+	 * @throws JSONException */
+	public static void writeGameJoinResponse(JSONWriter jw, GameJoinResponse gs) throws JSONException {
+		jw.object();
+		if (gs.getClientId()!=null) {
+			jw.key(CLIENT_ID);
+			jw.value(gs.getClientId());
+		}
+		if (gs.getGameSlotId()!=null) {
+			jw.key(GAME_SLOT_ID);
+			jw.value(gs.getGameSlotId());
+		}
+		if (gs.getPlayTime()!=null) {
+			jw.key(PLAY_TIME);
+			jw.value(gs.getPlayTime());
+		}
+		if (gs.getPlayUrl()!=null) {
+			jw.key(PLAY_URL);
+			jw.value(gs.getPlayUrl());
+		}
+		if (gs.getStatus()!=null) {
+			jw.key(STATUS);
+			jw.value(gs.getStatus().toString());
+		}
+		if (gs.getTime()!=null) {
+			jw.key(TIME);
+			jw.value(gs.getTime());
+		}
+		if (gs.getType()!=null) {
+			jw.key(TYPE);
+			jw.value(gs.getType().toString());
+		}
+		
+		if (gs.getPlayData()!=null) {
+			jw.key(PLAY_DATA);
+			jw.object();
+			for (String key : gs.getPlayData().keySet()) {
+				jw.key(key);
+				jw.value(gs.getPlayData().get(key));
+			}
+			jw.endObject();
+		}
+		jw.endObject();
+	}
+	/** set GameJoinResponse as response 
+	 * @throws IOException */
+	public static void sendGameJoinResponse(HttpServletResponse resp, GameJoinResponse gi) throws IOException {
+		Writer w = JSONUtils.getResponseWriter(resp);
+		JSONWriter jw = new JSONWriter(w);
+		try {
+			JSONUtils.writeGameJoinResponse(jw, gi);	
+		} catch (JSONException je) {
+			throw new IOException(je);
+		}
+		w.close();
 	}
 }

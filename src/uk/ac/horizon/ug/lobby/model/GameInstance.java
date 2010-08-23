@@ -56,6 +56,16 @@ public class GameInstance {
     private GameInstanceNominalStatus nominalStatus;
     /** current/last known status */
     private GameInstanceStatus status;
+	/** visibility - i.e. seen by browsers or not*/
+	private GameTemplateVisibility visibility;
+	/** max num slots */
+	private int maxNumSlots;
+	/** allow anonymous (non-account) clients */
+	private boolean allowAnonymousClients;
+	/** cache of num slots allocated */
+	private int numSlotsAllocated;
+	/** cache of full */
+	private boolean full;
     /** game instance base url (several games may be hosted by the same GameServer) */
     private String baseUrl;
     /** cons */
@@ -204,6 +214,66 @@ public class GameInstance {
 	 */
 	public void setNominalStatus(GameInstanceNominalStatus nominalStatus) {
 		this.nominalStatus = nominalStatus;
+	}
+	/**
+	 * @return the visibility
+	 */
+	public GameTemplateVisibility getVisibility() {
+		return visibility;
+	}
+	/**
+	 * @param visibility the visibility to set
+	 */
+	public void setVisibility(GameTemplateVisibility visibility) {
+		this.visibility = visibility;
+	}
+	/**
+	 * @return the maxNumSlots
+	 */
+	public int getMaxNumSlots() {
+		return maxNumSlots;
+	}
+	/**
+	 * @param maxNumSlots the maxNumSlots to set
+	 */
+	public void setMaxNumSlots(int maxNumSlots) {
+		this.maxNumSlots = maxNumSlots;
+	}
+	/**
+	 * @return the allowAnonymousClients
+	 */
+	public boolean isAllowAnonymousClients() {
+		return allowAnonymousClients;
+	}
+	/**
+	 * @param allowAnonymousClients the allowAnonymousClients to set
+	 */
+	public void setAllowAnonymousClients(boolean allowAnonymousClients) {
+		this.allowAnonymousClients = allowAnonymousClients;
+	}
+	/**
+	 * @return the numSlotsAllocated
+	 */
+	public int getNumSlotsAllocated() {
+		return numSlotsAllocated;
+	}
+	/**
+	 * @param numSlotsAllocated the numSlotsAllocated to set
+	 */
+	public void setNumSlotsAllocated(int numSlotsAllocated) {
+		this.numSlotsAllocated = numSlotsAllocated;
+	}
+	/**
+	 * @return the full
+	 */
+	public boolean isFull() {
+		return full;
+	}
+	/**
+	 * @param full the full to set
+	 */
+	public void setFull(boolean full) {
+		this.full = full;
 	}
     
 }

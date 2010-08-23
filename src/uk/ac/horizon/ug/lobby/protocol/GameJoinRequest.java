@@ -29,6 +29,14 @@ import uk.ac.horizon.ug.lobby.model.GameClientType;
 public class GameJoinRequest {
 	/** protocol/object version */
 	private int version;
+	/** time - optional for duplicate request/replay detection */
+	private Long time;
+	/** sequence - optional for duplicate request/replay detection */
+	private Integer seqNo;
+	/** client Id - required for interaction with previous join or secure ops */
+	private String clientId;
+	/** game slot id - required for interaction with previous join */
+	private String gameSlotId; 
 	/** join type */
 	private GameJoinRequestType type;
 	/** current version */
@@ -61,6 +69,54 @@ public class GameJoinRequest {
 	 */
 	public void setVersion(int version) {
 		this.version = version;
+	}
+	/**
+	 * @return the time
+	 */
+	public Long getTime() {
+		return time;
+	}
+	/**
+	 * @param time the time to set
+	 */
+	public void setTime(Long time) {
+		this.time = time;
+	}
+	/**
+	 * @return the seqNo
+	 */
+	public Integer getSeqNo() {
+		return seqNo;
+	}
+	/**
+	 * @param seqNo the seqNo to set
+	 */
+	public void setSeqNo(Integer seqNo) {
+		this.seqNo = seqNo;
+	}
+	/**
+	 * @return the clientId
+	 */
+	public String getClientId() {
+		return clientId;
+	}
+	/**
+	 * @param clientId the clientId to set
+	 */
+	public void setClientId(String clientId) {
+		this.clientId = clientId;
+	}
+	/**
+	 * @return the gameSlotId
+	 */
+	public String getGameSlotId() {
+		return gameSlotId;
+	}
+	/**
+	 * @param gameSlotId the gameSlotId to set
+	 */
+	public void setGameSlotId(String gameSlotId) {
+		this.gameSlotId = gameSlotId;
 	}
 	/**
 	 * @return the type

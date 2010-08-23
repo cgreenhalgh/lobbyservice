@@ -35,7 +35,7 @@
 					if (!$.isPlainObject(item))
 						item = json[item];
 					//<td>title</td><td >game server id</td><td>start time</td><td>end time</td><td>latitude(E6)</td><td>longitude(E6)</td><td>radius (metres)</td><td>status</td><td>base url</td>
-		        	$('<tr class="game_template"><td>'+item.title+'</td><td>'+timeToString(item.startTime)+'</td><td>'+timeToString(item.endTime)+'</td><td>'+item.latitudeE6+'</td><td>'+item.longitudeE6+'</td><td>'+item.radiusMetres+'</td><td>'+item.nominalStatus+'</td><td>'+item.baseUrl+'</td><!-- <td>'+item.gameServerId+'</td> --><td><input type="button" value="edit" onclick="select_template(\''+item.key+'\')"/></td></tr>').appendTo('#templates');
+		        	$('<tr class="game_template"><td>'+item.title+'</td><td>'+item.visibility+'</td><td>'+timeToString(item.startTime)+'</td><td>'+timeToString(item.endTime)+'</td><td>'+item.maxNumSlots+'</td><td>'+item.numSlotsAllocated+'</td><td>'+item.latitudeE6+'</td><td>'+item.longitudeE6+'</td><td>'+item.radiusMetres+'</td><td>'+item.nominalStatus+'</td><td>'+item.baseUrl+'</td><!-- <td>'+item.gameServerId+'</td> --><td><input type="button" value="edit" onclick="select_template(\''+item.key+'\')"/></td></tr>').appendTo('#templates');
 				}
         	});
     	}
@@ -118,6 +118,39 @@
         	if (value!=null && value!='')
             	obj[name] = value;
     	}
+    	function ajax_add_game_instance(data) {
+    		$.ajax({url: 'AddGameInstance', 
+	    		type: 'POST',
+	    		contentType: 'application/json',
+	    		processData: false,
+	    		data: data,
+	    		dataType: 'text',
+	    		success: function success(data, status) {
+	    			get_templates();
+	    			alert('Added instance ('+status+')');
+				},
+				error: function error(req, status) {
+	    			alert('Error adding instance ('+req.status+': '+req.statusText+')');
+				}
+			});
+    	}
+		function ajax_update_game_instance(data) {
+    		// edit
+    		$.ajax({url: 'UserGameInstance/'+current_game_template.key, 
+        		type: 'POST',
+        		contentType: 'application/json',
+        		processData: false,
+        		data: data,
+        		dataType: 'text',
+        		success: function success(data, status) {
+        			get_templates();
+        			alert('Updated instance ('+status+')');
+    			},
+    			error: function error(req, status) {
+        			alert('Error updating instance ('+req.status+': '+req.statusText+')');
+    			}
+    		});
+		}
     	// called from form submit for add template
     	function add_game_template(form) {
         	var gt = {};
@@ -127,8 +160,11 @@
         	add_field(form, gt, 'baseUrl');
         	//add_field(form, gt, 'status');
         	add_select_field(form, gt, 'nominalStatus');
+        	add_select_field(form, gt, 'visibility');
         	add_time_field(form, gt, 'startTime');
         	add_time_field(form, gt, 'endTime');
+        	add_number_field(form, gt, 'maxNumSlots');
+        	add_boolean_field(form, gt, 'allowAnonymousClients');
         	add_number_field(form, gt, 'latitudeE6');
         	add_number_field(form, gt, 'longitudeE6');
         	add_number_field(form, gt, 'radiusMetres');
@@ -136,36 +172,9 @@
     		var data = $.toJSON(gt);
     		//alert('Request: '+data);
     		if (current_game_template==null) {
-	    		$.ajax({url: 'AddGameInstance', 
-	        		type: 'POST',
-	        		contentType: 'application/json',
-	        		processData: false,
-	        		data: data,
-	        		dataType: 'text',
-	        		success: function success(data, status) {
-	        			get_templates();
-	        			alert('Added instance ('+status+')');
-	    			},
-	    			error: function error(req, status) {
-	        			alert('Error adding instance ('+req.status+': '+req.statusText+')');
-	    			}
-	    		});
+        		ajax_add_game_instance(data);
     		} else {
-        		// edit
-	    		$.ajax({url: 'UserGameInstance/'+current_game_template.key, 
-	        		type: 'POST',
-	        		contentType: 'application/json',
-	        		processData: false,
-	        		data: data,
-	        		dataType: 'text',
-	        		success: function success(data, status) {
-	        			get_templates();
-	        			alert('Updated instance ('+status+')');
-	    			},
-	    			error: function error(req, status) {
-	        			alert('Error updating instance ('+req.status+': '+req.statusText+')');
-	    			}
-	    		});
+        		ajax_update_game_instance(data);
     		}    	
         	//alert('add '+$.toJSON(gt));
         	return false;
@@ -184,9 +193,15 @@
         	$(':input[name=key]').attr('value',id);
         	$(':input[name=title]').attr('value','Loading data...');
         	$.getJSON('UserGameInstance/'+id, function(data) {
+            	$('#json').attr('value',$.toJSON(data));
             	//alert('received '+$.toJSON(data));
             	current_game_template = data;
-            	$(':input[name=title]').attr('value',data.title);
+            	set_input_from_field(document,data,'title');
+            	set_input_from_field(document,data,'maxNumSlots');
+            	set_input_from_field(document,data,'numSlotsAllocated');
+            	set_input_from_field(document,data,'full');
+            	set_select_from_field(document,data,'visibility');
+            	set_checkbox_from_field(document,data,'allowAnonymousClients');
 				$('select[name=gameServerId] > option[selected]').removeAttr('selected');
 				if (data.gameServerId!=null && data.gameServerId!='')
 					$('select[name=gameServerId] > option[value='+data.gameServerId+']').attr('selected','true');
@@ -208,7 +223,17 @@
         	if (game_template_id!=null && game_template_id.length>0)
 	        	get_templates();
     	}
-    </script>
+
+    	function add_json() {
+        	var json = $('#json').attr('value');
+        	ajax_add_game_instance(json);
+    	}
+    	function update_json() {
+        	var json = $('#json').attr('value');
+        	ajax_update_game_instance(json);
+    	}
+    	
+    	</script>
   </head>
 
   <body>
@@ -229,7 +254,7 @@
     <h2>Current Instances</h2>
     <table id="templates" border="1">
       <tr style="font-weight:bold;">
-        <td>title</td><td>start time</td><td>end time</td><td>latitude(E6)</td><td>longitude(E6)</td><td>radius (metres)</td><td>nominal status</td><td>base url</td><!-- <td >game server id</td> -->
+        <td>title</td><td>visibility</td><td>start time</td><td>end time</td><td>max num slots</td><td>num slots allocated</td><td>latitude(E6)</td><td>longitude(E6)</td><td>radius (metres)</td><td>nominal status</td><td>base url</td><!-- <td >game server id</td> -->
       </tr>
       <tr id="templates_status">
         <td>Select template...</td>        
@@ -242,12 +267,23 @@
 		<table border="1">
 			<tr><td>key</td><td><input type="text" name="key" readonly="readonly"/></td></tr>
 			<tr><td>title</td><td><input type="text" name="title"/></td></tr>
+			<tr><td>visibility</td><td>
+				<select name="visibility">
+					<option label="HIDDEN" value="HIDDEN">PUBLIC</option>
+					<option label="PUBLIC" value="PUBLIC">PUBLIC</option>
+				</select>
+			</td></tr>
 			<tr><td>game server id</td><td>
 			    <select name="gameServerId" onchange="update_game_server_id()">
 				</select>	
 			</td></tr>
 			<tr><td>start time</td><td><input type="text" name="startTime" value="19700101T000000Z"/></td></tr>
 			<tr><td>end time</td><td><input type="text" name="endTime" value="19700101T000000Z"/></td></tr>
+			<tr><td>max num slots</td><td><input type="text" name="maxNumSlots" value="0"/></td></tr>
+			<tr><td>allow anonymous clients</td><td><input type="checkbox" name="allowAnonymousClients"/></td></tr>
+			<tr><td>num slots allocated</td><td><input type="text" name="numSlotsAllocated" readonly="true"/></td></tr>
+			<tr><td>full</td><td><input type="text" name="full" readonly="true"/></td></tr>
+			
 			<tr><td>latitude (E6)</td><td><input type="text" name="latitudeE6"/></td></tr>
 			<tr><td>longitude (E6)</td><td><input type="text" name="longitudeE6"/></td></tr>
 			<tr><td>radius (metres)</td><td><input type="text" name="radiusMetres"/></td></tr>
@@ -266,6 +302,11 @@
 			<tr><td>base url</td><td><input type="text" name="baseUrl"/></td></tr>
 		</table>
 		<p><input type="submit" value="Add game instance"/><input type="reset" value="Reset/New" onclick="reset_game_template(this)"/></p>
+		<h3>Raw (JSON)</h3>
+		<table>
+		 	<tr><td><textarea id="json" rows="5" cols="40" name="json"></textarea></td></tr>
+		 	<tr><td><input type="button" onclick="add_json()" value="Add game instance"/><input type="button" onclick="update_json()" value="Update game instance"/></td></tr>
+		</table>
 	</form>
   </body>
 </html>

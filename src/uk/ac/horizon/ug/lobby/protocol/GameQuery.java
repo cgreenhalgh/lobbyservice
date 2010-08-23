@@ -51,6 +51,8 @@ public class GameQuery {
 	private Integer longitudeE6;
 	/** min game start time - optional */
 	private TimeConstraint timeConstraint;
+	/** include 'full' games */
+	private Boolean includeFullGames;
 	/** cons */
 	public GameQuery() {			
 	}
@@ -186,6 +188,18 @@ public class GameQuery {
 	public void setTimeConstraint(TimeConstraint timeConstraint) {
 		this.timeConstraint = timeConstraint;
 	}
+	/**
+	 * @return the includeFullGames
+	 */
+	public Boolean getIncludeFullGames() {
+		return includeFullGames;
+	}
+	/**
+	 * @param includeFullGames the includeFullGames to set
+	 */
+	public void setIncludeFullGames(Boolean includeFullGames) {
+		this.includeFullGames = includeFullGames;
+	}
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
@@ -193,12 +207,12 @@ public class GameQuery {
 	public String toString() {
 		return "GameQuery [clientTitle=" + clientTitle + ", clientType="
 				+ clientType + ", gameTemplateId=" + gameTemplateId
-				+ ", latitudeE6=" + latitudeE6 + ", locationConstraint="
-				+ locationConstraint + ", longitudeE6=" + longitudeE6
-				+ ", majorVersion=" + majorVersion + ", minorVersion="
-				+ minorVersion + ", timeConstraint=" + timeConstraint
-				+ ", updateVersion=" + updateVersion + ", version=" + version
-				+ "]";
+				+ ", includeFullGames=" + includeFullGames + ", latitudeE6="
+				+ latitudeE6 + ", locationConstraint=" + locationConstraint
+				+ ", longitudeE6=" + longitudeE6 + ", majorVersion="
+				+ majorVersion + ", minorVersion=" + minorVersion
+				+ ", timeConstraint=" + timeConstraint + ", updateVersion="
+				+ updateVersion + ", version=" + version + "]";
 	}
 	
 }
