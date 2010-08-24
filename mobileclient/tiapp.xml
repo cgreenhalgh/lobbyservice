@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ti:app xmlns:ti="http://ti.appcelerator.org">
-    <id>uk.ac.horizon.ug.lobby.mobileclient</id>
-    <name>mobileclient</name>
-    <version>1.0</version>
-    <publisher>not specified</publisher>
-    <url>not specified</url>
-    <description>not specified</description>
-    <copyright>not specified</copyright>
-    <icon>appicon.png</icon>
+<id>uk.ac.horizon.ug.lobby.mobileclient</id>
+<name>mobileclient</name>
+<version>1.0</version>
+<publisher>Horizon</publisher>
+<url>http://www.horizon.ac.uk</url>
+<description>Mobile Client for the Horizon Urban Games project Ubicomp Lobby Service</description>
+<copyright>Copyright (c) University of Nottingham, 2010</copyright>
+<icon>default_app_logo.png</icon>
     <persistent-wifi>false</persistent-wifi>
     <prerendered-icon>false</prerendered-icon>
     <statusbar-style>default</statusbar-style>
