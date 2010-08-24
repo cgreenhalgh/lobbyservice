@@ -27,6 +27,11 @@ function join(e) {
 	client.onload = function() {
 		var json = JSON.parse(client.responseText);
 		Titanium.API.log('INFO','Join: '+client.responseText);
+		// this starts an activity (only intent action & data are supported, plus putExtra)
+//		var intent = Titanium.Android.createIntent({action:Titanium.Android.ACTION_VIEW,data:'http://www.mrl.nott.ac.uk/'});
+//		var activity = Titanium.Android.createActivity(intent);
+//		activity.start(intent);
+
 	};
 	client.onerror = function() {
 		Titanium.API.log('ERROR','Join error');
