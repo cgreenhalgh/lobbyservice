@@ -35,6 +35,8 @@ public class GameJoinRequest {
 	private Integer seqNo;
 	/** client Id - required for interaction with previous join or secure ops */
 	private String clientId;
+	/** device Id - optional and unauthenticated - used as default clientId for anonymous use to avoid 'leaking' of slots on retry */
+	private String deviceId;
 	/** game slot id - required for interaction with previous join */
 	private String gameSlotId; 
 	/** join type */
@@ -214,16 +216,30 @@ public class GameJoinRequest {
 	public void setLongitudeE6(Integer longitudeE6) {
 		this.longitudeE6 = longitudeE6;
 	}
+	/**
+	 * @return the deviceId
+	 */
+	public String getDeviceId() {
+		return deviceId;
+	}
+	/**
+	 * @param deviceId the deviceId to set
+	 */
+	public void setDeviceId(String deviceId) {
+		this.deviceId = deviceId;
+	}
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public String toString() {
-		return "GameJoinRequest [clientTitle=" + clientTitle + ", clientType="
-				+ clientType + ", latitudeE6=" + latitudeE6 + ", longitudeE6="
-				+ longitudeE6 + ", majorVersion=" + majorVersion
-				+ ", minorVersion=" + minorVersion + ", type=" + type
-				+ ", updateVersion=" + updateVersion + ", version=" + version
-				+ "]";
+		return "GameJoinRequest [clientId=" + clientId + ", clientTitle="
+				+ clientTitle + ", clientType=" + clientType + ", deviceId="
+				+ deviceId + ", gameSlotId=" + gameSlotId + ", latitudeE6="
+				+ latitudeE6 + ", longitudeE6=" + longitudeE6
+				+ ", majorVersion=" + majorVersion + ", minorVersion="
+				+ minorVersion + ", seqNo=" + seqNo + ", time=" + time
+				+ ", type=" + type + ", updateVersion=" + updateVersion
+				+ ", version=" + version + "]";
 	}
 }

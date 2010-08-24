@@ -146,9 +146,34 @@ public class JoinGameInstanceServlet extends HttpServlet implements Constants {
 					sendError(resp, gjresp, GameJoinResponseStatus.ERROR_CLIENT_AUTHENTICATION_REQUIRED, "Changing an existing game slot requires a client to be identified");
 					return;
 				}
+				// ensure possible createAnonymousClient will be atomic wrt to the next check...
 				et.commit();
-				// create is done in a transaction
-				gc = createAnonymousClient(em, gjreq);
+				et.begin();
+				
+				// does default client already exist?
+				String clientId = gjreq.getDeviceId();
+				if (clientId!=null) {
+					Query q = em.createQuery("SELECT x FROM "+GameClient.class.getSimpleName()+" x WHERE x."+ID+" = :"+ID);
+					q.setParameter(ID, clientId);
+					List<GameClient> gcs = (List<GameClient>)q.getResultList();
+					if (gcs.size()>0) {
+						gc = gcs.get(0);
+						if (gc.getAccountKey()!=null || gc.getSharedSecret()!=null) {
+							logger.warning("Client deviceId="+gjreq.getDeviceId()+" already exists, non-anonymous");
+							gc = null;
+							clientId = null;
+						}
+						else
+							logger.info("Using default anonymous client with deviceId="+gjreq.getDeviceId());
+					}
+				}
+				if (gc==null) {
+	
+					// create is done in our transaction
+					gc = createAnonymousClient(em, gjreq, clientId);
+				}
+
+				et.commit();
 				et.begin();
 				anonymous = true;
 			}
@@ -184,6 +209,7 @@ public class JoinGameInstanceServlet extends HttpServlet implements Constants {
 					return;					
 				}
 			}
+			gjresp.setClientId(gc.getId());
 			
 			// existing game slot?
 			GameInstanceSlot gs = null;
@@ -286,6 +312,8 @@ public class JoinGameInstanceServlet extends HttpServlet implements Constants {
 			}
 			et.commit();
 			et.begin();
+			
+			gjresp.setGameSlotId(gs.getKey().getName());
 			
 			// must have gc, gi & gs by this point (and account if gc is linked to account)
 			
@@ -459,9 +487,10 @@ public class JoinGameInstanceServlet extends HttpServlet implements Constants {
 		return true;
 	}
 
-	private GameClient createAnonymousClient(EntityManager em, GameJoinRequest gjreq) {
+	private GameClient createAnonymousClient(EntityManager em, GameJoinRequest gjreq, String clientId) {
 		GameClient gc = new GameClient();
-		String clientId = GUIDFactory.newGUID();
+		if (clientId==null)
+			clientId = GUIDFactory.newGUID();
 		gc.setId(clientId);
 		gc.setKey(GameClient.idToKey(null, clientId));
 		if (gjreq.getClientType()!=null)
@@ -473,10 +502,8 @@ public class JoinGameInstanceServlet extends HttpServlet implements Constants {
 		if (gjreq.getUpdateVersion()!=null)
 			gc.setUpdateVersion(gjreq.getUpdateVersion());
 		EntityTransaction et = em.getTransaction();
-		et.begin();
 		em.persist(gc);
 		logger.info("Created anonymous client "+clientId);
-		et.commit();
 		return gc;
 	}
 

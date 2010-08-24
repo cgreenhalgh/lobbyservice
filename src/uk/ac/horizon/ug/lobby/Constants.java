@@ -9,8 +9,8 @@ public interface Constants {
 	public static final String CLIENT_TEMPLATES = "clientTemplates";
 	public static final String CLIENT_TITLE = "clientTitle";
 	public static final String CLIENT_TYPE = "clientType";
-	public static final String QUERY_URL = "queryUrl";
 	public static final String DESCRIPTION = "description";
+	public static final String DEVICE_ID = "deviceId";
 	public static final String DOCS = "docs";
 	public static final String ENCODING = "UTF-8";
 	public static final String END_TIME = "endTime";
@@ -59,6 +59,7 @@ public interface Constants {
 	public static final String PLAY_DATA = "playData";
 	public static final String PLAY_TIME = "playTime";
 	public static final String PLAY_URL = "playUrl";
+	public static final String QUERY_URL = "queryUrl";
 	public static final String RADIUS_METRES = "radiusMetres";
 	public static final String SEQ_NO = "seqNo";
 	public static final String START_TIME = "startTime";

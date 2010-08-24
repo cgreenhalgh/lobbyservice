@@ -13,6 +13,14 @@ var indexdata = [{title:'Loading...'}];
 
 var table = Titanium.UI.createTableView({data:indexdata});
 
+table.addEventListener('click', function(e){
+	if (e.rowData.data) {
+		var win = Titanium.UI.createWindow({url:'game_template.js',title:e.rowData.data.title});
+		win.data = e.rowData.data;
+		win.open({modal:true});
+	}
+});
+
 Titanium.UI.currentWindow.add(table);
 
 var client = Titanium.Network.createHTTPClient();
@@ -25,7 +33,7 @@ client.onload = function() {
 	if (json.imageUrl!=undefined)
 		data[0].leftImage = json.imageUrl;
 	for (var i=0; i<json.items.length; i++) {
-		var row = {title:json.items[i].title+' (game)',hasChild:true};
+		var row = {title:json.items[i].title+' (game)',hasChild:true,data:json.items[i]};
 		if (json.items[i].imageUrl!=undefined)
 			row.leftImage = json.items[i].imageUrl;
 		data[i+1] = row;

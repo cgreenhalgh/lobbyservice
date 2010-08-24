@@ -688,6 +688,8 @@ public class JSONUtils implements Constants {
 				o.setClientId(json.getString(key));
 			else if (key.equals(CLIENT_TYPE))
 				o.setClientType(GameClientType.valueOf(json.getString(key)));
+			else if (key.equals(DEVICE_ID))
+				o.setDeviceId(json.getString(key));
 			else if (key.equals(GAME_SLOT_ID))
 				o.setGameSlotId(json.getString(key));
 			else if (key.equals(LATITUDE_E6))
@@ -724,6 +726,10 @@ public class JSONUtils implements Constants {
 		if (gs.getGameSlotId()!=null) {
 			jw.key(GAME_SLOT_ID);
 			jw.value(gs.getGameSlotId());
+		}
+		if (gs.getMessage()!=null) {
+			jw.key(MESSAGE);
+			jw.value(gs.getMessage());
 		}
 		if (gs.getPlayTime()!=null) {
 			jw.key(PLAY_TIME);
