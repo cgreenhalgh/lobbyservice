@@ -2,6 +2,7 @@
 // - select a Game -> game_template.js
 
 Titanium.include('config.js');
+Titanium.include('common.js');
 /*
 var label = Titanium.UI.createLabel({
 	text:'Game Index...',
@@ -31,18 +32,18 @@ client.open('GET',lobbyUrl+'/browser/GetGameIndex',true);
 client.onload = function() {
 	var json = JSON.parse(client.responseText);
 	var data = [];
-	data[0] = {title:json.title+' (server)'};
-	if (json.imageUrl!=undefined)
-		data[0].leftImage = json.imageUrl;
+	data[0] = get_index_table_row(json);
 	for (var i=0; i<json.items.length; i++) {
-		var row = {title:json.items[i].title+' (game)',hasChild:true,data:json.items[i]};
-		if (json.items[i].imageUrl!=undefined)
-			row.leftImage = json.items[i].imageUrl;
+		var row = get_index_table_row(json.items[i]);
+		row.data = json.items[i];
+		if (json.items[i].queryUrl!=undefined)
+			row.hasChild = true;
 		data[i+1] = row;
 	}
 	table.setData(data);
 };
 client.onerror = function() {
 	table.setData([{title:'Error - '+client.status}]);
+	Titanium.UI.createAlertDialog({title:'Sorry',message:'Could not get the game index ('+client.status+')'}).show();
 };
 client.send();

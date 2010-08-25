@@ -2,9 +2,12 @@
 // - button (find games) -> game_instances.js
 
 Titanium.include('config.js');
+Titanium.include('common.js');
+
+Titanium.UI.currentWindow.layout='vertical';
 
 var data = Titanium.UI.currentWindow.data;
-var label = Titanium.UI.createLabel({
+/*var label = Titanium.UI.createLabel({
 	text:'Title: '+data.title+'\n'+
 	'Description: '+data.description+'\n'+
 	'Query URL: '+data.queryUrl+'\n'+
@@ -17,17 +20,26 @@ var label = Titanium.UI.createLabel({
 	'Platform version: '+Titanium.Platform.version+'\n', // e.g. '2.2'
 	font:{fontSize:14},
 	left:10,
-	top:10,
+//	top:10,
 	width:'auto',
 	height:'auto'
 });
 
 Titanium.UI.currentWindow.add(label);
+*/
+//not a table view
+var template_view = get_index_table_row(data, Titanium.UI.createView({height:'auto'}));
+
+Titanium.UI.currentWindow.add(template_view);
+
+// TODO Clients...
 
 var button = Titanium.UI.createButton({
 	left:10,
-	top:10,
-	title:'Find games...'
+	//top:10,
+	title:'Find games...',
+	width:'auto',
+	height:'auto'
 });
 
 button.addEventListener('click', function(e) {
