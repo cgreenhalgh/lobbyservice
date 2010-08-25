@@ -1,5 +1,7 @@
-// game index window
+// Global Index of Game (types)
+// - select a Game -> game_template.js
 
+Titanium.include('config.js');
 /*
 var label = Titanium.UI.createLabel({
 	text:'Game Index...',
@@ -25,7 +27,7 @@ Titanium.UI.currentWindow.add(table);
 
 var client = Titanium.Network.createHTTPClient();
 client.setTimeout(30000);
-client.open('GET','http://128.243.22.74:8888/browser/GetGameIndex',true);
+client.open('GET',lobbyUrl+'/browser/GetGameIndex',true);
 client.onload = function() {
 	var json = JSON.parse(client.responseText);
 	var data = [];

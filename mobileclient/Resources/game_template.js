@@ -1,3 +1,8 @@
+// Details of a Game Type
+// - button (find games) -> game_instances.js
+
+Titanium.include('config.js');
+
 var data = Titanium.UI.currentWindow.data;
 var label = Titanium.UI.createLabel({
 	text:'Title: '+data.title+'\n'+

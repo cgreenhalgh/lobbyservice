@@ -1,3 +1,6 @@
+// Initial application view - list of top-level options:
+// - Game Index -> game_templates.js
+
 // this sets the background color of the master UIView (when there are no windows/tab groups on it)
 Titanium.UI.setBackgroundColor('#000');
 
@@ -10,7 +13,7 @@ var mainwin = Titanium.UI.createWindow({
 //    title:'Lobby Mobile Client'
 });
 
-var optiondata = [{title:'Game Index',winurl:'index.js'},
+var optiondata = [{title:'Game Index',winurl:'game_templates.js'},
                   {title:'Current Games'}];
 
 var table = Titanium.UI.createTableView({data:optiondata});

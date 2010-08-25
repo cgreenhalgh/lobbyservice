@@ -1,4 +1,9 @@
-// game instance list window
+// List of game instances for a Game (type)
+// - select item -> game_instance.js
+
+Titanium.include('config.js');
+Titanium.include('common.js');
+
 var data = Titanium.UI.currentWindow.data;
 
 var indexdata = [{title:'Loading...'}];
@@ -36,29 +41,7 @@ client.onerror = function() {
 	table.setData([{title:'Error - '+client.status}]);
 };
 var request = {version:1};
-if (Titanium.Platform.name=='android')
-	request.clientType = 'ANDROID';
-else
-	request.clientType = Titanium.Platform.name;
-var version = Titanium.Platform.version;
-var dotix = version.indexOf('.', 0);
-if (dotix<0)
-	request.majorVersion = Number(version);
-else {
-	request.majorVersion = Number(version.substr(0,dotix));
-	var dotix2 = version.indexOf('.',dotix+1);
-	// e.g. 2.1-update1
-	var hypix2 = version.indexOf('-', dotix+1)
-	if (hypix2>=0 && (dotix2<0 || dotix2>hypix2))
-		dotix2 = hypix2;
-	if (dotix2<0) {
-		Titanium.API.log('INFO','minorVersion='+version.substr(dotix+1)+', dotix='+dotix+', dotix2='+dotix2);
-		request.minorVersion = Number(version.substr(dotix+1));
-	}
-	else {
-		Titanium.API.log('INFO','minorVersion='+version.substr(dotix+1,dotix2-dotix-1)+', dotix='+dotix+', dotix2='+dotix2);
-		request.minorVersion = Number(version.substr(dotix+1,dotix2-dotix-1));
-	}
-}
+set_version_properties(request);
+
 Titanium.API.log("Send query "+JSON.stringify(request)+" to "+data.queryUrl);
 client.send(JSON.stringify(request));

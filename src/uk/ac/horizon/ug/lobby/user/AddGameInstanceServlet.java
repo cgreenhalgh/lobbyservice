@@ -107,7 +107,7 @@ public class AddGameInstanceServlet extends HttpServlet implements Constants {
 			}
 
 			// cache state
-			if (gi.getNumSlotsAllocated()<=0)
+			if (gi.getMaxNumSlots()<=0)
 				gi.setFull(true);
 			
 			em.persist(gi);
