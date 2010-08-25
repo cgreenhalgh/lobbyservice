@@ -32,7 +32,7 @@ var template_view = get_index_table_row(data, Titanium.UI.createView({height:'au
 Titanium.UI.currentWindow.add(template_view);
 
 //not a table view
-var detail_view = get_detail_table_row(data, Titanium.UI.createView({height:'auto'}));
+var detail_view = get_details_table_row(data, Titanium.UI.createView({height:'auto'}));
 
 Titanium.UI.currentWindow.add(detail_view);
 
