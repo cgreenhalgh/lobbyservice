@@ -1,0 +1,87 @@
+<!-- Indices written at Wed, 25 Aug 2010 08:48:22 UTC -->
+
+<datastore-indexes autoGenerate="true">
+
+    <!-- Used 1 time in query history -->
+    <datastore-index kind="Account" ancestor="false" source="auto">
+        <property name="gameTemplateQuota" direction="desc"/>
+        <property name="userId" direction="asc"/>
+    </datastore-index>
+
+    <!-- Used 1 time in query history -->
+    <datastore-index kind="GameTemplate" ancestor="false" source="auto">
+        <property name="visibility" direction="asc"/>
+        <property name="title" direction="asc"/>
+    </datastore-index>
+
+    <!-- Used 8 times in query history -->
+    <datastore-index kind="GameInstance" ancestor="false" source="auto">
+        <property name="full" direction="asc"/>
+        <property name="gameTemplateId" direction="asc"/>
+        <property name="nominalStatus" direction="asc"/>
+        <property name="visibility" direction="asc"/>
+        <property name="startTime" direction="asc"/>
+    </datastore-index>
+    <!--  variant queries  -->
+    <datastore-index kind="GameInstance" ancestor="false">
+        <property name="gameTemplateId" direction="asc"/>
+        <property name="nominalStatus" direction="asc"/>
+        <property name="visibility" direction="asc"/>
+        <property name="startTime" direction="asc"/>
+    </datastore-index>
+    <datastore-index kind="GameInstance" ancestor="false">
+        <property name="full" direction="asc"/>
+        <property name="gameTemplateId" direction="asc"/>
+        <property name="nominalStatus" direction="asc"/>
+        <property name="visibility" direction="asc"/>
+        <property name="endTime" direction="asc"/>
+    </datastore-index>
+    <datastore-index kind="GameInstance" ancestor="false" >
+        <property name="gameTemplateId" direction="asc"/>
+        <property name="nominalStatus" direction="asc"/>
+        <property name="visibility" direction="asc"/>
+        <property name="endTime" direction="asc"/>
+    </datastore-index>
+
+    <datastore-index kind="GameInstance" ancestor="false">
+        <property name="gameInstanceKey" direction="asc"/>
+        <property name="gameClientKey" direction="asc"/>
+    </datastore-index>
+
+    <!-- Used 2 times in query history -->
+    <datastore-index kind="GameClientTemplate" ancestor="false" source="auto">
+        <property name="clientType" direction="asc"/>
+        <property name="clientTitle" direction="asc"/>
+        <property name="gameTemplateId" direction="asc"/>
+        <property name="minMajorVersion" direction="asc"/>
+    </datastore-index>
+    <!--  variant queries  -->
+    <datastore-index kind="GameClientTemplate" ancestor="false" >
+        <property name="clientTitle" direction="asc"/>
+        <property name="gameTemplateId" direction="asc"/>
+        <property name="minMajorVersion" direction="asc"/>
+    </datastore-index>
+    <datastore-index kind="GameClientTemplate" ancestor="false" >
+        <property name="clientType" direction="asc"/>
+        <property name="gameTemplateId" direction="asc"/>
+        <property name="minMajorVersion" direction="asc"/>
+    </datastore-index>
+    <datastore-index kind="GameClientTemplate" ancestor="false">
+        <property name="gameTemplateId" direction="asc"/>
+        <property name="minMajorVersion" direction="asc"/>
+    </datastore-index>
+    <datastore-index kind="GameClientTemplate" ancestor="false" >
+        <property name="clientType" direction="asc"/>
+        <property name="clientTitle" direction="asc"/>
+        <property name="gameTemplateId" direction="asc"/>
+    </datastore-index>
+    <datastore-index kind="GameClientTemplate" ancestor="false">
+        <property name="clientTitle" direction="asc"/>
+        <property name="gameTemplateId" direction="asc"/>
+    </datastore-index>
+    <datastore-index kind="GameClientTemplate" ancestor="false">
+        <property name="clientType" direction="asc"/>
+        <property name="gameTemplateId" direction="asc"/>
+    </datastore-index>
+
+</datastore-indexes>

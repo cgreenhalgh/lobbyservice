@@ -308,12 +308,25 @@ public class JoinGameInstanceServlet extends HttpServlet implements Constants {
 				gs.setGameInstanceKey(gi.getKey());
 				gs.setGameTemplateId(gi.getGameTemplateId());
 				gs.setStatus(GameInstanceSlotStatus.ALLOCATED);
+				if (gjreq.getNickname()!=null) 
+					gs.setNickname(gjreq.getNickname());
+				else if (gc.getNickname()!=null)
+					gs.setNickname(gc.getNickname());
+				else if (account!=null && account.getNickname()!=null)
+					gs.setNickname(account.getNickname());
+				else
+					gs.setNickname("Anonymous");
 				em.persist(gs);
+			} else if (gjreq.getNickname()!=null && !gjreq.getNickname().equals(gs.getNickname())){
+				logger.info("Change GameSlot nickname "+gs.getNickname()+" -> "+gjreq.getNickname());
+				gs.setNickname(gjreq.getNickname());
+				em.merge(gs);
 			}
 			et.commit();
 			et.begin();
 			
 			gjresp.setGameSlotId(gs.getKey().getName());
+			gjresp.setNickname(gs.getNickname());
 			
 			// must have gc, gi & gs by this point (and account if gc is linked to account)
 			
@@ -501,6 +514,7 @@ public class JoinGameInstanceServlet extends HttpServlet implements Constants {
 			gc.setMinorVersion(gjreq.getMinorVersion());
 		if (gjreq.getUpdateVersion()!=null)
 			gc.setUpdateVersion(gjreq.getUpdateVersion());
+		// nickname only for slot, not client
 		EntityTransaction et = em.getTransaction();
 		em.persist(gc);
 		logger.info("Created anonymous client "+clientId);

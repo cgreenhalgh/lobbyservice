@@ -111,8 +111,11 @@ public class ExplodingPlacesServerProtocol implements ServerProtocol {
 			}
 			addElement(doc, "clientType", "AndroidDevclient");
 			addElement(doc, "clientVersion", "1");
-			// TODO playerName
-			addElement(doc, "playerName", "lobbyPlayer");
+			String nickname = gs.getNickname();
+			if (nickname==null) 		
+				nickname = "Anonymous";
+			gjresp.setNickname(nickname);
+			addElement(doc, "playerName", nickname);
 
 			if (gi.getBaseUrl()!=null && !gi.getBaseUrl().equals(server.getBaseUrl()))
 				logger.warning("GameInstance baseUrl does not match server baseUrl ("+gi.getBaseUrl()+" vs "+server.getBaseUrl()+") for "+gi);
@@ -185,7 +188,7 @@ public class ExplodingPlacesServerProtocol implements ServerProtocol {
 
 		// generate client play URL. (Note conversationId is a required parameter)
 		// baseUrl/messages
-		gjresp.setPlayUrl(server.getBaseUrl()+"/rpc/messages");
+		gjresp.setPlayUrl(server.getBaseUrl()+"/rpc/");
 
 		gjresp.setStatus(GameJoinResponseStatus.OK);
 	}

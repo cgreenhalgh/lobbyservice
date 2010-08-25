@@ -27,6 +27,7 @@ import java.io.Writer;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Logger;
 
 import javax.persistence.Query;
 import javax.servlet.http.HttpServletResponse;
@@ -52,6 +53,7 @@ import uk.ac.horizon.ug.lobby.model.GameServerType;
 import uk.ac.horizon.ug.lobby.model.GameTemplate;
 import uk.ac.horizon.ug.lobby.model.GameTemplateVisibility;
 import uk.ac.horizon.ug.lobby.model.ServerConfiguration;
+import uk.ac.horizon.ug.lobby.user.UserGameTemplateServlet;
 
 /** JSON marshall/unmarshall utils
  * 
@@ -59,6 +61,7 @@ import uk.ac.horizon.ug.lobby.model.ServerConfiguration;
  *
  */
 public class JSONUtils implements Constants {
+	static Logger logger = Logger.getLogger(JSONUtils.class.getName());
 	/** write Account object for user 
 	 * @throws JSONException */
 	public static void writeUserAccount(JSONWriter jw, Account account) throws JSONException {
@@ -254,6 +257,7 @@ public class JSONUtils implements Constants {
 		Iterator keys = json.keys();
 		while(keys.hasNext()) {
 			String key = (String)keys.next();
+//			logger.info("GCT: "+key+"="+json.getObject(key));
 			if (key.equals(TITLE))
 				gct.setTitle(json.getString(TITLE));
 			else if (key.equals(CLIENT_TYPE))
@@ -268,9 +272,11 @@ public class JSONUtils implements Constants {
 				gct.setApplicationLaunchId(json.getString(APPLICATION_LAUNCH_ID));
 			else if (key.equals(LOCATION_SPECIFIC))
 				gct.setLocationSpecific(json.getBoolean(LOCATION_SPECIFIC));
-			else if (key.equals(APPLICATION_MARKET_ID))
-				gct.setTitle(json.getString(APPLICATION_MARKET_ID));
-			else
+			else if (key.equals(APPLICATION_MARKET_ID)) {
+				gct.setApplicationMarketId(json.getString(APPLICATION_MARKET_ID));
+				logger.info("ApplicationMarketId="+gct.getApplicationMarketId());
+			}
+			else 
 				throw new JSONException("Unsupported key '"+key+"' in GameClientTemplate: "+json);
 		}
 		return gct;
@@ -698,6 +704,8 @@ public class JSONUtils implements Constants {
 				o.setLongitudeE6(json.getInt(key));
 			else if (key.equals(MAJOR_VERSION))
 				o.setMajorVersion(json.getInt(key));
+			else if (key.equals(NICKNAME))
+				o.setNickname(json.getString(key));
 			else if (key.equals(MINOR_VERSION))
 				o.setMinorVersion(json.getInt(key));
 			else if (key.equals(SEQ_NO))
@@ -730,6 +738,10 @@ public class JSONUtils implements Constants {
 		if (gs.getMessage()!=null) {
 			jw.key(MESSAGE);
 			jw.value(gs.getMessage());
+		}
+		if (gs.getNickname()!=null) {
+			jw.key(NICKNAME);
+			jw.value(gs.getNickname());
 		}
 		if (gs.getPlayTime()!=null) {
 			jw.key(PLAY_TIME);

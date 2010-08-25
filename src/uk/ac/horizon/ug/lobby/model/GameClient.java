@@ -42,6 +42,8 @@ public class GameClient {
     private String id;
     /** account key - if client is associated with account */
     private Key accountKey;
+    /** default nickname */
+    private String nickname;
     /** shared secret */
     private String sharedSecret;
     /** client type, e.g. "Android" */
@@ -171,5 +173,17 @@ public class GameClient {
 	 */
 	public void setImei(String imei) {
 		this.imei = imei;
+	}
+	/**
+	 * @return the nickname
+	 */
+	public String getNickname() {
+		return nickname;
+	}
+	/**
+	 * @param nickname the nickname to set
+	 */
+	public void setNickname(String nickname) {
+		this.nickname = nickname;
 	}
 }

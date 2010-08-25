@@ -35,6 +35,8 @@ public class GameJoinRequest {
 	private Integer seqNo;
 	/** client Id - required for interaction with previous join or secure ops */
 	private String clientId;
+    /** nickname - optional */
+    private String nickname;
 	/** device Id - optional and unauthenticated - used as default clientId for anonymous use to avoid 'leaking' of slots on retry */
 	private String deviceId;
 	/** game slot id - required for interaction with previous join */
@@ -228,6 +230,18 @@ public class GameJoinRequest {
 	public void setDeviceId(String deviceId) {
 		this.deviceId = deviceId;
 	}
+	/**
+	 * @return the nickname
+	 */
+	public String getNickname() {
+		return nickname;
+	}
+	/**
+	 * @param nickname the nickname to set
+	 */
+	public void setNickname(String nickname) {
+		this.nickname = nickname;
+	}
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
@@ -238,8 +252,8 @@ public class GameJoinRequest {
 				+ deviceId + ", gameSlotId=" + gameSlotId + ", latitudeE6="
 				+ latitudeE6 + ", longitudeE6=" + longitudeE6
 				+ ", majorVersion=" + majorVersion + ", minorVersion="
-				+ minorVersion + ", seqNo=" + seqNo + ", time=" + time
-				+ ", type=" + type + ", updateVersion=" + updateVersion
-				+ ", version=" + version + "]";
+				+ minorVersion + ", nickname=" + nickname + ", seqNo=" + seqNo
+				+ ", time=" + time + ", type=" + type + ", updateVersion="
+				+ updateVersion + ", version=" + version + "]";
 	}
 }

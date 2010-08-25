@@ -1,9 +1,12 @@
 var data = Titanium.UI.currentWindow.data;
+var clientinfo = data.clientTemplates[0];
+
 var label = Titanium.UI.createLabel({
 	text:'Title: '+data.title+'\n'+
 	'Description: '+data.description+'\n'+
 	'Data: '+JSON.stringify(data)+'\n'+
-	'Join URL: '+data.queryUrl,
+	'Join URL: '+data.queryUrl+'\n'+
+	'Client: '+clientinfo+'\n',
 	font:{fontSize:14},
 	left:10,
 	top:10,
@@ -12,6 +15,24 @@ var label = Titanium.UI.createLabel({
 });
 
 Titanium.UI.currentWindow.add(label);
+
+var clientButton = Titanium.UI.createButton({
+	left:100,
+	top:10,
+	title:'Check Client'
+});
+
+if (clientinfo.applicationMarketId!=undefined)
+	Titanium.UI.currentWindow.add(clientButton);
+
+clientButton.addEventListener('click', function(e) {
+	// Titanium 1.5 preview (1.4.1 android_native_refactor) support for intents
+	// Note: this doesn't work on the emulator!
+	var intent = Titanium.Android.createIntent({action:Titanium.Android.ACTION_VIEW,data:'market://details?id='+clientinfo.applicationMarketId});
+	var activity = Titanium.Android.createActivity(intent);
+	activity.start(intent);
+});
+
 
 var button = Titanium.UI.createButton({
 	left:10,
@@ -27,11 +48,23 @@ function join(e) {
 	client.onload = function() {
 		var json = JSON.parse(client.responseText);
 		Titanium.API.log('INFO','Join: '+client.responseText);
+		// Titanium 1.5 preview (1.4.1 android_native_refactor) support for intents
 		// this starts an activity (only intent action & data are supported, plus putExtra)
 //		var intent = Titanium.Android.createIntent({action:Titanium.Android.ACTION_VIEW,data:'http://www.mrl.nott.ac.uk/'});
 //		var activity = Titanium.Android.createActivity(intent);
 //		activity.start(intent);
-
+		if (json.status=='OK') {
+			var intent = Titanium.Android.createIntent({action:clientinfo.applicationLaunchId});
+			intent.putExtra('playUrl',json.playUrl);
+			intent.putExtra('clientId',json.clientId);
+			intent.putExtra('nickname',json.nickname);
+			for (var p in json.playData) {
+				intent.putExtra(p,json.playData[p]);
+			}
+			var activity = Titanium.Android.createActivity(intent);
+			Titanium.API.log('INFO','start '+intent);
+			activity.start(intent);
+		}		
 	};
 	client.onerror = function() {
 		Titanium.API.log('ERROR','Join error');

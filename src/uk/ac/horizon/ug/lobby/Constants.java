@@ -47,6 +47,7 @@ public interface Constants {
 	public static final String MAX_NUM_SLOTS = "maxNumSlots";
 	public static final String MAX_TIME = "maxTime";
 	public static final String MESSAGE = "message";
+	public static final String NICKNAME = "nickname";
 	public static final String MIN_DURATION_MS = "minDurationMs";
 	public static final String MIN_MINOR_VERSION = "minMinorVersion";
 	public static final String MIN_MAJOR_VERSION = "minMajorVersion";

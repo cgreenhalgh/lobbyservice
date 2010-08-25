@@ -35,6 +35,8 @@ public class GameJoinResponse {
 	private Long time;
 	/** client Id - required for interaction with previous join or secure ops */
 	private String clientId;
+	/** nickname for play in game */
+	private String nickname;
 	/** game slot id - required for interaction with previous join */
 	private String gameSlotId; 
 	/** join type */
@@ -174,15 +176,28 @@ public class GameJoinResponse {
 	public void setPlayData(Map<String, Object> playData) {
 		this.playData = playData;
 	}
+	/**
+	 * @return the nickname
+	 */
+	public String getNickname() {
+		return nickname;
+	}
+	/**
+	 * @param nickname the nickname to set
+	 */
+	public void setNickname(String nickname) {
+		this.nickname = nickname;
+	}
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public String toString() {
 		return "GameJoinResponse [clientId=" + clientId + ", gameSlotId="
-				+ gameSlotId + ", message=" + message + ", playData="
-				+ playData + ", playTime=" + playTime + ", playUrl=" + playUrl
-				+ ", status=" + status + ", time=" + time + ", type=" + type
-				+ ", version=" + version + "]";
+				+ gameSlotId + ", message=" + message + ", nickname="
+				+ nickname + ", playData=" + playData + ", playTime="
+				+ playTime + ", playUrl=" + playUrl + ", status=" + status
+				+ ", time=" + time + ", type=" + type + ", version=" + version
+				+ "]";
 	}
 }

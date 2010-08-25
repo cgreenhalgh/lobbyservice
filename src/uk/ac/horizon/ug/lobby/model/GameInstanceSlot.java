@@ -44,6 +44,8 @@ public class GameInstanceSlot {
     private Key gameClientKey;
     /** account - optional */
     private Key accountKey;
+	/** nickname for play in game */
+	private String nickname;
     /** game template id (strictly redundant with gameInstance.gameTemplateId) */
     private String gameTemplateId;
     /** slot status */
@@ -140,5 +142,17 @@ public class GameInstanceSlot {
 	 */
 	public void setClientSharedSecret(String clientSharedSecret) {
 		this.clientSharedSecret = clientSharedSecret;
+	}
+	/**
+	 * @return the nickname
+	 */
+	public String getNickname() {
+		return nickname;
+	}
+	/**
+	 * @param nickname the nickname to set
+	 */
+	public void setNickname(String nickname) {
+		this.nickname = nickname;
 	}
 }
