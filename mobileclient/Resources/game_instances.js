@@ -12,7 +12,7 @@ var table = Titanium.UI.createTableView({data:indexdata});
 
 table.addEventListener('click', function(e){
 	if (e.rowData.data) {
-		var win = Titanium.UI.createWindow({url:'play.js',title:e.rowData.data.title});
+		var win = Titanium.UI.createWindow({url:'game_instance.js',title:e.rowData.data.title});
 		win.data = e.rowData.data;
 		win.open({modal:true});
 	}

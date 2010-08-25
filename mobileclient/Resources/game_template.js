@@ -43,7 +43,7 @@ var button = Titanium.UI.createButton({
 });
 
 button.addEventListener('click', function(e) {
-	var win = Titanium.UI.createWindow({url:'game_list.js',title:data.title});
+	var win = Titanium.UI.createWindow({url:'game_instances.js',title:data.title});
 	win.data = data;
 	win.open({modal:true});
 });
