@@ -168,6 +168,8 @@ public class UserGameInstanceServlet extends HttpServlet implements Constants {
 				gii.gameInstance.setRadiusMetres(ngi.getRadiusMetres());
 			if (ngi.getGameServerId()!=null)
 				gii.gameInstance.setGameServerId(ngi.getGameServerId());
+			if (ngi.getLocationName()!=null)
+				gii.gameInstance.setLocationName(ngi.getLocationName());
 			if (ngi.getLatitudeE6()!=0)
 				gii.gameInstance.setLatitudeE6(ngi.getLatitudeE6());
 			if (ngi.getLongitudeE6()!=0)

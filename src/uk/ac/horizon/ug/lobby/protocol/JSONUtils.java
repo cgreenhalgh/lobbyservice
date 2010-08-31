@@ -438,6 +438,10 @@ public class JSONUtils implements Constants {
 		jw.value(gs.isFull());
 		jw.key(LATITUDE_E6);
 		jw.value(gs.getLatitudeE6());
+		if (gs.getLocationName()!=null) {
+			jw.key(LOCATION_NAME);
+			jw.value(gs.getLocationName());
+		}
 		jw.key(LONGITUDE_E6);
 		jw.value(gs.getLongitudeE6());
 		jw.key(MAX_NUM_SLOTS);
@@ -480,6 +484,8 @@ public class JSONUtils implements Constants {
 				gs.setKey(KeyFactory.stringToKey(json.getString(key)));
 			else if (key.equals(LATITUDE_E6))
 				gs.setLatitudeE6(json.getInt(key));
+			else if (key.equals(LOCATION_NAME))
+				gs.setLocationName(json.getString(key));
 			else if (key.equals(LONGITUDE_E6))
 				gs.setLongitudeE6(json.getInt(key));
 			else if (key.equals(MAX_NUM_SLOTS))

@@ -40,6 +40,7 @@ public interface Constants {
 	public static final String LINK = "link";
 	public static final String LOBBY_SHARED_SECRET = "lobbySharedSecret";
 	public static final String LOCATION_CONSTRAINT = "locationConstraint";
+	public static final String LOCATION_NAME = "locationName";
 	public static final String LOCATION_SPECIFIC = "locationSpecific";
 	public static final String LONGITUDE_E6 = "longitudeE6";
 	public static final String MAJOR_VERSION = "majorVersion";

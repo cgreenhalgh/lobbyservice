@@ -1,4 +1,7 @@
 
+var title_color = '#fff';
+var desc_color = '#aaa';
+
 // fill in client version-specifying properties in given object (for use as request to lobby)
 function set_version_properties(request) {
 	if (Titanium.Platform.name=='android')
@@ -37,145 +40,123 @@ function open_browser(url) {
 	}
 }
 
-// create a table view for an index top-level
-// tableRow is optional view arg
-function get_details_table_row(index, tableRow) {
-	if (tableRow==undefined || tableRow==null)
-		tableRow = Titanium.UI.createTableViewRow({height:'auto'});
-	if (index.imageUrl!=undefined) {
-		var imageView = Titanium.UI.createImageView({
-			url:index.imageUrl,
-			width:50,
-			height:50,
-			canScale:true,
-			enableZoomControls:false,
-			left:10,
-			top:10,
-			borderWidth:10
-		});
-		tableRow.add(imageView);
-	}
-	if (index.link!=undefined) {
-		var link = Titanium.UI.createButton({
-			title:'Web',
-			width:'auto',
-			height:'auto',
-			borderWidth:10,
-			left:70,
-			top:10
-		});
-		tableRow.add(link);
-		link.addEventListener('click',function(e) {
-			open_browser(index.link);
-		});
-	}
-	var centreView = Titanium.UI.createView({
-		left:120,
-		top:10,
-		height:'auto',
-		layout:'vertical'
-	});
+function get_details_description(index) {
+	var description = '';
 	if (index.subtitle!=undefined) {
-		var title = Titanium.UI.createLabel({
-			text:index.title,
-			textAlign:'left',
-			font:{fontSize:16},
-			left:0,
-			height:'auto'
-		});
-		centreView.add(title);
+		description = description+index.subtitle+'\n';
+	}
+	if (index.locationName!=undefined) {
+		description = description+'At: '+index.locationName+'\n';
 	}
 	if (index.startTime!=undefined) {
-		var l = Titanium.UI.createLabel({
-			text:'Start: '+index.startTime,
-			textAlign:'left',
-			font:{fontSize:12},
-			left:0,
-			height:'auto',
-			borderWidth:10
-		});
-		centreView.add(l);		
+		description = description+'From: '+new Date(index.startTime)+'\n';
 	}
 	if (index.endTime!=undefined) {
-		var l = Titanium.UI.createLabel({
-			text:'End: '+index.endTime,
-			textAlign:'left',
-			font:{fontSize:12},
-			left:0,
-			height:'auto',
-			borderWidth:10
-		});
-		centreView.add(l);		
+		description = description+'From: '+new Date(index.endTime)+'\n';
 	}
-	tableRow.add(centreView);
-	tableRow.hasChild = false;
-	return tableRow;
+	return description;
 }
 
+var rowi = 0;
+function get_table_class() {
+	rowi = rowi+1;
+	return 'row'+rowi;
+}
 //create a table view for an index top-level
-function get_index_table_row(index, tableRow) {
-	if (tableRow==undefined || tableRow==null)
-		tableRow = Titanium.UI.createTableViewRow({height:'auto'});
-	if (index.imageUrl!=undefined) {
+function get_header_view(title, imageUrl) {
+	var tableRow = Titanium.UI.createView({
+			height:'auto',
+			width:Titanium.UI.currentWindow.size.width-70,
+			top:0,
+			left:0
+		});
+	if (imageUrl!=null && imageUrl!=undefined) {
 		var imageView = Titanium.UI.createImageView({
-			url:index.imageUrl,
-			width:50,
-			height:50,
+			image:imageUrl,
+			width:32,
+			height:32,
 			canScale:true,
 			enableZoomControls:false,
-			left:10,
-			top:10,
-			borderWidth:10
+			left:0,
+			top:0,
+			borderWidth:4
 		});
 		tableRow.add(imageView);
 	}
-	if (index.link!=undefined) {
-		var link = Titanium.UI.createButton({
-			title:'Web',
-			width:'auto',
-			height:'auto',
-			borderWidth:10,
-			left:70,
-			top:10
-		});
-		tableRow.add(link);
-		link.addEventListener('click',function(e) {
-			open_browser(index.link);
-		});
-	}
-	var centreView = Titanium.UI.createView({
-		left:120,
-		top:10,
-		height:'auto',
-		layout:'vertical'
-	});
-	var titleView = Titanium.UI.createView({		
-		left:0,
-		top:0,
-		height:'auto'
-	});
+
 	var title = Titanium.UI.createLabel({
-		text:index.title,
+		text:title,
 		textAlign:'left',
 		font:{fontSize:16},
-		left:0,
+		color:title_color,
+		left:37,
+		top:0,
+//		width:'auto',
 		height:'auto'
 	});
-	titleView.add(title);
-	centreView.add(titleView);
-	if (index.description!=undefined) {
+	tableRow.add(title);
+	return tableRow;
+}
+function get_index_header_view(index) {
+	return get_header_view(index.title, index.imageUrl);
+}
+function get_details_header_view(index) {
+	var description = Titanium.UI.createLabel({
+		text:get_details_description(index),
+		textAlign:'left',
+		font:{fontSize:12},
+		color:title_color,
+		left:0,
+		top:0,
+		//height:'auto',
+		width:Titanium.UI.currentWindow.size.width-70,
+		//width:'auto'
+			//borderWidth:10
+	});
+	return description;
+}
+function get_detail_view(description, link) {
+	var tableRow = Titanium.UI.createView({
+		height:'auto',
+		width:Titanium.UI.currentWindow.size.width-70,
+		top:0,
+		left:0
+	});
+
+	if (link!=null && link!=undefined) {
+		var linkView = Titanium.UI.createImageView({
+			url:'www_50.png',
+			canScale:true,
+			enableZoomControls:false,
+			width:32,
+			height:32,
+			borderWidth:4,
+			left:0,
+			top:0
+		});
+		tableRow.add(linkView);
+		linkView.addEventListener('click',function(e) {
+			open_browser(link);
+		});
+	}
+	if (description!=undefined) {
 		var description = Titanium.UI.createLabel({
-			text:index.description,
+			text:description,
 			textAlign:'left',
 			font:{fontSize:12},
-			left:0,
-			height:'auto',
-			bottom:10,
-			borderWidth:10
+			color:desc_color,
+			left:37,
+			top:0,
+			//height:'auto',
+			width:Titanium.UI.currentWindow.size.width-70-21,
+			width:'auto'
+				//borderWidth:10
 		});
-		centreView.add(description);		
+		tableRow.add(description);		
 	}
-	tableRow.add(centreView);
-	tableRow.hasChild = false;
+	//tableRow.hasChild = false;
 	return tableRow;
+}
+function get_index_detail_view(index) {
+	return get_detail_view(index.description, index.link);
 }

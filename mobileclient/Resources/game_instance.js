@@ -27,17 +27,15 @@ var label = Titanium.UI.createLabel({
 Titanium.UI.currentWindow.add(label);
 */
 // not a table view
-var template_view = get_index_table_row(data, Titanium.UI.createView({height:'auto'}));
-
-Titanium.UI.currentWindow.add(template_view);
-
-//not a table view
-var detail_view = get_details_table_row(data, Titanium.UI.createView({height:'auto'}));
-
-Titanium.UI.currentWindow.add(detail_view);
+Titanium.UI.currentWindow.add(get_index_header_view(data));
+Titanium.UI.currentWindow.add(Titanium.UI.createView({height:10}));
+Titanium.UI.currentWindow.add(get_index_detail_view(data));
+Titanium.UI.currentWindow.add(Titanium.UI.createView({height:10}));
+Titanium.UI.currentWindow.add(get_details_header_view(data));
+Titanium.UI.currentWindow.add(Titanium.UI.createView({height:10}));
 
 var clientButton = Titanium.UI.createButton({
-//	left:100,
+	left:10,
 //	top:10,
 	title:'Check Client',
 	width:'auto',

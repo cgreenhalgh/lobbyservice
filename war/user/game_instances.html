@@ -35,7 +35,7 @@
 					if (!$.isPlainObject(item))
 						item = json[item];
 					//<td>title</td><td >game server id</td><td>start time</td><td>end time</td><td>latitude(E6)</td><td>longitude(E6)</td><td>radius (metres)</td><td>status</td><td>base url</td>
-		        	$('<tr class="game_template"><td>'+item.title+'</td><td>'+item.visibility+'</td><td>'+timeToString(item.startTime)+'</td><td>'+timeToString(item.endTime)+'</td><td>'+item.maxNumSlots+'</td><td>'+item.numSlotsAllocated+'</td><td>'+item.latitudeE6+'</td><td>'+item.longitudeE6+'</td><td>'+item.radiusMetres+'</td><td>'+item.nominalStatus+'</td><td>'+item.baseUrl+'</td><!-- <td>'+item.gameServerId+'</td> --><td><input type="button" value="edit" onclick="select_template(\''+item.key+'\')"/></td></tr>').appendTo('#templates');
+		        	$('<tr class="game_template"><td>'+item.title+'</td><td>'+item.visibility+'</td><td>'+timeToString(item.startTime)+'</td><td>'+timeToString(item.endTime)+'</td><td>'+item.maxNumSlots+'</td><td>'+item.numSlotsAllocated+'</td><td>'+item.locationName+'</td><td>'+item.latitudeE6+'</td><td>'+item.longitudeE6+'</td><td>'+item.radiusMetres+'</td><td>'+item.nominalStatus+'</td><td>'+item.baseUrl+'</td><!-- <td>'+item.gameServerId+'</td> --><td><input type="button" value="edit" onclick="select_template(\''+item.key+'\')"/></td></tr>').appendTo('#templates');
 				}
         	});
     	}
@@ -90,34 +90,6 @@
         	get_server_options();
     	});
 
-    	function add_field(form, obj, name, input_name) {
-        	if (!input_name)
-            	input_name = name;
-        	var value = $(':input[name='+input_name+']',form).attr('value');
-        	if (value!=null && value!='')
-            	obj[name] = value;
-    	}
-    	function add_time_field(form, obj, name, input_name) {
-        	if (!input_name)
-            	input_name = name;
-        	var value = $(':input[name='+input_name+']',form).attr('value');
-        	if (value!=null && value!='')
-            	obj[name] = stringToTime(value);
-    	}
-    	function add_number_field(form, obj, name, input_name) {
-        	if (!input_name)
-            	input_name = name;
-        	var value = $(':input[name='+input_name+']',form).attr('value');
-        	if (value!=null && value!='')
-            	obj[name] = Number(value);
-    	}
-    	function add_select_field(form, obj, name, input_name) {
-        	if (!input_name)
-            	input_name = name;
-        	var value = $('select[name='+name+'] > option[selected]').attr('value');
-        	if (value!=null && value!='')
-            	obj[name] = value;
-    	}
     	function ajax_add_game_instance(data) {
     		$.ajax({url: 'AddGameInstance', 
 	    		type: 'POST',
@@ -163,11 +135,12 @@
         	add_select_field(form, gt, 'visibility');
         	add_time_field(form, gt, 'startTime');
         	add_time_field(form, gt, 'endTime');
-        	add_number_field(form, gt, 'maxNumSlots');
+        	add_int_field(form, gt, 'maxNumSlots');
         	add_boolean_field(form, gt, 'allowAnonymousClients');
-        	add_number_field(form, gt, 'latitudeE6');
-        	add_number_field(form, gt, 'longitudeE6');
-        	add_number_field(form, gt, 'radiusMetres');
+        	add_field(form, gt, 'locationName');
+        	add_int_field(form, gt, 'latitudeE6');
+        	add_int_field(form, gt, 'longitudeE6');
+        	add_double_field(form, gt, 'radiusMetres');
 
     		var data = $.toJSON(gt);
     		//alert('Request: '+data);
@@ -201,6 +174,7 @@
             	set_input_from_field(document,data,'numSlotsAllocated');
             	set_input_from_field(document,data,'full');
             	set_select_from_field(document,data,'visibility');
+            	set_input_from_field(document,data,'locationName');
             	set_checkbox_from_field(document,data,'allowAnonymousClients');
 				$('select[name=gameServerId] > option[selected]').removeAttr('selected');
 				if (data.gameServerId!=null && data.gameServerId!='')
@@ -254,7 +228,7 @@
     <h2>Current Instances</h2>
     <table id="templates" border="1">
       <tr style="font-weight:bold;">
-        <td>title</td><td>visibility</td><td>start time</td><td>end time</td><td>max num slots</td><td>num slots allocated</td><td>latitude(E6)</td><td>longitude(E6)</td><td>radius (metres)</td><td>nominal status</td><td>base url</td><!-- <td >game server id</td> -->
+        <td>title</td><td>visibility</td><td>start time</td><td>end time</td><td>max num slots</td><td>num slots allocated</td><td>location name</td><td>latitude(E6)</td><td>longitude(E6)</td><td>radius (metres)</td><td>nominal status</td><td>base url</td><!-- <td >game server id</td> -->
       </tr>
       <tr id="templates_status">
         <td>Select template...</td>        
@@ -284,6 +258,7 @@
 			<tr><td>num slots allocated</td><td><input type="text" name="numSlotsAllocated" readonly="true"/></td></tr>
 			<tr><td>full</td><td><input type="text" name="full" readonly="true"/></td></tr>
 			
+			<tr><td>location name</td><td><input type="text" name="locationName"/></td></tr>
 			<tr><td>latitude (E6)</td><td><input type="text" name="latitudeE6"/></td></tr>
 			<tr><td>longitude (E6)</td><td><input type="text" name="longitudeE6"/></td></tr>
 			<tr><td>radius (metres)</td><td><input type="text" name="radiusMetres"/></td></tr>

@@ -28,9 +28,11 @@ var data = Titanium.UI.currentWindow.data;
 Titanium.UI.currentWindow.add(label);
 */
 //not a table view
-var template_view = get_index_table_row(data, Titanium.UI.createView({height:'auto'}));
 
-Titanium.UI.currentWindow.add(template_view);
+Titanium.UI.currentWindow.add(get_index_header_view(data));
+Titanium.UI.currentWindow.add(Titanium.UI.createView({height:10}));
+Titanium.UI.currentWindow.add(get_index_detail_view(data));
+Titanium.UI.currentWindow.add(Titanium.UI.createView({height:10}));
 
 // TODO Clients...
 

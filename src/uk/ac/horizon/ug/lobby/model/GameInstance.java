@@ -46,6 +46,8 @@ public class GameInstance {
     private long startTime;
     /** end time */
     private long endTime;
+    /** location name - human consumption */
+    private String locationName;
     /** latitude */
     private int latitudeE6;
     /** longitude */
@@ -274,6 +276,18 @@ public class GameInstance {
 	 */
 	public void setFull(boolean full) {
 		this.full = full;
+	}
+	/**
+	 * @return the locationName
+	 */
+	public String getLocationName() {
+		return locationName;
+	}
+	/**
+	 * @param locationName the locationName to set
+	 */
+	public void setLocationName(String locationName) {
+		this.locationName = locationName;
 	}
     
 }

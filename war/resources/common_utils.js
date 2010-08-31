@@ -33,6 +33,9 @@ function add_int_field(form, obj, name, input_name) {
 		}
 	}
 }
+function add_double_field(form, obj, name, input_name) {
+	add_int_field(form, obj, name, input_name);
+}
 //add a boolean-valued field to a JS Object using an checkbox 
 function add_boolean_field(form, obj, name, input_name) {
 	if (!input_name)
@@ -115,4 +118,12 @@ function stringToTime(str) {
 		date.setUTCSeconds(str.substr(13,2));
 	}
 	return date.getTime();				
+}
+
+function add_time_field(form, obj, name, input_name) {
+	if (!input_name)
+    	input_name = name;
+	var value = $(':input[name='+input_name+']',form).attr('value');
+	if (value!=null && value!='')
+    	obj[name] = stringToTime(value);
 }

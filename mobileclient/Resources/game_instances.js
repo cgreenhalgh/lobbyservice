@@ -26,13 +26,21 @@ client.open('POST',data.queryUrl,true);
 client.onload = function() {
 	var json = JSON.parse(client.responseText);
 	var data = [];
-	data[0] = get_index_table_row(json);
+	if (json.items.length>0) {
+		var row = Titanium.UI.createTableViewRow();
+		row.add(get_index_header_view(json.items[0]));
+		data.push(row);
+		row = Titanium.UI.createTableViewRow();
+		row.add(get_index_detail_view(json.items[0]));
+		data.push(row);
+	}
 	for (var i=0; i<json.items.length; i++) {
-		var row = get_details_table_row(json.items[i]);
+		var row = Titanium.UI.createTableViewRow();
+		row.add(get_details_header_view(json.items[i]));
 		row.data = json.items[i];
 		if (json.items[i].playUrl!=undefined)
 			row.hasChild = true;
-		data[i+1] = row;
+		data.push(row);
 	}
 	table.setData(data);
 };
