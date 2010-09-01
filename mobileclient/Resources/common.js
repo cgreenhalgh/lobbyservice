@@ -160,3 +160,50 @@ function get_detail_view(description, link) {
 function get_index_detail_view(index) {
 	return get_detail_view(index.description, index.link);
 }
+
+//==================================================================
+//Time utilities
+
+//number leading 0 format helper
+function format(text,len) {
+	var str = String(text);
+	while (str.length<2) 
+ 	str = '0'+str;
+	return str;
+}
+//date to (relatively) pretty text format
+function prettyTimeToString(time) {
+	if (time==0)
+		return "Unspecified";
+	var date = new Date(time);
+	// TZ?
+	var str = format(date.getUTCFullYear(),4)+'-'+format(date.getUTCMonth()+1,2)+'-'+format(date.getUTCDate(),2)+' '+
+	format(date.getUTCHours(),2)+':'+format(date.getUTCMinutes(),2)+':'+format(date.getUTCSeconds(),2);
+	if (date.getTimezoneOffset()!=0)
+		str = str+' Z ('+date.getTimezoneOffset()+')';
+		//date.toUTCString();
+	return str;
+}
+//date to short text format
+function timeToString(time) {
+	var date = new Date(time);
+	var str = format(date.getUTCFullYear(),4)+format(date.getUTCMonth()+1,2)+format(date.getUTCDate(),2)+'T'+
+	format(date.getUTCHours(),2)+format(date.getUTCMinutes(),2)+format(date.getUTCSeconds(),2)+'Z';
+	return str;
+}
+//short text format to date
+function stringToTime(str) {
+	var date = new Date(0);
+	var match = /\d\d\d\d\d\d\d\d[T]\d\d\d\d\d\d[Z]/ .exec(str);
+	if (match==null) 
+		alert('Unable to parse time '+str);
+	else {
+		date.setUTCFullYear(str.substr(0,4));
+		date.setUTCMonth(Number(str.substr(4,2))-1);
+		date.setUTCDate(str.substr(6,2));
+		date.setUTCHours(str.substr(9,2));
+		date.setUTCMinutes(str.substr(11,2));
+		date.setUTCSeconds(str.substr(13,2));
+	}
+	return date.getTime();				
+}

@@ -4,7 +4,8 @@
 Titanium.include('config.js');
 Titanium.include('common.js');
 
-var data = Titanium.UI.currentWindow.data;
+var win = Titanium.UI.currentWindow;
+var data = win.data;
 
 var indexdata = [{title:'Loading...'}];
 
@@ -18,7 +19,7 @@ table.addEventListener('click', function(e){
 	}
 });
 
-Titanium.UI.currentWindow.add(table);
+win.add(table);
 
 var client = Titanium.Network.createHTTPClient();
 client.setTimeout(30000);
@@ -50,6 +51,14 @@ client.onerror = function() {
 };
 var request = {version:1};
 set_version_properties(request);
+if (win.latitudeE6!=undefined)
+	request.latitudeE6 = win.latitudeE6;
+if (win.longitudeE6!=undefined)
+	request.longitudeE6 = win.longitudeE6;
+if (win.timeConstraint!=undefined)
+	request.timeConstraint = win.timeConstraint;
+if (win.locationConstraint!=undefined)
+	request.locationConstraint = win.locationConstraint;
 
 Titanium.API.log("Send query "+JSON.stringify(request)+" to "+data.queryUrl);
 client.send(JSON.stringify(request));
