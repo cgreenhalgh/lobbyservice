@@ -1,161 +1,332 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <head>
+
+  
   <meta content="text/html; charset=ISO-8859-1" http-equiv="content-type">
+
+  
   <title>Lobby Service Next Steps</title>
 </head>
+
+
 <body>
+
 <h1>Lobby Service Next Steps</h1>
+
 <p>Chris Greenhalgh, 2010-09-02</p>
+
 <h2>Dynamic Game Instance Creation</h2>
+
 <p>[Remove requirement for manual game creation / lifecycle handling on existing (dedicated) servers]</p>
+
 <p>Define GameInstanceFactory persistent class, including:</p>
+
 <ul>
+
   <li>recurrance info, e.g. CRON pattern</li>
+
   <li>link to game template</li>
+
   <li>start-up requirements, e.g.&nbsp;</li>
+
+  
   <ul>
+
     <li>minimum number of reservations (1)</li>
+
+  
   </ul>
+
   <li>constraints, e.g.</li>
+
+  
   <ul>
+
     <li>maximum number of concurrent instances</li>
+
+  
   </ul>
+
   <li>visibility (as per game template &amp; instance)</li>
+
   <li>game instance seed information</li>
+
+  
   <ul>
+
     <li>title (pattern?!)</li>
+
     <li>location info, e.g. lat/long/radius/name (new LocationInfo persistent class?)</li>
+
     <li>max num slots</li>
+
     <li>allow anonymous clients</li>
+
     <li>? tear-down requirements</li>
+
+  
   </ul>
+
   <li>game instance server (start-up) information</li>
+
+  
   <ul>
+
     <li>id of&nbsp;(currently) game server</li>
+
     <li>server- and instance- specific configuration,&nbsp;</li>
+
+    
     <ul>
+
       <li>e.g. initial content (file URL, content group ID or title)</li>
+
+    
     </ul>
+
     <li>&nbsp;lead times - create, activate, ending, end</li>
+
     <li>? end-of-game instructions, e.g. archive policy &amp; configuration</li>
+
+  
   </ul>
+
 </ul>
+
 <p>GameInstance gets link to GameInstanceFactory (if created from)</p>
+
 <p>Server Query matches against GameInstanceFactory in addition to
 GameInstance. Protocol gains option to pass recurrance info instead of
 just start/endTime. playUrl refers to GameInstanceFactory.</p>
+
 <p>Client supports presentation of recurrance info. If selected then
 specification of preferred time (window?!) =&gt; preferred
 instance(s?!).</p>
+
 <p>GameInstanceFactory URL handles Join protocol similarly to
 GameInstance but with additional stage of find or create GameInstance
 (or reject if conditions cannot be met).</p>
+
 <p>GameInstance join handling checks GameInstanceFactory and will
 create server game instance as required. Will also force 'periodic'
 check to remove old game server instances for this template (e.g. to
 maintain concurrency constraints).</p>
+
 <ul>
-  <li>New persistent GameServerAuditRecord class records game server operations, e.g. create game, change game state, register player, etc.</li>
+
+  <li>New persistent GameServerAuditRecord class records game server
+operations, e.g. create game, change game state, register player, etc.</li>
+
 </ul>
+
 <p>CRON or similar timed job&nbsp;will&nbsp;periodically do old game
 server instance clean-up for all templates and start/chance status of
 game instances if appropriate. </p>
+
 <h2>Finance Support</h2>
+
 <p>[Required for scalability in terms of cost management]</p>
+
 <p>Account gains balance and maxOverdraft fields.</p>
+
 <p>Admin interface can view and (auditably change) balance and overdraft</p>
+
 <p>Define new persistent AccountTransactionAuditRecord class for transactions on the account (details TBD).</p>
+
 <p>User&nbsp;Account interface can view balance, overdraft and 'statements' i.e.&nbsp;AccountTransactionAuditRecord history.</p>
+
 <p> User Account interface can credit money to Account!</p>
+
 <p>User Account interface can request refund from Account.</p>
+
 <h3>Game Finance Support</h3>
-<p>Track underlying costs incurred (on GAE) and link in CloudUsageAuditRecord to player (pref. Account) and game &amp;&nbsp;Account.&nbsp;</p>
+
+<p>Track underlying costs incurred (on GAE) and link in
+CloudUsageAuditRecord to player (pref. Account) and game
+&amp;&nbsp;Account.&nbsp;</p>
+
 <ul>
+
   <li>bandwidth, CPU, storage bytes, storage transactions</li>
+
 </ul>
+
 <p>Subscription (support)?&nbsp;</p>
+
 <p>Usage charging? c.f. Player payment model...</p>
+
 <ul>
+
   <li>PER GAME SLOT? Per JOIN? Per download (e.g. linked to GameTemplate or GameInstance)?</li>
+
 </ul>
+
 <p>Log/Audit.</p>
+
 <p>Offset against money from players.</p>
+
 <p>Generate statements.</p>
+
 <p>Check/update GameTemplate/Instance status (e.g. Hidden, blocked) according to Account status / balance. </p>
+
 <h3>Player Finance Support</h3>
+
 <p>Client supports authenticated access to the server, presumably using OAuth or similar.&nbsp;</p>
+
 <p>Client can then be linked to Account (and unlinked from Client or Account).</p>
+
 <p>Client persists credentials for use in search &amp; join operations.</p>
+
 <p>GameTemplate, Instance and InstanceTemplate gain FinancialInfo, e.g.</p>
+
 <ul>
+
   <li>cost
 basis - FREE, PER GAME TEMPLATE, PER GAME INSTANCE, PER GAME SLOT (may
 be limited duration in longer GAME INSTANCE), PER CALENDAR PERIOD
 (subscription - may require callback from game server to check current
 status).</li>
+
   <li>cost - milli-pounds?</li>
+
   <li>discount (history-related!) info - e.g. first N at X% cost, after M at Y% cost</li>
+
 </ul>
+
 <p>Define AccountDiscountInfo record information need to discount handling, i.e. per GameTemplate/Instance/Slot usage information.</p>
+
 <p>User game&nbsp;interface can create/update FinancialInfo.</p>
+
 <p>Server Index/Query return Financial Info</p>
+
 <p>Client shows financial info.&nbsp;</p>
+
 <p>Server Join and protocol supports check for cost.</p>
+
 <p>Client checks cost and requires user confirmation if charged.</p>
+
 <p>Server Join checks balance as appropriate, creates&nbsp;AccountTransactionAuditRecord and updates balance.</p>
+
 <p>Server
 Join should also generate (persistent) AccountAlerts for Game owners,
 e.g. on failure to connect to server, client re-joins (possible server
 failure), etc.</p>
+
 <p>(Game server might check back with Lobby for long-running sessions)</p>
+
 <h3>Hosted Server Finance Support</h3>
+
 <p>[Pre-requisite for open or scalable game server support]</p>
+
 <p>Track underlying costs incurred (on EC2/etc.) and link in
 CloudUsageAuditRecord to player (pref. Account) and game
 &amp;&nbsp;Account.&nbsp;</p>
+
 <ul>
+
   <li>bandwidth, CPU, storage bytes, storage transactions</li>
+
 </ul>
+
 <p>Apportion/distribute non-directly attributable costs (e.g. shared servers).</p>
+
 <p>Offset against money from players.</p>
+
 <p>Generate statements.</p>
+
 <p>Check/update GameTemplate/Instance status (e.g. Hidden, blocked) according to Account status / balance.&nbsp;</p>
+
 <h2>Dynamic Game Server Support</h2>
+
 <h3>Single On-demand Server</h3>
+
 <p>[support for making our own hosting more efficient for low usage, and for open hosting]</p>
+
 <p>[v.1: e.g. custom AMI including Tomcat and Exploding Places WAR,
 with appropriate configuration. Lobby just starts/stops the instance.</p>
+
 <p>Extend GameServer to describe Managed Dedicated Server:</p>
+
 <ul>
+
   <li>new type (Managed Dedicated Server)</li>
+
   <li>link to Account</li>
+
   <li>info for&nbsp;Cloud hosting, e.g. cloud provider/type, cloud account, AMI identification, start-up times, configuration info</li>
+
   <li>requirements for start-up</li>
+
+  
   <ul>
+
     <li>e.g. number of player reservations (?)</li>
+
+  
   </ul>
+
 </ul>
+
 <p>Extend hooks from Dynamic Game Instance support (creation, removal)
 to include start/stop of server&nbsp;on first/last game (as
 appropriate).&nbsp;</p>
+
 <p>Extensions:&nbsp;</p>
+
 <ul>
+
   <li>post game persistence, e.g. UGC, scores, personal history</li>
+
   <li>resilience to in-game failure (persistence &amp; migration)</li>
+
 </ul>
+
 <h3>Single On-demand Process</h3>
+
 <p>[support for making our own and open hosting (much) more efficient for very low usage] </p>
+
 <p>v.2: e.g. deploy Exploding Places WAR to a cloned Tomcat instance (with unique User ID and port) on a standard AMI.</p>
+
 <p>v.2.1</p>
+
 <p>Can be developed initially on single (onways-on or on-demand) Server.</p>
+
 <p>v.2.2</p>
+
 <p>Then migrated to non-dedicated Server Pool...</p>
+
 <p>Extensions: as above</p>
+
 <h3>Scalable...</h3>
+
 <p>[support for scale - our own and open/paid]</p>
-<p>Need to describe circumstances for new server/process creation / migration / destruction...</p>
-<p>Need to allocate clients to particular instances...</p>
-<p>Need to handle client and instance migration / failure...</p>
+
+<p>Lobby-managed scalability:</p>
+<ul>
+  <li>Need to describe circumstances for new server/process creation / migration / destruction...</li>
+  <li>Need to allocate clients to particular instances...</li>
+  <li>Need to handle client and instance migration / failure...</li>
+</ul>
+<p>Cloud-managed scalability:</p>
+<ul>
+  <li>Just use Amazon (or whoever's) auto-scalability and load balancing to present a single logical service to the lobby.</li>
+</ul>
+<h2>Game-specific Client Support</h2>
+<p>The game-specific client (e.g. downloaded directly from the app marketplace)
+could use later phases of the lobby protocol to identify and connect to
+the particular server(s) for that game. I.e. use/have the lobby client
+or see alternative games as such.</p>
+<p>Lobby service could still do audit, charging and (optionally) service management.</p>
+<h2>Game Template Archive and&nbsp;Market</h2>
+<p>A complete game (including server, client(s), tools, help, etc.) could be packaged up and stored.</p>
+<p>A Game operator (e.g. an artist) could select and instantiate such
+an archived game, use the tools to configure it and author content,
+test it and then release it.</p>
+<p>Licensing fees might be paid to the archive creator.</p>
+<p></p>
+
+
+
 </body>
 </html>
