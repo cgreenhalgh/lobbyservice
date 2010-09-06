@@ -141,6 +141,8 @@ public class UserGameInstanceServlet extends HttpServlet implements Constants {
 				throw new RequestException(HttpServletResponse.SC_BAD_REQUEST, "GameInstance key in URL ("+gii.gameInstance.getKey()+") does not match key in data ("+ngi.getKey()+")");
 			if (ngi.getGameTemplateId()!=null && !ngi.getGameTemplateId().equals(gii.gameInstance.getGameTemplateId()))
 				throw new RequestException(HttpServletResponse.SC_BAD_REQUEST, "GameInstance cannot change gameTemplateId");
+			if (ngi.getGameInstanceFactoryKey()!=null && !ngi.getGameInstanceFactoryKey().equals(gii.gameInstance.getGameInstanceFactoryKey()))
+				throw new RequestException(HttpServletResponse.SC_BAD_REQUEST, "GameInstance cannot change gameInstanceFactoryKey");
 			
 			if (ngi.getGameServerId()!=null) {
 				GameServer gs = em.find(GameServer.class, ngi.getGameServerId());
@@ -180,9 +182,12 @@ public class UserGameInstanceServlet extends HttpServlet implements Constants {
 			// note check of json, not ngi (which has default value(s))
 			if (json.has(ALLOW_ANONYMOUS_CLIENTS))
 				gii.gameInstance.setAllowAnonymousClients(ngi.isAllowAnonymousClients());
+			if (ngi.getTitle()!=null)
+				gii.gameInstance.setTitle(ngi.getTitle());
 			if (ngi.getVisibility()!=null)
 				gii.gameInstance.setVisibility(ngi.getVisibility());
-
+			// no change to gameInstanceFactoryKey
+			
 			// cache state
 			gii.gameInstance.setFull(gii.gameInstance.getNumSlotsAllocated()>=gii.gameInstance.getMaxNumSlots());
 			

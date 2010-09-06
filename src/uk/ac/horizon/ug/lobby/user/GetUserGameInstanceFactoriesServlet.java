@@ -54,8 +54,8 @@ import uk.ac.horizon.ug.lobby.protocol.JSONUtils;
  *
  */
 @SuppressWarnings("serial")
-public class GetUserGameInstancesServlet extends HttpServlet implements Constants {
-	static Logger logger = Logger.getLogger(GetUserGameInstancesServlet.class.getName());
+public class GetUserGameInstanceFactoriesServlet extends HttpServlet implements Constants {
+	static Logger logger = Logger.getLogger(GetUserGameInstanceFactoriesServlet.class.getName());
 	
 	@Override
 	public void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -74,14 +74,14 @@ public class GetUserGameInstancesServlet extends HttpServlet implements Constant
 		try {
 			GameTemplate gameTemplate = UserGameTemplateServlet.getGameTemplate(req, em, account);
 
-			Query q = em.createQuery("SELECT x FROM GameInstance x WHERE x."+GAME_TEMPLATE_ID+" = :"+GAME_TEMPLATE_ID);
+			Query q = em.createQuery("SELECT x FROM GameInstanceFactory x WHERE x."+GAME_TEMPLATE_ID+" = :"+GAME_TEMPLATE_ID);
 			q.setParameter(GAME_TEMPLATE_ID, gameTemplate.getId());
-			List<GameInstance> gameInstances = (List<GameInstance>)q.getResultList();
+			List<GameInstanceFactory> gameInstanceFactories = (List<GameInstanceFactory>)q.getResultList();
 			
 			Writer w = JSONUtils.getResponseWriter(resp);
 			JSONWriter jw = new JSONWriter(w);
 			try {
-				JSONUtils.writeGameInstances(jw, gameInstances);
+				JSONUtils.writeGameInstanceFactories(jw, gameInstanceFactories);
 			} catch (JSONException je) {
 				throw new IOException(je);
 			}

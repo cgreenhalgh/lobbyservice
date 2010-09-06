@@ -45,6 +45,9 @@ import uk.ac.horizon.ug.lobby.model.GameClientTemplate;
 import uk.ac.horizon.ug.lobby.model.GameClientType;
 import uk.ac.horizon.ug.lobby.model.GameIndex;
 import uk.ac.horizon.ug.lobby.model.GameInstance;
+import uk.ac.horizon.ug.lobby.model.GameInstanceFactory;
+import uk.ac.horizon.ug.lobby.model.GameInstanceFactoryLocationType;
+import uk.ac.horizon.ug.lobby.model.GameInstanceFactoryStatus;
 import uk.ac.horizon.ug.lobby.model.GameInstanceNominalStatus;
 import uk.ac.horizon.ug.lobby.model.GameInstanceStatus;
 import uk.ac.horizon.ug.lobby.model.GameServer;
@@ -396,6 +399,10 @@ public class JSONUtils implements Constants {
 			jw.key(BASE_URL);
 			jw.value(gs.getBaseUrl());
 		}
+		if (gs.getGameInstanceFactoryKey()!=null) {
+			jw.key(GAME_INSTANCE_FACTORY_KEY);
+			jw.value(KeyFactory.keyToString(gs.getGameInstanceFactoryKey()));
+		}
 		if (gs.getGameServerId()!=null) {
 			jw.key(GAME_SERVER_ID);
 			jw.value(KeyFactory.keyToString(gs.getGameServerId()));
@@ -518,6 +525,191 @@ public class JSONUtils implements Constants {
 			throw new IOException(je);
 		}
 		w.close();
+	}
+	/** write GameInstanceFactories for user 
+	 * @throws JSONException */
+	public static void writeGameInstanceFactories(JSONWriter jw, List<GameInstanceFactory> gss) throws JSONException {
+		jw.array();
+		for (GameInstanceFactory gs : gss) {
+			writeGameInstanceFactory(jw, gs);
+		}
+		jw.endArray();
+	}
+	/** write GameInstanceFactory object for user 
+	 * @throws JSONException */
+	public static void writeGameInstanceFactory(JSONWriter jw, GameInstanceFactory gs) throws JSONException {
+		writeGameInstanceFactory(jw, gs, null, null);
+	}
+	/** write GameInstanceFactory object for user 
+	 * @throws JSONException */
+	public static void writeGameInstanceFactory(JSONWriter jw, GameInstanceFactory gs, GameTemplate gameTemplate, GameServer gameServer) throws JSONException {
+		jw.object();
+		if (gs.getGameServerId()!=null) {
+			jw.key(GAME_SERVER_ID);
+			jw.value(KeyFactory.keyToString(gs.getGameServerId()));
+		}
+		if (gs.getGameTemplateId()!=null) {
+			jw.key(GAME_TEMPLATE_ID);
+			jw.value(gs.getGameTemplateId());
+		}
+		if (gs.getInstanceTitle()!=null) {
+			jw.key(INSTANCE_TITLE);
+			jw.value(gs.getInstanceTitle());
+		}
+		if (gs.getKey()!=null) {
+			jw.key(KEY);
+			jw.value(KeyFactory.keyToString(gs.getKey()));
+		}
+		jw.key(MAX_NUM_INSTANCES_CONCURRENT);
+		jw.value(gs.getMaxNumInstancesConcurrent());
+		jw.key(MAX_NUM_INSTANCES_TOTAL);
+		jw.value(gs.getMaxNumInstancesTotal());
+		jw.key(NUM_INSTANCES_TOTAL);
+		jw.value(gs.getNumInstancesTotal());
+		if (gs.getServerConfigJson()!=null) {
+			jw.key(SERVER_CONFIG_JSON);
+			jw.value(gs.getServerConfigJson());
+		}
+		jw.key(SERVER_CREATE_TIME_OFFSET_MS);
+		jw.value(gs.getServerCreateTimeOffsetMs());
+		jw.key(SERVER_END_TIME_OFFSET_MS);
+		jw.value(gs.getServerEndTimeOffsetMs());
+		jw.key(SERVER_ENDING_TIME_OFFSET_MS);
+		jw.value(gs.getServerEndingTimeOffsetMs());
+		jw.key(SERVER_START_TIME_OFFSET_MS);
+		jw.value(gs.getServerStartTimeOffsetMs());
+		if (gs.getStatus()!=null) {
+			jw.key(STATUS);
+			jw.value(gs.getStatus().toString());
+		}
+
+		writeGameInstanceFactoryPublicFields(jw, gs, false);
+
+		if (gameTemplate!=null) {
+			jw.key(GAME_TEMPLATE);
+			writeGameTemplate(jw, gameTemplate);
+		}
+		if (gameServer!=null) {
+			jw.key(GAME_SERVER);
+			writeGameServer(jw, gameServer);
+		}
+
+
+		jw.endObject();
+	}
+	// visible to query results
+	private static void writeGameInstanceFactoryPublicFields(JSONWriter jw,
+			GameInstanceFactory gs, boolean escapeTitle) throws JSONException {
+		// TODO Auto-generated method stub
+		jw.key(ALLOW_ANONYMOUS_CLIENTS);
+		jw.value(gs.isAllowAnonymousClients());
+		jw.key(CREATE_FOR_ANONYMOUS_CLIENT);
+		jw.value(gs.isCreateForAnonymousClient());
+		jw.key(CREATE_FOR_NO_CLIENT);
+		jw.value(gs.isCreateForNoClient());
+		jw.key(DURATION_MS);
+		jw.value(gs.getDurationMs());
+		jw.key(LATITUDE_E6);
+		jw.value(gs.getLatitudeE6());
+		if (gs.getLocationType()!=null) {
+			jw.key(LOCATION_TYPE);
+			jw.value(gs.getLocationType().toString());
+		}
+		if (gs.getLocationName()!=null) {
+			jw.key(LOCATION_NAME);
+			jw.value(gs.getLocationName());
+		}
+		jw.key(LONGITUDE_E6);
+		jw.value(gs.getLongitudeE6());
+		jw.key(MAX_NUM_SLOTS);
+		jw.value(gs.getMaxNumSlots());
+		jw.key(RADIUS_METRES);
+		jw.value(gs.getRadiusMetres());
+		jw.key(START_TIME_CRON);
+		jw.value(gs.getStartTimeCron());
+		//jw.key(STATUS);
+		//jw.value(gs.getStatus().toString());
+		if (gs.getTitle()!=null) {
+			jw.key(escapeTitle ? SUBTITLE : TITLE);
+			jw.value(gs.getTitle());
+		}
+		jw.key(VISIBILITY);
+		jw.value(gs.getVisibility().toString());
+	}
+	/** set GameInstanceFactory as response 
+	 * @throws IOException */
+	public static void sendGameInstanceFactory(HttpServletResponse resp, GameInstanceFactory gs, GameTemplate gameTemplate, GameServer gameServer) throws IOException {
+		Writer w = JSONUtils.getResponseWriter(resp);
+		JSONWriter jw = new JSONWriter(w);
+		try {
+			JSONUtils.writeGameInstanceFactory(jw, gs);	
+		} catch (JSONException je) {
+			throw new IOException(je);
+		}
+		w.close();
+	}
+	/** parse JSON Object to GameInstanceFactory
+	 * @throws JSONException */
+	public static GameInstanceFactory parseGameInstanceFactory(JSONObject json) throws JSONException {
+		GameInstanceFactory gs = new GameInstanceFactory();
+		Iterator keys = json.keys();
+		while(keys.hasNext()) {
+			String key = (String)keys.next();
+			if (key.equals(ALLOW_ANONYMOUS_CLIENTS))
+				gs.setAllowAnonymousClients(json.getBoolean(key));
+			else if (key.equals(CREATE_FOR_ANONYMOUS_CLIENT))
+				gs.setCreateForAnonymousClient(json.getBoolean(key));
+			else if (key.equals(CREATE_FOR_NO_CLIENT))
+				gs.setCreateForNoClient(json.getBoolean(key));
+			else if (key.equals(DURATION_MS))
+				gs.setDurationMs(json.getLong(key));
+			else if (key.equals(GAME_SERVER_ID))
+				gs.setGameServerId(KeyFactory.stringToKey(json.getString(key)));
+			else if (key.equals(GAME_TEMPLATE_ID))
+				gs.setGameTemplateId(json.getString(key));
+			else if (key.equals(INSTANCE_TITLE))
+				gs.setInstanceTitle(json.getString(key));
+			else if (key.equals(KEY))
+				gs.setKey(KeyFactory.stringToKey(json.getString(key)));
+			else if (key.equals(LATITUDE_E6))
+				gs.setLatitudeE6(json.getInt(key));
+			else if (key.equals(LOCATION_NAME))
+				gs.setLocationName(json.getString(key));
+			else if (key.equals(LOCATION_TYPE))
+				gs.setLocationType(GameInstanceFactoryLocationType.valueOf(json.getString(key)));
+			else if (key.equals(LONGITUDE_E6))
+				gs.setLongitudeE6(json.getInt(key));
+			else if (key.equals(MAX_NUM_INSTANCES_CONCURRENT))
+				gs.setMaxNumInstancesConcurrent(json.getInt(key));
+			else if (key.equals(MAX_NUM_INSTANCES_TOTAL))
+				gs.setMaxNumInstancesTotal(json.getInt(key));
+			else if (key.equals(MAX_NUM_SLOTS))
+				gs.setMaxNumSlots(json.getInt(key));
+			// not numInstancesTotal
+			else if (key.equals(RADIUS_METRES))
+				gs.setRadiusMetres(json.getDouble(key));
+			else if (key.equals(SERVER_CONFIG_JSON))
+				gs.setServerConfigJson(json.getString(key));
+			else if (key.equals(SERVER_CREATE_TIME_OFFSET_MS))
+				gs.setServerCreateTimeOffsetMs(json.getLong(key));
+			else if (key.equals(SERVER_ENDING_TIME_OFFSET_MS))
+				gs.setServerEndingTimeOffsetMs(json.getLong(key));
+			else if (key.equals(SERVER_END_TIME_OFFSET_MS))
+				gs.setServerEndTimeOffsetMs(json.getLong(key));
+			else if (key.equals(SERVER_START_TIME_OFFSET_MS))
+				gs.setServerStartTimeOffsetMs(json.getLong(key));
+			else if (key.equals(START_TIME_CRON))
+				gs.setStartTimeCron(json.getString(key));
+			else if (key.equals(STATUS))
+				gs.setStatus(GameInstanceFactoryStatus.valueOf(json.getString(key)));
+			else if (key.equals(TITLE))
+				gs.setTitle(json.getString(key));
+			else if (key.equals(VISIBILITY))
+				gs.setVisibility(GameTemplateVisibility.valueOf(json.getString(key)));
+			else
+				throw new JSONException("Unsupported key '"+key+"' in GameInstance: "+json);
+		}
+		return gs;
 	}
 	/** write GameIndex object for user 
 	 * @throws JSONException */

@@ -61,6 +61,18 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
 		<servlet-class>uk.ac.horizon.ug.lobby.user.UserGameInstanceServlet</servlet-class>
 	</servlet>
 	<servlet>
+		<servlet-name>GetUserGameInstanceFactories</servlet-name>
+		<servlet-class>uk.ac.horizon.ug.lobby.user.GetUserGameInstanceFactoriesServlet</servlet-class>
+	</servlet>
+	<servlet>
+		<servlet-name>AddGameInstanceFactory</servlet-name>
+		<servlet-class>uk.ac.horizon.ug.lobby.user.AddGameInstanceFactoryServlet</servlet-class>
+	</servlet>
+	<servlet>
+		<servlet-name>UserGameInstanceFactory</servlet-name>
+		<servlet-class>uk.ac.horizon.ug.lobby.user.UserGameInstanceFactoryServlet</servlet-class>
+	</servlet>
+	<servlet>
 		<servlet-name>GetGameIndex</servlet-name>
 		<servlet-class>uk.ac.horizon.ug.lobby.browser.GetGameIndexServlet</servlet-class>
 	</servlet>
@@ -129,6 +141,18 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
 		<url-pattern>/user/UserGameInstance/*</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
+		<servlet-name>AddGameInstanceFactory</servlet-name>
+		<url-pattern>/user/AddGameInstanceFactory</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>GetUserGameInstanceFactories</servlet-name>
+		<url-pattern>/user/GetUserGameInstanceFactories/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>UserGameInstanceFactory</servlet-name>
+		<url-pattern>/user/UserGameInstanceFactory/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
 		<servlet-name>GetGameIndex</servlet-name>
 		<url-pattern>/browser/GetGameIndex</url-pattern>
 	</servlet-mapping>
@@ -145,7 +169,8 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
 	</welcome-file-list>
 	<!-- GAE Application Administrator only -->
     <security-constraint> 
-        <web-resource-collection> 
+        <web-resource-collection>
+        <web-resource-name>admin pages</web-resource-name> 
             <url-pattern>/admin/*</url-pattern> 
         </web-resource-collection> 
         <auth-constraint> 
@@ -155,6 +180,7 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
 	<!-- Any authenticated user -->
     <security-constraint> 
         <web-resource-collection> 
+	        <web-resource-name>user account pages</web-resource-name> 
             <url-pattern>/user/*</url-pattern> 
         </web-resource-collection> 
         <auth-constraint> 

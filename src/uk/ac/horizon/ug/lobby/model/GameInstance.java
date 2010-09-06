@@ -70,6 +70,9 @@ public class GameInstance {
 	private boolean full;
     /** game instance base url (several games may be hosted by the same GameServer) */
     private String baseUrl;
+    /** game instance factory key (if created from a game instance factory) */
+    private Key gameInstanceFactoryKey;
+    // TODO conditions for actually starting/stopping instances
     /** cons */
     public GameInstance() {
     }
@@ -288,6 +291,18 @@ public class GameInstance {
 	 */
 	public void setLocationName(String locationName) {
 		this.locationName = locationName;
+	}
+	/**
+	 * @return the gameInstanceFactoryKey
+	 */
+	public Key getGameInstanceFactoryKey() {
+		return gameInstanceFactoryKey;
+	}
+	/**
+	 * @param gameInstanceFactoryKey the gameInstanceFactoryKey to set
+	 */
+	public void setGameInstanceFactoryKey(Key gameInstanceFactoryKey) {
+		this.gameInstanceFactoryKey = gameInstanceFactoryKey;
 	}
     
 }

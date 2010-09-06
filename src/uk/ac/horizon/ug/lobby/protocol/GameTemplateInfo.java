@@ -23,6 +23,7 @@ import java.util.List;
 
 import uk.ac.horizon.ug.lobby.model.GameClientTemplate;
 import uk.ac.horizon.ug.lobby.model.GameInstance;
+import uk.ac.horizon.ug.lobby.model.GameInstanceFactory;
 import uk.ac.horizon.ug.lobby.model.GameTemplate;
 
 /**
@@ -34,6 +35,8 @@ public class GameTemplateInfo {
 	private GameTemplate gameTemplate;
 	/** game instance - optional - used in responses to GameQuerys */
 	private GameInstance gameInstance;
+	/** game instance - optional - used in responses to GameQuerys */
+	private GameInstanceFactory gameInstanceFactory;
 	/** client templates */
 	private List<GameClientTemplate> gameClientTemplates;
 	/** game (template)-specific URL for lobby client interaction */
@@ -102,6 +105,18 @@ public class GameTemplateInfo {
 	 */
 	public void setJoinUrl(String joinUrl) {
 		this.joinUrl = joinUrl;
+	}
+	/**
+	 * @return the gameInstanceFactory
+	 */
+	public GameInstanceFactory getGameInstanceFactory() {
+		return gameInstanceFactory;
+	}
+	/**
+	 * @param gameInstanceFactory the gameInstanceFactory to set
+	 */
+	public void setGameInstanceFactory(GameInstanceFactory gameInstanceFactory) {
+		this.gameInstanceFactory = gameInstanceFactory;
 	}
 	
 }
