@@ -72,6 +72,8 @@ public class GameInstance {
     private String baseUrl;
     /** game instance factory key (if created from a game instance factory) */
     private Key gameInstanceFactoryKey;
+    /** created time */
+    private Long createdTime;
     // TODO conditions for actually starting/stopping instances
     /** cons */
     public GameInstance() {
@@ -303,6 +305,18 @@ public class GameInstance {
 	 */
 	public void setGameInstanceFactoryKey(Key gameInstanceFactoryKey) {
 		this.gameInstanceFactoryKey = gameInstanceFactoryKey;
+	}
+	/**
+	 * @return the createdTime
+	 */
+	public Long getCreatedTime() {
+		return createdTime;
+	}
+	/**
+	 * @param createdTime the createdTime to set
+	 */
+	public void setCreatedTime(Long createdTime) {
+		this.createdTime = createdTime;
 	}
     
 }

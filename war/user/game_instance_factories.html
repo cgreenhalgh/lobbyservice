@@ -134,6 +134,7 @@
         	add_int_field(form, gt, 'durationMs');
         	//add_field(form, gt, 'status');
         	add_select_field(form, gt, 'status');
+        	add_select_field(form, gt, 'instanceVisibility');
         	add_select_field(form, gt, 'visibility');
         	add_select_field(form, gt, 'locationType');
         	add_time_field(form, gt, 'minTime');
@@ -154,6 +155,8 @@
 			add_int_field(form, gt, 'maxNumInstancesTotal');
 			//readonly: add_int_field(form, gt, 'numInstancesTotal');
 			add_int_field(form, gt, 'maxNumInstancesConcurrent');
+        	//readonly: lastInstanceCheckTime
+        	add_int_field(form, gt, 'instanceCreateTimeWindowMs');
 
 			var data = $.toJSON(gt);
     		//alert('Request: '+data);
@@ -190,6 +193,7 @@
             	set_input_from_field(document,data,'numSlotsAllocated');
             	set_input_from_field(document,data,'full');
             	set_select_from_field(document,data,'visibility');
+            	set_select_from_field(document,data,'instanceVisibility');
             	set_select_from_field(document,data,'locationType');
             	set_input_from_field(document,data,'locationName');
             	set_select_from_field(document,data,'status');
@@ -204,6 +208,8 @@
             	set_input_from_field(document,data,'maxNumInstancesTotal');
             	set_input_from_field(document,data,'numInstancesTotal');
             	set_input_from_field(document,data,'maxNumInstancesConcurrent');
+            	set_input_from_field(document,data,'lastInstanceCheckTime');
+            	set_input_from_field(document,data,'instanceCreateTimeWindowMs');
 				$('select[name=gameServerId] > option[selected]').removeAttr('selected');
 				if (data.gameServerId!=null && data.gameServerId!='')
 					$('select[name=gameServerId] > option[value='+data.gameServerId+']').attr('selected','true');
@@ -273,6 +279,12 @@
 					<option label="PUBLIC" value="PUBLIC">PUBLIC</option>
 				</select>
 			</td></tr>
+			<tr><td>instance visibility</td><td>
+				<select name="instanceVisibility">
+					<option label="HIDDEN" value="HIDDEN">PUBLIC</option>
+					<option label="PUBLIC" value="PUBLIC">PUBLIC</option>
+				</select>
+			</td></tr>
 			<tr><td>game server id</td><td>
 			    <select name="gameServerId" onchange="update_game_server_id()">
 				</select>	
@@ -315,6 +327,8 @@
 			<tr><td>max num instances (total)</td><td><input type="text" name="maxNumInstancesTotal" value="0"/></td></tr>
 			<tr><td>num instances (total)</td><td><input type="text" name="numInstancesTotal" readonly="readonly" value="0"/></td></tr>
 			<tr><td>max num instances (concurrent)</td><td><input type="text" name="maxNumInstancesConcurrent" value="0"/></td></tr>
+			<tr><td>last instance check time</td><td><input type="text" name="lastInstanceCheckTime" readonly="readonly" value="0"/></td></tr>
+			<tr><td>instance create time window (ms)</td><td><input type="text" name="instanceCreateTimeWindowMs" value="0"/></td></tr>
 		</table>
 		<p><input type="submit" value="Add game instance factory"/><input type="reset" value="Reset/New" onclick="reset_game_template(this)"/></p>
 		<h3>Raw (JSON)</h3>

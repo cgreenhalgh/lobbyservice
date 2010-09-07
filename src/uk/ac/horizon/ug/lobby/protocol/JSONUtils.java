@@ -411,6 +411,10 @@ public class JSONUtils implements Constants {
 			jw.key(BASE_URL);
 			jw.value(gs.getBaseUrl());
 		}
+		if (gs.getCreatedTime()!=null) {
+			jw.key(CREATED_TIME);
+			jw.value(gs.getCreatedTime());
+		}
 		if (gs.getGameInstanceFactoryKey()!=null) {
 			jw.key(GAME_INSTANCE_FACTORY_KEY);
 			jw.value(KeyFactory.keyToString(gs.getGameInstanceFactoryKey()));
@@ -564,14 +568,22 @@ public class JSONUtils implements Constants {
 			jw.key(GAME_TEMPLATE_ID);
 			jw.value(gs.getGameTemplateId());
 		}
+		jw.key(INSTANCE_CREATE_TIME_WINDOW_MS);
+		jw.value(gs.getInstanceCreateTimeWindowMs());
 		if (gs.getInstanceTitle()!=null) {
 			jw.key(INSTANCE_TITLE);
 			jw.value(gs.getInstanceTitle());
+		}
+		if (gs.getInstanceVisibility()!=null) {
+			jw.key(INSTANCE_VISIBILITY);
+			jw.value(gs.getInstanceVisibility().toString());
 		}
 		if (gs.getKey()!=null) {
 			jw.key(KEY);
 			jw.value(KeyFactory.keyToString(gs.getKey()));
 		}
+		jw.key(LAST_INSTANCE_CHECK_TIME);
+		jw.value(gs.getLastInstanceCheckTime());
 		jw.key(MAX_NUM_INSTANCES_CONCURRENT);
 		jw.value(gs.getMaxNumInstancesConcurrent());
 		jw.key(MAX_NUM_INSTANCES_TOTAL);
@@ -683,10 +695,16 @@ public class JSONUtils implements Constants {
 				gs.setGameServerId(KeyFactory.stringToKey(json.getString(key)));
 			else if (key.equals(GAME_TEMPLATE_ID))
 				gs.setGameTemplateId(json.getString(key));
+			else if (key.equals(INSTANCE_CREATE_TIME_WINDOW_MS))
+				gs.setInstanceCreateTimeWindowMs(json.getLong(key));
 			else if (key.equals(INSTANCE_TITLE))
 				gs.setInstanceTitle(json.getString(key));
+			else if (key.equals(INSTANCE_VISIBILITY))
+				gs.setInstanceVisibility(GameTemplateVisibility.valueOf(json.getString(key)));
 			else if (key.equals(KEY))
 				gs.setKey(KeyFactory.stringToKey(json.getString(key)));
+			else if (key.equals(LAST_INSTANCE_CHECK_TIME))
+				gs.setLastInstanceCheckTime(json.getLong(key));
 			else if (key.equals(LATITUDE_E6))
 				gs.setLatitudeE6(json.getInt(key));
 			else if (key.equals(LOCATION_NAME))

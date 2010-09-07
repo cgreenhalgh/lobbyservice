@@ -175,6 +175,11 @@ public class UserGameInstanceFactoryServlet extends HttpServlet implements Const
 				gii.gameInstanceFactory.setGameServerId(ngi.getGameServerId());
 			if (ngi.getInstanceTitle()!=null)
 				gii.gameInstanceFactory.setInstanceTitle(ngi.getInstanceTitle());
+			if (ngi.getInstanceVisibility()!=null)
+				gii.gameInstanceFactory.setInstanceVisibility(ngi.getInstanceVisibility());
+			// note check of json, not ngi (which has default value(s))
+			if (json.has(INSTANCE_CREATE_TIME_WINDOW_MS))
+				gii.gameInstanceFactory.setInstanceCreateTimeWindowMs(ngi.getInstanceCreateTimeWindowMs());
 			if (ngi.getLocationName()!=null)
 				gii.gameInstanceFactory.setLocationName(ngi.getLocationName());
 			if (ngi.getLocationType()!=null)
@@ -228,6 +233,9 @@ public class UserGameInstanceFactoryServlet extends HttpServlet implements Const
 				gii.gameInstanceFactory.setVisibility(ngi.getVisibility());
 
 			// cache state
+			// change of possible instances - force recheck
+			if (json.has(START_TIME_CRON) || json.has(MIN_TIME) || json.has(MAX_TIME)) 
+				gii.gameInstanceFactory.setLastInstanceCheckTime(System.currentTimeMillis());
 			// ?!
 			
 			em.merge(gii.gameInstanceFactory);

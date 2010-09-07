@@ -11,6 +11,7 @@ public interface Constants {
 	public static final String CLIENT_TYPE = "clientType";
 	public static final String CREATE_FOR_ANONYMOUS_CLIENT = "createForAnonymousClient";
 	public static final String CREATE_FOR_NO_CLIENT = "createForNoClient";
+	public static final String CREATED_TIME = "createdTime";
 	public static final String DAY_OF_MONTH = "dayOfMonth";
 	public static final String DAY_OF_WEEK = "dayOfWeek";
 	public static final String DESCRIPTION = "description";
@@ -36,13 +37,16 @@ public interface Constants {
 	public static final String IMAGE_URL = "imageUrl";
 	public static final String INCLUDE_STARTED = "includeStarted";
 	public static final String INITIAL_VALUE = "initialValue";
+	public static final String INSTANCE_CREATE_TIME_WINDOW_MS = "instanceCreateTimeWindowMs";
 	public static final String INSTANCE_TITLE = "instanceTitle";
+	public static final String INSTANCE_VISIBILITY = "instanceVisibility";
 	public static final String ITEMS = "items";
 	public static final String JOIN_URL = "joinUrl";
 	public static final String JSON_MIME_TYPE = "application/json";
 	public static final String KEY = "key";
 	public static final String LANGUAGE = "language";
 	public static final String LAST_BUILD_DATE = "lastBuildDate";
+	public static final String LAST_INSTANCE_CHECK_TIME = "lastInstanceCheckTime";
 	public static final String LAST_KNOWN_STATUS = "lastKnownStatus";
 	public static final String LAST_KNOWN_STATUS_TIME = "lastKnownStatusTime";
 	public static final String LATITUDE_E6 = "latitudeE6";

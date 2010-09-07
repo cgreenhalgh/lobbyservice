@@ -141,6 +141,7 @@
         	add_int_field(form, gt, 'latitudeE6');
         	add_int_field(form, gt, 'longitudeE6');
         	add_double_field(form, gt, 'radiusMetres');
+        	// readonly: createdTime
 
     		var data = $.toJSON(gt);
     		//alert('Request: '+data);
@@ -190,6 +191,7 @@
 				if (data.nominalStatus!=null && data.nominalStatus!='')
 					$('select[name=nominalStatus] > option[value='+data.nominalStatus+']').attr('selected','true');
             	$(':input[name=baseUrl]').attr('value',data.baseUrl);
+            	set_input_from_time_field(document,data,'createdTime');
         	});
         	return false;
     	}
@@ -242,6 +244,7 @@
 		<table border="1">
 			<tr><td>key</td><td><input type="text" name="key" readonly="readonly"/></td></tr>
 			<tr><td>factory key</td><td><input type="text" name="gameInstanceFactoryKey" readonly="readonly"/></td></tr>
+			<tr><td>created time</td><td><input type="text" name="createdTime" value="0" readonly=""/></td></tr>
 			<tr><td>title</td><td><input type="text" name="title"/></td></tr>
 			<tr><td>visibility</td><td>
 				<select name="visibility">

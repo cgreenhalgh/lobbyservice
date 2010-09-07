@@ -141,6 +141,9 @@ public class QueryGameTemplateServlet extends HttpServlet implements Constants {
 				return;
 			}
 			logger.info("Found "+gcts.size()+" possible client templates, of which "+noloc_gcts.size()+" location-independent");
+			
+			// ensure GameInstanceFactorys get a chance to create relevant GameInstances...
+			
 			// Check GameInstance for startTime, endTime, location (if location-specific) and nominalStatus (not CANCELLED)
 			Map<String,Object> qps = new HashMap<String,Object>();
 			StringBuilder qb = new StringBuilder();
@@ -321,7 +324,8 @@ public class QueryGameTemplateServlet extends HttpServlet implements Constants {
 					LocationConstraint lc = gq.getLocationConstraint();
 
 					locationOk = checkLocationConstraint(lc, gif.getLatitudeE6(), gif.getLongitudeE6(), gif.getRadiusMetres());					
-				} 
+				}
+/*				// PLAYER_LOCATION - not yet supported
 				else if (gif.getLocationType()==GameInstanceFactoryLocationType.PLAYER_LOCATION) {
 					if (gq.getLatitudeE6()==null || gq.getLongitudeE6()==null)
 					{
@@ -330,7 +334,7 @@ public class QueryGameTemplateServlet extends HttpServlet implements Constants {
 						continue;
 					}
 				}
-				if (!locationOk && !locationIndependent)
+*/				if (!locationOk && !locationIndependent)
 					continue; // next gif
 				
 				// TODO PLAYER_LOCATION might limit success due to maxNumInstancesConcurrent!
@@ -381,7 +385,9 @@ public class QueryGameTemplateServlet extends HttpServlet implements Constants {
 
 				et.commit();
 				et.begin();
-				// does this instance already exist?
+				
+				// TODO move game instance creation to timer thread (and check at start)
+/*				// does this instance already exist?
 				q = em.createQuery("SELECT x FROM GameInstance x WHERE x."+GAME_INSTANCE_FACTORY_KEY+" = :"+GAME_INSTANCE_FACTORY_KEY+" AND x."+GAME_TEMPLATE_ID+" = :"+GAME_TEMPLATE_ID+" AND x."+START_TIME+" = :"+START_TIME);
 				q.setParameter(GAME_INSTANCE_FACTORY_KEY, gif.getKey());
 				q.setParameter(GAME_TEMPLATE_ID, gt.getId());
@@ -464,7 +470,8 @@ public class QueryGameTemplateServlet extends HttpServlet implements Constants {
 						gti.setGameClientTemplates(noloc_gcts);
 					gtis.add(gti);
 				}
-				
+				// end of code to move
+*/			
 				// GameInstanceFactory in useful itself
 				GameTemplateInfo gti = new GameTemplateInfo();
 				gti.setGameTemplate(gt);

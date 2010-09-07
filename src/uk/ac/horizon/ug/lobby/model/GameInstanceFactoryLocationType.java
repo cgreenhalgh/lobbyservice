@@ -26,5 +26,5 @@ package uk.ac.horizon.ug.lobby.model;
 public enum GameInstanceFactoryLocationType {
 	GLOBAL, // no location constraint - anyone/everyone can play in the same game
 	SPECIFIED_LOCATION, // single specified location
-	PLAYER_LOCATION // you can play anywhere but will be put in a 'local' game
+	//Not yet supported: PLAYER_LOCATION // you can play anywhere but will be put in a 'local' game
 }

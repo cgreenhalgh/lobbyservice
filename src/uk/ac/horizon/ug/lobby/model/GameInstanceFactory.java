@@ -62,8 +62,10 @@ public class GameInstanceFactory {
     private int longitudeE6;
     /** radius metres (or 0) - for search and instance */
     private double radiusMetres;
-	/** visibility - i.e. seen by browsers or not - for search and instance */
+	/** visibility - i.e. seen by browsers or not - for search */
 	private GameTemplateVisibility visibility;
+	/** visibility - i.e. seen by browsers or not - for instance */
+	private GameTemplateVisibility instanceVisibility;
 	/** max num slots - for instance */
 	private int maxNumSlots;
 	/** allow anonymous (non-account) clients - for instance */
@@ -90,6 +92,10 @@ public class GameInstanceFactory {
 	private int numInstancesTotal;
 	/** max number instances, concurrent (e.g. for PLAYER_LOCATION type) - instance creation constraint(s) */
 	private int maxNumInstancesConcurrent;
+	/** last (java) time that this Factory was checked for new instances to create */
+	private long lastInstanceCheckTime;
+	/** time ahead that instances should be created */
+	private long instanceCreateTimeWindowMs;
     /** cons */
     public GameInstanceFactory() {
     }
@@ -428,6 +434,42 @@ public class GameInstanceFactory {
 	 */
 	public void setMaxTime(long maxTime) {
 		this.maxTime = maxTime;
+	}
+	/**
+	 * @return the instanceVisibility
+	 */
+	public GameTemplateVisibility getInstanceVisibility() {
+		return instanceVisibility;
+	}
+	/**
+	 * @param instanceVisibility the instanceVisibility to set
+	 */
+	public void setInstanceVisibility(GameTemplateVisibility instanceVisibility) {
+		this.instanceVisibility = instanceVisibility;
+	}
+	/**
+	 * @return the lastInstanceCheckTime
+	 */
+	public long getLastInstanceCheckTime() {
+		return lastInstanceCheckTime;
+	}
+	/**
+	 * @param lastInstanceCheckTime the lastInstanceCheckTime to set
+	 */
+	public void setLastInstanceCheckTime(long lastInstanceCheckTime) {
+		this.lastInstanceCheckTime = lastInstanceCheckTime;
+	}
+	/**
+	 * @return the instanceCreateTimeWindowMs
+	 */
+	public long getInstanceCreateTimeWindowMs() {
+		return instanceCreateTimeWindowMs;
+	}
+	/**
+	 * @param instanceCreateTimeWindowMs the instanceCreateTimeWindowMs to set
+	 */
+	public void setInstanceCreateTimeWindowMs(long instanceCreateTimeWindowMs) {
+		this.instanceCreateTimeWindowMs = instanceCreateTimeWindowMs;
 	}
 	
 }
