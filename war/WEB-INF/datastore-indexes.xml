@@ -84,4 +84,19 @@
         <property name="gameTemplateId" direction="asc"/>
     </datastore-index>
 
+    <!-- Used 1 time in query history -->
+    <datastore-index kind="GameInstanceFactory" ancestor="false" source="auto">
+        <property name="gameTemplateId" direction="asc"/>
+        <property name="status" direction="asc"/>
+        <property name="visibility" direction="asc"/>
+        <property name="minTime" direction="asc"/>
+    </datastore-index>
+	<!-- variants -->
+    <datastore-index kind="GameInstanceFactory" ancestor="false" source="auto">
+        <property name="gameTemplateId" direction="asc"/>
+        <property name="status" direction="asc"/>
+        <property name="visibility" direction="asc"/>
+        <property name="maxTime" direction="asc"/>
+    </datastore-index>
+
 </datastore-indexes>

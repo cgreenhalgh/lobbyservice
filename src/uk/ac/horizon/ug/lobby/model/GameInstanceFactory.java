@@ -44,6 +44,10 @@ public class GameInstanceFactory {
     private String title;
     /** title - for instance*/
     private String instanceTitle;
+    /** min (start) time (0 for as far back as possible) */
+    private long minTime;
+    /** max (start/end) time (0 is NOT unspecified - it is 1970) */
+    private long maxTime;
     /** CRON-style start time pattern - for search, lifecycle and instance start time*/
     private String startTimeCron;
     /** duration (milliseconds) - for search, lifecycle and instance end time*/
@@ -400,6 +404,30 @@ public class GameInstanceFactory {
 	 */
 	public void setCreateForNoClient(boolean createForNoClient) {
 		this.createForNoClient = createForNoClient;
+	}
+	/**
+	 * @return the minTime
+	 */
+	public long getMinTime() {
+		return minTime;
+	}
+	/**
+	 * @param minTime the minTime to set
+	 */
+	public void setMinTime(long minTime) {
+		this.minTime = minTime;
+	}
+	/**
+	 * @return the maxTime
+	 */
+	public long getMaxTime() {
+		return maxTime;
+	}
+	/**
+	 * @param maxTime the maxTime to set
+	 */
+	public void setMaxTime(long maxTime) {
+		this.maxTime = maxTime;
 	}
 	
 }

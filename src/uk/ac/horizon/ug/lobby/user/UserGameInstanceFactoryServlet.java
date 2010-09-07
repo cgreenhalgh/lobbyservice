@@ -195,6 +195,12 @@ public class UserGameInstanceFactoryServlet extends HttpServlet implements Const
 			if (json.has(MAX_NUM_SLOTS))
 				gii.gameInstanceFactory.setMaxNumSlots(ngi.getMaxNumSlots());
 			// note check of json, not ngi (which has default value(s))
+			if (json.has(MAX_TIME))
+				gii.gameInstanceFactory.setMaxTime(ngi.getMaxTime());
+			// note check of json, not ngi (which has default value(s))
+			if (json.has(MIN_TIME))
+				gii.gameInstanceFactory.setMinTime(ngi.getMinTime());
+			// note check of json, not ngi (which has default value(s))
 			if (json.has(RADIUS_METRES))
 				gii.gameInstanceFactory.setRadiusMetres(ngi.getRadiusMetres());
 			if (ngi.getServerConfigJson()!=null)

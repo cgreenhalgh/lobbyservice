@@ -59,6 +59,8 @@ public class GameJoinRequest {
 	private Integer latitudeE6;
 	/** client current location - optional */
 	private Integer longitudeE6;
+	/** start time - required when using a GameInstanceTemplate */
+	private Long startTime;
 	/** cons */
 	public GameJoinRequest() {			
 	}
@@ -241,6 +243,19 @@ public class GameJoinRequest {
 	 */
 	public void setNickname(String nickname) {
 		this.nickname = nickname;
+	}
+	
+	/**
+	 * @return the startTime
+	 */
+	public Long getStartTime() {
+		return startTime;
+	}
+	/**
+	 * @param startTime the startTime to set
+	 */
+	public void setStartTime(Long startTime) {
+		this.startTime = startTime;
 	}
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()

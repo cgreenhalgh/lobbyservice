@@ -35,8 +35,12 @@ public class GameTemplateInfo {
 	private GameTemplate gameTemplate;
 	/** game instance - optional - used in responses to GameQuerys */
 	private GameInstance gameInstance;
-	/** game instance - optional - used in responses to GameQuerys */
+	/** game instance factory - optional - used in responses to GameQuerys */
 	private GameInstanceFactory gameInstanceFactory;
+	/** first game instance start time - optional, with GameInstanceFactory */
+	private Long firstStartTime;
+	/** game time options - for GameInstanceFactory, based on startTimeCron */
+	private GameTimeOptions gameTimeOptions;
 	/** client templates */
 	private List<GameClientTemplate> gameClientTemplates;
 	/** game (template)-specific URL for lobby client interaction */
@@ -117,6 +121,30 @@ public class GameTemplateInfo {
 	 */
 	public void setGameInstanceFactory(GameInstanceFactory gameInstanceFactory) {
 		this.gameInstanceFactory = gameInstanceFactory;
+	}
+	/**
+	 * @return the firstStartTime
+	 */
+	public Long getFirstStartTime() {
+		return firstStartTime;
+	}
+	/**
+	 * @param firstStartTime the firstStartTime to set
+	 */
+	public void setFirstStartTime(Long firstStartTime) {
+		this.firstStartTime = firstStartTime;
+	}
+	/**
+	 * @return the gameTimeOptions
+	 */
+	public GameTimeOptions getGameTimeOptions() {
+		return gameTimeOptions;
+	}
+	/**
+	 * @param gameTimeOptions the gameTimeOptions to set
+	 */
+	public void setGameTimeOptions(GameTimeOptions gameTimeOptions) {
+		this.gameTimeOptions = gameTimeOptions;
 	}
 	
 }

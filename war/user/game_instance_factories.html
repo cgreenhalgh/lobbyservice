@@ -136,8 +136,8 @@
         	add_select_field(form, gt, 'status');
         	add_select_field(form, gt, 'visibility');
         	add_select_field(form, gt, 'locationType');
-//        	add_time_field(form, gt, 'startTime');
-//        	add_time_field(form, gt, 'endTime');
+        	add_time_field(form, gt, 'minTime');
+        	add_time_field(form, gt, 'maxTime');
         	add_int_field(form, gt, 'maxNumSlots');
         	add_boolean_field(form, gt, 'allowAnonymousClients');
         	add_field(form, gt, 'locationName');
@@ -207,6 +207,8 @@
 				$('select[name=gameServerId] > option[selected]').removeAttr('selected');
 				if (data.gameServerId!=null && data.gameServerId!='')
 					$('select[name=gameServerId] > option[value='+data.gameServerId+']').attr('selected','true');
+            	set_input_from_time_field(document, data, 'minTime');
+            	set_input_from_time_field(document, data, 'maxTime');
 //            	$(':input[name=startTime]').attr('value',timeToString(data.startTime));
  //           	$(':input[name=endTime]').attr('value',timeToString(data.endTime));
             	$(':input[name=latitudeE6]').attr('value',data.latitudeE6);
@@ -276,6 +278,8 @@
 				</select>	
 			</td></tr>
 			<tr><td>start time cron</td><td><input type="text" name="startTimeCron" value="* * * * * ?"/></td></tr>
+			<tr><td>min time</td><td><input type="text" name="minTime" value="19700101T000000Z"/></td></tr>
+			<tr><td>max time</td><td><input type="text" name="maxTime" value="19700101T000000Z"/></td></tr>
 			<tr><td>duration (ms)</td><td><input type="text" name="durationMs" value="0"/></td></tr>
 			<tr><td>max num slots</td><td><input type="text" name="maxNumSlots" value="0"/></td></tr>
 			<tr><td>allow anonymous clients</td><td><input type="checkbox" name="allowAnonymousClients"/></td></tr>

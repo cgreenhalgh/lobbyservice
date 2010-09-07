@@ -63,6 +63,13 @@
     			if (item.radiusMetres!=undefined && item.radiusMetres!=0) {
         			times = times+'<tr><td>At '+item.latitudeE6+','+item.longitudeE6+'</td></tr>';
     			}
+    			if (item.startTimeCron!=undefined) {
+        			times = times+'<tr><td>Every: '+item.startTimeCron+'</td></tr>';
+        			times = times+'<tr><td>'+timeToString(item.minTime)+'-'+timeToString(item.maxTime)+'</td></tr>';
+    			}
+    			if (item.firstStartTime!=undefined) {
+        			times = times+'<tr><td>Next: '+timeToString(item.firstStartTime)+'</td></tr>';
+    			}
 				var clients = '';
 				for (var ci=0; ci<item.clientTemplates.length; ci++) {
 					var ct = item.clientTemplates[ci];
@@ -220,6 +227,7 @@
     		<li>"clientId":"..." (for secure ops)</li>
     		<li>"deviceId":"..." (for insecure ops - unauthenticated)</li>
     		<li>"gameSlotId":"..." (for update ops)</li>
+    		<li>"startTime":... (for instance factory join)</li>
     		<li>"nickname":"..."</li>
     		<li>"type":"RESERVE" (or "RELEASE" or "PLAY")</li>
     		<li>"clientType":"ANDROID"</li>

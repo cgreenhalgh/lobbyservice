@@ -127,3 +127,12 @@ function add_time_field(form, obj, name, input_name) {
 	if (value!=null && value!='')
     	obj[name] = stringToTime(value);
 }
+//set an normal input according to a field value
+function set_input_from_time_field(form, data, name, input_name) {
+	if (!input_name)
+		input_name = name;
+	var value = data[name];
+	if (value==null || value==undefined)
+		value = '';
+	$(':input[name='+input_name+']', form).attr('value',timeToString(value));
+}

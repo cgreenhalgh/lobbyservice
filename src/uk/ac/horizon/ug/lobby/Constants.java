@@ -11,12 +11,15 @@ public interface Constants {
 	public static final String CLIENT_TYPE = "clientType";
 	public static final String CREATE_FOR_ANONYMOUS_CLIENT = "createForAnonymousClient";
 	public static final String CREATE_FOR_NO_CLIENT = "createForNoClient";
+	public static final String DAY_OF_MONTH = "dayOfMonth";
+	public static final String DAY_OF_WEEK = "dayOfWeek";
 	public static final String DESCRIPTION = "description";
 	public static final String DEVICE_ID = "deviceId";
 	public static final String DOCS = "docs";
 	public static final String DURATION_MS = "durationMs";
 	public static final String ENCODING = "UTF-8";
 	public static final String END_TIME = "endTime";
+	public static final String FIRST_START_TIME = "firstStartTime";
 	public static final String FULL = "full";
 	public static final String GAME_CLIENT_KEY = "gameClientKey";
 	public static final String GAME_INSTANCE_KEY = "gameInstanceKey";
@@ -28,9 +31,11 @@ public interface Constants {
 	public static final String GAME_TEMPLATE = "gameTemplate";
 	public static final String GAME_TEMPLATE_QUOTA = "gameTemplateQuota";
 	public static final String GENERATOR = "generator";
+	public static final String HOUR = "hour";
 	public static final String ID = "id";
 	public static final String IMAGE_URL = "imageUrl";
 	public static final String INCLUDE_STARTED = "includeStarted";
+	public static final String INITIAL_VALUE = "initialValue";
 	public static final String INSTANCE_TITLE = "instanceTitle";
 	public static final String ITEMS = "items";
 	public static final String JOIN_URL = "joinUrl";
@@ -56,6 +61,8 @@ public interface Constants {
 	public static final String MAX_NUM_SLOTS = "maxNumSlots";
 	public static final String MAX_TIME = "maxTime";
 	public static final String MESSAGE = "message";
+	public static final String MINUTE = "minute";
+	public static final String MONTH = "month";
 	public static final String NICKNAME = "nickname";
 	public static final String MIN_DURATION_MS = "minDurationMs";
 	public static final String MIN_MINOR_VERSION = "minMinorVersion";
@@ -66,12 +73,14 @@ public interface Constants {
 	public static final String NOMINAL_STATUS = "nominalStatus";
 	public static final String NUM_INSTANCES_TOTAL = "numInstancesTotal";
 	public static final String NUM_SLOTS_ALLOCATED = "numSlotsAllocated";
+	public static final String OPTIONS = "options";
 	public static final String OWNER_ID = "ownerId";
 	public static final String PLAY_DATA = "playData";
 	public static final String PLAY_TIME = "playTime";
 	public static final String PLAY_URL = "playUrl";
 	public static final String QUERY_URL = "queryUrl";
 	public static final String RADIUS_METRES = "radiusMetres";
+	public static final String SECOND = "second";
 	public static final String SEQ_NO = "seqNo";
 	public static final String SERVER_CONFIG_JSON = "serverConfigJson";
 	public static final String SERVER_CREATE_TIME_OFFSET_MS = "serverCreateTimeOffsetMs";
@@ -85,6 +94,7 @@ public interface Constants {
 	public static final String TARGET_STATUS = "targetStatus";
 	public static final String TIME = "time";
 	public static final String TIME_CONSTRAINT = "timeConstraint";
+	public static final String TIME_OPTIONS = "timeOptions";
 	public static final String TITLE = "title";
 	public static final String TTL_MINUTES = "ttlMinutes";
 	public static final String TYPE = "type";
@@ -92,5 +102,6 @@ public interface Constants {
 	public static final String USER_ID = "userId";
 	public static final String VERSION = "version";
 	public static final String VISIBILITY = "visibility";
+	public static final String YEAR = "year";
 
 }

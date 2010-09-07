@@ -180,8 +180,8 @@
 				$('select[name=gameServerId] > option[selected]').removeAttr('selected');
 				if (data.gameServerId!=null && data.gameServerId!='')
 					$('select[name=gameServerId] > option[value='+data.gameServerId+']').attr('selected','true');
-            	$(':input[name=startTime]').attr('value',timeToString(data.startTime));
-            	$(':input[name=endTime]').attr('value',timeToString(data.endTime));
+            	set_input_from_time_field(document, data, 'startTime');
+            	set_input_from_time_field(document, data, 'endTime');
             	$(':input[name=latitudeE6]').attr('value',data.latitudeE6);
             	$(':input[name=longitudeE6]').attr('value',data.longitudeE6);
             	$(':input[name=radiusMetres]').attr('value',data.radiusMetres);

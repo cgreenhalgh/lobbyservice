@@ -1,0 +1,60 @@
+/**
+ * Copyright 2010 The University of Nottingham
+ * 
+ * This file is part of lobbyservice.
+ *
+ *  lobbyservice is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU Affero General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  lobbyservice is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Affero General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Affero General Public License
+ *  along with lobbyservice.  If not, see <http://www.gnu.org/licenses/>.
+ * 
+ */
+package uk.ac.horizon.ug.lobby.protocol;
+
+/** Single game time option from GameInstanceFactory match.
+ * 
+ * @author cmg
+ *
+ */
+public class GameTimeOption {
+	/** default/next value */
+	private int initialValue;
+	/** options */
+	private int options[];
+	/** cons */
+	public GameTimeOption() {		
+	}
+	/**
+	 * @return the initialValue
+	 */
+	public int getInitialValue() {
+		return initialValue;
+	}
+	/**
+	 * @param initialValue the initialValue to set
+	 */
+	public void setInitialValue(int initialValue) {
+		this.initialValue = initialValue;
+	}
+	/**
+	 * @return the options
+	 */
+	public int[] getOptions() {
+		return options;
+	}
+	/**
+	 * @param options the options to set
+	 */
+	public void setOptions(int[] options) {
+		this.options = options;
+	}
+	
+}

@@ -99,7 +99,7 @@ public class GetGameIndexServlet extends HttpServlet implements Constants {
 
 	static final String DEFAULT_BASE_URL = "http://localhost:8888/";
 	private static final String QUERY_PATH = "browser/QueryGameTemplate/";
-	private String makeQueryUrl(ServerConfiguration sc, GameTemplate gt) {
+	static String makeQueryUrl(ServerConfiguration sc, GameTemplate gt) {
 		StringBuilder sb = new StringBuilder();
 		if (sc.getBaseUrl()==null) {
 			logger.warning("Server BaseURL not configured");

@@ -59,6 +59,8 @@ public class AccountUtils {
         
         EntityManager em = EMF.get().createEntityManager();
         Account account = null;
+        EntityTransaction et = em.getTransaction();
+        et.begin();
         try {
 	        Query q = em.createQuery("SELECT x FROM "+Account.class.getName()+" x WHERE x.userId = :userId");
 	        q.setParameter("userId", user.getUserId());
@@ -71,6 +73,7 @@ public class AccountUtils {
 	        	// can't create by default
 	        	account.setGameTemplateQuota(0);
 	        	em.persist(account);
+	        	et.commit();
 	        }
 	        else	 {
 	        	account = accounts.get(0);
@@ -80,6 +83,8 @@ public class AccountUtils {
 	        }
         }
         finally {
+        	if (et.isActive())
+        		et.rollback();
         	em.close();
         }
         return account;

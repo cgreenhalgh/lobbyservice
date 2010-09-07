@@ -80,16 +80,16 @@ public class JSONUtils implements Constants {
 	/** write GameTemplateInfo
 	 * @throws JSONException */
 	public static void writeGameTemplate(JSONWriter jw, GameTemplateInfo gameTemplateInfo) throws JSONException {
-		writeGameTemplate(jw, gameTemplateInfo.getGameTemplate(), gameTemplateInfo.getGameClientTemplates(), gameTemplateInfo.getQueryUrl(), gameTemplateInfo.getGameInstance(), gameTemplateInfo.getJoinUrl());
+		writeGameTemplate(jw, gameTemplateInfo.getGameTemplate(), gameTemplateInfo.getGameClientTemplates(), gameTemplateInfo.getQueryUrl(), gameTemplateInfo.getGameInstance(), gameTemplateInfo.getJoinUrl(), gameTemplateInfo.getGameInstanceFactory(), gameTemplateInfo.getFirstStartTime(), gameTemplateInfo.getGameTimeOptions());
 	}
 	/** write GameTemplate summary 
 	 * @throws JSONException */
 	public static void writeGameTemplate(JSONWriter jw, GameTemplate gameTemplate) throws JSONException {
-		writeGameTemplate(jw, gameTemplate, null, null, null, null);
+		writeGameTemplate(jw, gameTemplate, null, null, null, null, null, null, null);
 	}
 	/** write GameTemplate summary 
 	 * @throws JSONException */
-	public static void writeGameTemplate(JSONWriter jw, GameTemplate gameTemplate, List<GameClientTemplate> gameClientTemplates, String queryUrl, GameInstance gameInstance, String joinUrl) throws JSONException {
+	public static void writeGameTemplate(JSONWriter jw, GameTemplate gameTemplate, List<GameClientTemplate> gameClientTemplates, String queryUrl, GameInstance gameInstance, String joinUrl, GameInstanceFactory gameInstanceFactory, Long firstStartTime, GameTimeOptions gameTimeOptions) throws JSONException {
 		jw.object();
 		if (gameTemplate.getId()!=null) {
 			jw.key(ID);
@@ -116,7 +116,7 @@ public class JSONUtils implements Constants {
 			jw.value(gameTemplate.getImageUrl());
 		}
 		// game instance visibility over-rides us if given
-		if (gameTemplate.getVisibility()!=null && (gameInstance==null || gameInstance.getVisibility()==null)) {
+		if (gameTemplate.getVisibility()!=null && (gameInstance==null || gameInstance.getVisibility()==null) && (gameInstanceFactory==null || gameInstanceFactory.getVisibility()==null)) {
 			jw.key(VISIBILITY);
 			jw.value(gameTemplate.getVisibility().toString());
 		}
@@ -159,6 +159,18 @@ public class JSONUtils implements Constants {
 		}
 		if (gameInstance!=null) {
 			writeGameInstancePublicFields(jw, gameInstance, true);
+		}
+		else if (gameInstanceFactory!=null) {
+			writeGameInstanceFactoryPublicFields(jw, gameInstanceFactory, true);
+			if (firstStartTime!=null) {
+				jw.key(FIRST_START_TIME);
+				jw.value(firstStartTime.longValue());
+			}
+
+		}
+		if (gameTimeOptions!=null) {
+			jw.key(TIME_OPTIONS);
+			writeGameTimeOptions(jw, gameTimeOptions);
 		}
 		if (joinUrl!=null) {
 			jw.key(JOIN_URL);
@@ -623,6 +635,10 @@ public class JSONUtils implements Constants {
 		jw.value(gs.getLongitudeE6());
 		jw.key(MAX_NUM_SLOTS);
 		jw.value(gs.getMaxNumSlots());
+		jw.key(MAX_TIME);
+		jw.value(gs.getMaxTime());
+		jw.key(MIN_TIME);
+		jw.value(gs.getMinTime());
 		jw.key(RADIUS_METRES);
 		jw.value(gs.getRadiusMetres());
 		jw.key(START_TIME_CRON);
@@ -685,6 +701,10 @@ public class JSONUtils implements Constants {
 				gs.setMaxNumInstancesTotal(json.getInt(key));
 			else if (key.equals(MAX_NUM_SLOTS))
 				gs.setMaxNumSlots(json.getInt(key));
+			else if (key.equals(MAX_TIME))
+				gs.setMaxTime(json.getLong(key));
+			else if (key.equals(MIN_TIME))
+				gs.setMinTime(json.getLong(key));
 			// not numInstancesTotal
 			else if (key.equals(RADIUS_METRES))
 				gs.setRadiusMetres(json.getDouble(key));
@@ -908,6 +928,8 @@ public class JSONUtils implements Constants {
 				o.setMinorVersion(json.getInt(key));
 			else if (key.equals(SEQ_NO))
 				o.setSeqNo(json.getInt(key));
+			else if (key.equals(START_TIME))
+				o.setStartTime(json.getLong(key));
 			else if (key.equals(TIME))
 				o.setTime(json.getLong(key));
 			else if (key.equals(TYPE))
@@ -984,5 +1006,57 @@ public class JSONUtils implements Constants {
 			throw new IOException(je);
 		}
 		w.close();
+	}
+	/** write GameJoinResponse object for user 
+	 * @throws JSONException */
+	public static void writeGameTimeOptions(JSONWriter jw, GameTimeOptions o) throws JSONException {
+		jw.object();
+		if (o.getDayOfMonth()!=null) {
+			jw.key(DAY_OF_MONTH);
+			writeGameTimeOption(jw, o.getDayOfMonth());
+		}
+		if (o.getDayOfWeek()!=null) {
+			jw.key(DAY_OF_WEEK);
+			writeGameTimeOption(jw, o.getDayOfWeek());
+		}
+		if (o.getHour()!=null) {
+			jw.key(HOUR);
+			writeGameTimeOption(jw, o.getHour());
+		}
+		jw.endObject();
+		if (o.getMinute()!=null) {
+			jw.key(MINUTE);
+			writeGameTimeOption(jw, o.getMinute());
+		}
+		if (o.getMonth()!=null) {
+			jw.key(MONTH);
+			writeGameTimeOption(jw, o.getMonth());
+		}
+		if (o.getSecond()!=null) {
+			jw.key(SECOND);
+			writeGameTimeOption(jw, o.getSecond());
+		}
+		if (o.getYear()!=null) {
+			jw.key(YEAR);
+			writeGameTimeOption(jw, o.getYear());
+		}
+	}
+	/**
+	 * @param jw
+	 * @param year
+	 * @throws JSONException 
+	 */
+	private static void writeGameTimeOption(JSONWriter jw, GameTimeOption o) throws JSONException {
+		jw.object();
+		jw.key(INITIAL_VALUE);
+		jw.value(o.getInitialValue());
+		if (o.getOptions()!=null) {
+			jw.key(OPTIONS);
+			jw.array();
+			for (int i=0; i<o.getOptions().length; i++) 
+				jw.value(o.getOptions()[i]);
+			jw.endArray();
+		}
+		jw.endObject();
 	}
 }

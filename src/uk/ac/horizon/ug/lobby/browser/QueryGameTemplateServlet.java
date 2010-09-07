@@ -37,6 +37,7 @@ import java.util.logging.Logger;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.EntityTransaction;
 import javax.persistence.Query;
 import javax.servlet.http.*;
 
@@ -54,7 +55,11 @@ import uk.ac.horizon.ug.lobby.model.GameClientTemplate;
 import uk.ac.horizon.ug.lobby.model.GameClientType;
 import uk.ac.horizon.ug.lobby.model.GameIndex;
 import uk.ac.horizon.ug.lobby.model.GameInstance;
+import uk.ac.horizon.ug.lobby.model.GameInstanceFactory;
+import uk.ac.horizon.ug.lobby.model.GameInstanceFactoryLocationType;
+import uk.ac.horizon.ug.lobby.model.GameInstanceFactoryStatus;
 import uk.ac.horizon.ug.lobby.model.GameInstanceNominalStatus;
+import uk.ac.horizon.ug.lobby.model.GameInstanceStatus;
 import uk.ac.horizon.ug.lobby.model.GameServer;
 import uk.ac.horizon.ug.lobby.model.GameTemplate;
 import uk.ac.horizon.ug.lobby.model.GameTemplateVisibility;
@@ -64,6 +69,8 @@ import uk.ac.horizon.ug.lobby.protocol.GameTemplateInfo;
 import uk.ac.horizon.ug.lobby.protocol.JSONUtils;
 import uk.ac.horizon.ug.lobby.protocol.LocationConstraint;
 import uk.ac.horizon.ug.lobby.protocol.TimeConstraint;
+import uk.ac.horizon.ug.lobby.server.CronExpressionException;
+import uk.ac.horizon.ug.lobby.server.FactoryUtils;
 import uk.ac.horizon.ug.lobby.user.UserGameTemplateServlet;
 import uk.me.jstott.jcoord.LatLng;
 
@@ -98,6 +105,8 @@ public class QueryGameTemplateServlet extends HttpServlet implements Constants {
 		GameIndex gindex = sc.getGameIndex();
 
 		EntityManager em = EMF.get().createEntityManager();
+		EntityTransaction et = em.getTransaction();
+		et.begin();
 		try {
 			BufferedReader br = req.getReader();
 			String line = br.readLine();
@@ -239,41 +248,7 @@ public class QueryGameTemplateServlet extends HttpServlet implements Constants {
 				if (locationSpecific && gq.getLocationConstraint()!=null) {
 					LocationConstraint lc = gq.getLocationConstraint();
 
-					if (lc.getType()!=null) {
-						locationOk = false;
-						switch(lc.getType()) {
-						case CIRCLE: {
-							if (lc.getLatitudeE6()==null || lc.getLongitudeE6()==null)
-								throw new RequestException(HttpServletResponse.SC_BAD_REQUEST,"locationContraint/CIRCLE requires latitudeE6 and longitudeE6");
-							if (gi.getRadiusMetres()==0) {
-								locationOk = true;
-								logger.info("GameInstance "+gi.getTitle()+" unlimited range - ok");
-								break; // unlimited range
-							}
-							LatLng l1 = new LatLng(lc.getLatitudeE6()/ONE_MILLION, lc.getLongitudeE6()/ONE_MILLION);
-							LatLng l2 = new LatLng(gi.getLatitudeE6()/ONE_MILLION, gi.getLongitudeE6()/ONE_MILLION);
-							// km to m
-							double distanceMetres = l1.distance(l2)*ONE_THOUSAND;
-							// if the game centre is in my range or i am in the game's range...
-							// (i.e. if i could travel to the game, or i am already somewhere in range)
-							// (just allowing any overlap is probably too optimistic, e.g. the
-							//  nominal radius might include sea in order to be inclusive; requiring
-							//  containment probably too restrictive, esp. for big playing areas which
-							//  are likely to imply you only need to be in part of it)
-							double queryRadius = (lc.getRadiusMetres()!=null) ? lc.getRadiusMetres() : 0;
-							if (distanceMetres <= gi.getRadiusMetres() || distanceMetres <= queryRadius) {
-								locationOk = true;
-								logger.info("GameInstance "+gi.getTitle()+" in range ("+distanceMetres+" vs "+gi.getRadiusMetres()+" and "+lc.getRadiusMetres()+")");
-								break;
-							} else {
-								locationOk = false;
-								logger.info("GameInstance "+gi.getTitle()+" out of range ("+distanceMetres+" vs "+gi.getRadiusMetres()+" and "+lc.getRadiusMetres()+")");
-							}
-							// failed
-							break;
-						}							
-						}
-					}
+					locationOk = checkLocationConstraint(lc, gi.getLatitudeE6(), gi.getLongitudeE6(), gi.getRadiusMetres());
 				}
 				if (locationOk || locationIndependent) {
 					// useful
@@ -288,6 +263,227 @@ public class QueryGameTemplateServlet extends HttpServlet implements Constants {
 					gtis.add(gti);
 				}
 			}
+
+			//==================================================================================
+			// now check GameInstanceTemplates...
+			// Check GameInstance for startTime, endTime, location (if location-specific) and nominalStatus (not CANCELLED)
+			qps = new HashMap<String,Object>();
+			qb = new StringBuilder();
+			//qps = new HashMap<String,Object>();
+			//qb = new StringBuilder();
+			qb.append("SELECT x FROM GameInstanceFactory x WHERE x."+GAME_TEMPLATE_ID+" = :"+GAME_TEMPLATE_ID+" AND x."+STATUS+" = '"+GameInstanceFactoryStatus.ACTIVE.toString()+"' AND x."+VISIBILITY+" = '"+GameTemplateVisibility.PUBLIC.toString()+"'");
+			qps.put(GAME_TEMPLATE_ID, gt.getId());
+			// query constraints
+			// NB GAE only allows range query on one variable - we'll use startTime for now
+			if (gq.getTimeConstraint()!=null) {
+				TimeConstraint tc = gq.getTimeConstraint();
+				boolean usedMaxTime = false, usedMinTime = false;
+				if (tc.getMinTime()!=null) {
+					qps.put(MIN_TIME, tc.getMinTime());
+					qb.append(" AND x."+MAX_TIME+" >= :"+MIN_TIME);
+					usedMaxTime = true;
+				} 
+				else if (tc.getMaxTime()!=null) {
+					qps.put(MAX_TIME, tc.getMaxTime());
+					qb.append(" AND x."+MIN_TIME+" <= :"+MAX_TIME);					
+					usedMinTime = true;
+				}
+				if (usedMaxTime)
+					qb.append(" ORDER BY x."+MAX_TIME+" ASC");
+				else
+					qb.append(" ORDER BY x."+MIN_TIME+" ASC");					
+			}
+			else
+				qb.append(" ORDER BY x."+MIN_TIME+" ASC");					
+			
+			logger.info("Query: "+qb.toString());
+			//Query q
+			q = em.createQuery(qb.toString());
+			for (String qp : qps.keySet()) {
+				q.setParameter(qp, qps.get(qp));
+			}
+			List<GameInstanceFactory> posgifs = (List<GameInstanceFactory>)q.getResultList();
+			logger.info("Found "+posgifs.size()+" possible GameInstanceFactories on initial query");
+			
+			// matching combinations
+			//done: List<GameTemplateInfo> gtis = new LinkedList<GameTemplateInfo>();
+			
+			for (GameInstanceFactory gif : posgifs) {
+				// TODO check numInstances vs maxNumInstances ?!
+				if (gif.getNumInstancesTotal() >= gif.getMaxNumInstancesTotal()) {
+					logger.warning("GameInstanceFactory "+gif.getKey()+" has exceed maxNumInstancesTotal: "+gif.getNumInstancesTotal()+" / "+gif.getMaxNumInstancesTotal());
+					continue;
+				}
+				// location
+				boolean locationOk = true;
+				// only 'SPECIFIED_LOCATION' limits at this stage
+				if (locationSpecific && gq.getLocationConstraint()!=null && gif.getLocationType()==GameInstanceFactoryLocationType.SPECIFIED_LOCATION) {
+					LocationConstraint lc = gq.getLocationConstraint();
+
+					locationOk = checkLocationConstraint(lc, gif.getLatitudeE6(), gif.getLongitudeE6(), gif.getRadiusMetres());					
+				} 
+				else if (gif.getLocationType()==GameInstanceFactoryLocationType.PLAYER_LOCATION) {
+					if (gq.getLatitudeE6()==null || gq.getLongitudeE6()==null)
+					{
+						logger.warning("GameInstanceFactory "+gif.getTitle()+" is PLAYER_LOCATION - player location not provided in query");
+						// can't use even if we have a locationIndependent client!
+						continue;
+					}
+				}
+				if (!locationOk && !locationIndependent)
+					continue; // next gif
+				
+				// TODO PLAYER_LOCATION might limit success due to maxNumInstancesConcurrent!
+
+				// calculate next game time from CRON pattern - check there is one and it is in range!
+				if (gif.getStartTimeCron()==null) {
+					logger.warning("GameTemplateFactory has no startTimeCron: "+gif);
+					continue;
+				}
+				
+				TimeConstraint tc = gq.getTimeConstraint();
+				// earliest possible start time that might be relevant...
+				long minTime = System.currentTimeMillis();
+				if (tc!=null && tc.getMinTime()!=null && tc.getMinTime()>minTime)
+					minTime = tc.getMinTime();
+				if (tc!=null && tc.isIncludeStarted()) 
+					// TODO long-running / variable length
+					minTime = minTime-gif.getDurationMs();
+				if (gif.getMinTime()>minTime)
+					minTime = gif.getMinTime();
+				long maxTime = Long.MAX_VALUE;
+				if (tc!=null && tc.getMaxTime()!=null)
+					maxTime = tc.getMaxTime();
+				if (gif.getMaxTime()<maxTime)
+					maxTime = gif.getMaxTime();
+				
+				long firstStartTime = 0;
+				try {
+					// find fist CRON firing no earlier than that
+					firstStartTime = FactoryUtils.getNextCronTime(gif.getStartTimeCron(), minTime, maxTime);
+				} catch (CronExpressionException cee) {
+					logger.warning("GameTemplateFactory error in startTimeCron: "+cee+" for "+gif);
+					continue;
+				}
+				if (firstStartTime==0) {
+					logger.warning("GameTemplateFactory has no startTime in range "+minTime+"-"+maxTime+": "+gif);
+					continue;
+				}
+				// GameInstance code...
+				if (tc!=null && tc.getMinDurationMs()!=null && tc.getMinDurationMs() > gif.getDurationMs()) {
+					logger.info("GameInstanceFactory "+gif.getTitle()+" too short: "+gif.getDurationMs()+" vs "+tc.getMinDurationMs());
+					continue; // not long enough
+				}
+				if (tc!=null && tc.getMaxDurationMs()!=null && tc.getMaxDurationMs() < gif.getDurationMs()) {
+					logger.info("GameInstanceFactory "+gif.getTitle()+" too long: "+gif.getDurationMs()+" vs "+tc.getMaxDurationMs());
+					continue; // too long
+				}
+
+				et.commit();
+				et.begin();
+				// does this instance already exist?
+				q = em.createQuery("SELECT x FROM GameInstance x WHERE x."+GAME_INSTANCE_FACTORY_KEY+" = :"+GAME_INSTANCE_FACTORY_KEY+" AND x."+GAME_TEMPLATE_ID+" = :"+GAME_TEMPLATE_ID+" AND x."+START_TIME+" = :"+START_TIME);
+				q.setParameter(GAME_INSTANCE_FACTORY_KEY, gif.getKey());
+				q.setParameter(GAME_TEMPLATE_ID, gt.getId());
+				q.setParameter(START_TIME, firstStartTime);
+				List<GameInstance> fgis = q.getResultList();
+				if (fgis.size()>0) {
+					GameInstance fgi = fgis.get(0);
+					if (fgi.getVisibility()!=GameTemplateVisibility.PUBLIC) {
+						logger.warning("GameInstance "+gif.getKey()+" / "+firstStartTime+" exists but is "+fgi.getVisibility());
+					}
+					else if (fgi.getNominalStatus()==GameInstanceNominalStatus.CANCELLED || fgi.getNominalStatus()==GameInstanceNominalStatus.ENDED) {
+						logger.warning("GameInstance "+gif.getKey()+" / "+firstStartTime+" exists but is "+fgi.getNominalStatus());						
+					}
+					else {
+						boolean found = false;
+						for (GameTemplateInfo gti : gtis) {
+							if (gti.getGameInstance().getKey().equals(fgi.getKey())) {
+								found = true;
+								break;
+							}
+						}
+						if (!found) {
+							logger.warning(""+gif.getKey()+" / "+firstStartTime+" exists but was not matched: "+fgi);
+						}
+						else {
+							logger.info(""+gif.getKey()+" / "+firstStartTime+" exists and was matched");
+						}
+					}
+				}
+				else {
+					// create GameInstance on demand?!
+					GameInstance ngi = new GameInstance();
+					ngi.setAllowAnonymousClients(gif.isAllowAnonymousClients());
+					//ngi.setBaseUrl();
+					ngi.setEndTime(firstStartTime+gif.getDurationMs());
+					ngi.setGameInstanceFactoryKey(gif.getKey());
+					ngi.setGameServerId(gif.getGameServerId());
+					ngi.setGameTemplateId(gif.getGameTemplateId());
+					switch(gif.getLocationType()) {
+					case GLOBAL:
+						ngi.setRadiusMetres(0);
+						break;
+					case SPECIFIED_LOCATION:
+						ngi.setLatitudeE6(gif.getLatitudeE6());
+						ngi.setLongitudeE6(gif.getLongitudeE6());
+						break;
+					case PLAYER_LOCATION:
+						ngi.setRadiusMetres(gif.getRadiusMetres());
+						ngi.setLatitudeE6(gq.getLatitudeE6());
+						ngi.setLongitudeE6(gq.getLongitudeE6());
+						break;
+					}
+					ngi.setLocationName(gif.getLocationName());
+					ngi.setMaxNumSlots(gif.getMaxNumSlots());
+					ngi.setNominalStatus(GameInstanceNominalStatus.POSSIBLE);
+					ngi.setNumSlotsAllocated(0);
+					ngi.setStartTime(firstStartTime);
+					//ngi.setStatus()
+					// TODO symbol subst? in title
+					ngi.setTitle(gif.getInstanceTitle());
+					ngi.setVisibility(gif.getVisibility());
+					
+					// cache
+					ngi.setFull(ngi.getNumSlotsAllocated()>=ngi.getMaxNumSlots());
+
+					em.persist(ngi);
+					logger.info("Added GameInstance "+ngi);
+					
+					et.commit();
+					et.begin();
+
+					// add to response
+					GameTemplateInfo gti = new GameTemplateInfo();
+					gti.setGameTemplate(gt);
+					gti.setGameInstance(ngi);
+					gti.setJoinUrl(makeJoinUrl(sc, ngi));
+					if (locationOk)
+						gti.setGameClientTemplates(gcts);
+					else 
+						gti.setGameClientTemplates(noloc_gcts);
+					gtis.add(gti);
+				}
+				
+				// GameInstanceFactory in useful itself
+				GameTemplateInfo gti = new GameTemplateInfo();
+				gti.setGameTemplate(gt);
+				gti.setGameInstanceFactory(gif);
+				try {
+					gti.setGameTimeOptions(FactoryUtils.getGameTimeOptions(gif.getStartTimeCron(), firstStartTime));
+				} catch (CronExpressionException e) {
+					logger.warning("Generating GameTimeOptions: "+e);
+				}
+				gti.setFirstStartTime(firstStartTime);
+				// note re-query, not join!
+				gti.setQueryUrl(GetGameIndexServlet.makeQueryUrl(sc, gt));
+				if (locationOk)
+					gti.setGameClientTemplates(gcts);
+				else 
+					gti.setGameClientTemplates(noloc_gcts);
+				gtis.add(gti);
+				
+			}
 			
 			// response
 			JSONUtils.sendGameIndex(resp, gindex);
@@ -300,10 +496,55 @@ public class QueryGameTemplateServlet extends HttpServlet implements Constants {
 			resp.sendError(HttpServletResponse.SC_BAD_REQUEST, e.toString());
 			return;
 		}
-		finally {		
+		finally {	
+			if (et.isActive())
+				et.rollback();
 			em.close();
 		}
 	}
+	/**
+	 * @param lc
+	 * @param latitudeE6
+	 * @param longitudeE6
+	 * @param radiusMetres
+	 * @return
+	 */
+	private boolean checkLocationConstraint(LocationConstraint lc,
+			int latitudeE6, int longitudeE6, double radiusMetres) throws RequestException {
+		if (lc.getType()!=null) {
+			switch(lc.getType()) {
+			case CIRCLE: {
+				if (lc.getLatitudeE6()==null || lc.getLongitudeE6()==null)
+					throw new RequestException(HttpServletResponse.SC_BAD_REQUEST,"locationContraint/CIRCLE requires latitudeE6 and longitudeE6");
+				if (radiusMetres==0) {
+					logger.info("GameInstance/Factory unlimited range - ok");
+					return true; // unlimited range
+				}
+				LatLng l1 = new LatLng(lc.getLatitudeE6()/ONE_MILLION, lc.getLongitudeE6()/ONE_MILLION);
+				LatLng l2 = new LatLng(latitudeE6/ONE_MILLION, longitudeE6/ONE_MILLION);
+				// km to m
+				double distanceMetres = l1.distance(l2)*ONE_THOUSAND;
+				// if the game centre is in my range or i am in the game's range...
+				// (i.e. if i could travel to the game, or i am already somewhere in range)
+				// (just allowing any overlap is probably too optimistic, e.g. the
+				//  nominal radius might include sea in order to be inclusive; requiring
+				//  containment probably too restrictive, esp. for big playing areas which
+				//  are likely to imply you only need to be in part of it)
+				double queryRadius = (lc.getRadiusMetres()!=null) ? lc.getRadiusMetres() : 0;
+				if (distanceMetres <= radiusMetres || distanceMetres <= queryRadius) {
+					logger.info("GameInstance/Factory in range ("+distanceMetres+" vs "+radiusMetres+" and "+lc.getRadiusMetres()+")");
+					return true;
+				} else {
+					logger.info("GameInstance/Factory out of range ("+distanceMetres+" vs "+radiusMetres+" and "+lc.getRadiusMetres()+")");
+				}
+				// failed
+				return false;
+			}							
+			}
+		}
+		return true;
+	}
+
 	private List<GameClientTemplate> getGameClientTemplates(EntityManager em,
 			GameQuery gq, String gameTemplateId) {
 		return getGameClientTemplates(em, gq.getClientTitle(), gq.getClientType(), gameTemplateId, gq.getMajorVersion(), gq.getMinorVersion(), gq.getUpdateVersion());
