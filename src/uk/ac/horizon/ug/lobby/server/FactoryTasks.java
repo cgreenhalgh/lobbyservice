@@ -30,6 +30,7 @@ import javax.persistence.Query;
 
 import uk.ac.horizon.ug.lobby.ConfigurationUtils;
 import uk.ac.horizon.ug.lobby.Constants;
+import uk.ac.horizon.ug.lobby.model.AuditRecordLevel;
 import uk.ac.horizon.ug.lobby.model.EMF;
 import uk.ac.horizon.ug.lobby.model.GameInstance;
 import uk.ac.horizon.ug.lobby.model.GameInstanceFactory;
@@ -37,6 +38,7 @@ import uk.ac.horizon.ug.lobby.model.GameInstanceFactoryType;
 import uk.ac.horizon.ug.lobby.model.GameInstanceNominalStatus;
 import uk.ac.horizon.ug.lobby.model.GameInstanceStatus;
 import uk.ac.horizon.ug.lobby.model.GameTemplate;
+import uk.ac.horizon.ug.lobby.model.GameTemplateAuditRecordType;
 import uk.ac.horizon.ug.lobby.model.GameTemplateVisibility;
 import uk.ac.horizon.ug.lobby.model.ServerConfiguration;
 
@@ -272,7 +274,8 @@ public class FactoryTasks implements Constants {
 				em.merge(ngif);
 				et.commit();
 				gif = ngif;
-				logger.info("Added GameInstance "+ngi+" (tokens="+ngif.getNewInstanceTokens()+")");		
+				AuditUtils.logGameTemplateAuditRecord(gif.getGameTemplateId(), gif.getKey(), ngi.getKey(), /*accountKey*/null, /*clientIp*/null, System.currentTimeMillis(), GameTemplateAuditRecordType.SYSTEM_CREATE_GAME_INSTANCE, AuditRecordLevel.NORMAL, /*detailsJson*/null, "Created GameInstance");
+				//logger.info("Added GameInstance "+ngi+" (tokens="+ngif.getNewInstanceTokens()+")");		
 				if (ngif.getNewInstanceTokens()>0)
 					return ngif.getNewInstanceTokens();
 				logger.warning("GameInstanceFactory in token-debt ("+ngif.getNewInstanceTokens()+"): "+ngif);

@@ -1,11 +1,13 @@
 package uk.ac.horizon.ug.lobby;
 
 public interface Constants {
+	public static final String ACCOUNT_KEY = "accountKey";	
 	public static final String ALLOW_ANONYMOUS_CLIENTS = "allowAnonymousClients";	
 	public static final String APPLICATION_LAUNCH_ID = "applicationLaunchId";
 	public static final String APPLICATION_MARKET_ID = "applicationMarketId";
 	public static final String BASE_URL = "baseUrl";	
 	public static final String CLIENT_ID = "clientId";
+	public static final String CLIENT_IP = "clientIp";
 	public static final String CLIENT_TEMPLATES = "clientTemplates";
 	public static final String CLIENT_TITLE = "clientTitle";
 	public static final String CLIENT_TYPE = "clientType";
@@ -15,6 +17,7 @@ public interface Constants {
 	public static final String DAY_OF_MONTH = "dayOfMonth";
 	public static final String DAY_OF_WEEK = "dayOfWeek";
 	public static final String DESCRIPTION = "description";
+	public static final String DETAILS_JSON = "detailsJson";
 	public static final String DEVICE_ID = "deviceId";
 	public static final String DOCS = "docs";
 	public static final String DURATION_MS = "durationMs";
@@ -51,6 +54,7 @@ public interface Constants {
 	public static final String LAST_KNOWN_STATUS = "lastKnownStatus";
 	public static final String LAST_KNOWN_STATUS_TIME = "lastKnownStatusTime";
 	public static final String LATITUDE_E6 = "latitudeE6";
+	public static final String LEVEL = "level";
 	public static final String LIMIT_END_TIME = "limitEndTime";
 	public static final String LINK = "link";
 	public static final String LOBBY_SHARED_SECRET = "lobbySharedSecret";

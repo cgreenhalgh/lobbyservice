@@ -55,6 +55,7 @@ import uk.ac.horizon.ug.lobby.model.GameServer;
 import uk.ac.horizon.ug.lobby.model.GameServerStatus;
 import uk.ac.horizon.ug.lobby.model.GameServerType;
 import uk.ac.horizon.ug.lobby.model.GameTemplate;
+import uk.ac.horizon.ug.lobby.model.GameTemplateAuditRecord;
 import uk.ac.horizon.ug.lobby.model.GameTemplateVisibility;
 import uk.ac.horizon.ug.lobby.model.ServerConfiguration;
 import uk.ac.horizon.ug.lobby.user.UserGameTemplateServlet;
@@ -1095,6 +1096,62 @@ public class JSONUtils implements Constants {
 			for (int i=0; i<o.getOptions().length; i++) 
 				jw.value(o.getOptions()[i]);
 			jw.endArray();
+		}
+		jw.endObject();
+	}
+	/** write GameTemplateAuditRecord object for user 
+	 * @throws JSONException */
+	public static void writeGameTemplateAuditRecords(JSONWriter jw, List<GameTemplateAuditRecord> os) throws JSONException {
+		jw.array();
+		for (GameTemplateAuditRecord o : os)
+			writeGameTemplateAuditRecord(jw, o);
+		jw.endArray();
+	}
+	/** write GameTemplateAuditRecord object for user 
+	 * @throws JSONException */
+	public static void writeGameTemplateAuditRecord(JSONWriter jw, GameTemplateAuditRecord o) throws JSONException {
+		jw.object();
+		if (o.getAccountKey()!=null) {
+			jw.key(ACCOUNT_KEY);
+			jw.value(o.getAccountKey().getName());
+		}
+		if (o.getClientIp()!=null) {
+			jw.key(CLIENT_IP);
+			jw.value(o.getClientIp());
+		}
+		if (o.getDetailsJson()!=null) {
+			jw.key(DETAILS_JSON);
+			jw.value(o.getDetailsJson());
+		}
+		if (o.getGameInstanceFactoryKey()!=null) {
+			jw.key(GAME_INSTANCE_FACTORY_KEY);
+			jw.value(KeyFactory.keyToString(o.getGameInstanceFactoryKey()));
+		}
+		if (o.getGameInstanceKey()!=null) {
+			jw.key(GAME_INSTANCE_KEY);
+			jw.value(o.getGameInstanceKey());
+		}
+		if (o.getGameTemplateId()!=null) {
+			jw.key(GAME_TEMPLATE_ID);
+			jw.value(o.getGameTemplateId());
+		}
+		if (o.getKey()!=null) {
+			jw.key(KEY);
+			jw.value(KeyFactory.keyToString(o.getKey()));
+		}
+		if (o.getLevel()!=null) {
+			jw.key(LEVEL);
+			jw.value(o.getLevel().toString());
+		}
+		if (o.getMessage()!=null) {
+			jw.key(MESSAGE);
+			jw.value(o.getMessage());
+		}
+		jw.key(TIME);
+		jw.value(o.getTime());
+		if (o.getType()!=null) {
+			jw.key(TYPE);
+			jw.value(o.getType().toString());
 		}
 		jw.endObject();
 	}
