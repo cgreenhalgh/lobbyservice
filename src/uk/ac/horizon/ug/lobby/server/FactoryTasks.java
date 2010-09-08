@@ -150,6 +150,7 @@ public class FactoryTasks implements Constants {
 		
 		if (gif.getStartTimeOptionsJson()==null) {
 			// no cron...
+			AuditUtils.logGameTemplateAuditRecordIfNovel(gif.getGameTemplateId(), gif.getKey(), /*gameInstanceKey*/null, /*accountKey*/null, /*clientIp*/null, System.currentTimeMillis(), GameTemplateAuditRecordType.SYSTEM_CREATE_GAME_INSTANCE_FAILED, AuditRecordLevel.WARNING, /*detailsJson*/null, "Unable to check GameInstanceFactory - no startTimeOptionsJson");
 			return;
 		}
 
@@ -184,17 +185,19 @@ public class FactoryTasks implements Constants {
 				// if not create it
 				tokensCache = checkGameInstanceFactoryInstance(gif, nextStartTime, tokensCache);
 				if (tokensCache<0) {
-					// TODO audit
+					// audit
 					logger.warning("GameInstanceFactory could not create instance at "+nextStartTime+" due to token limit: "+gif);
+					AuditUtils.logGameTemplateAuditRecordIfNovel(gif.getGameTemplateId(), gif.getKey(), /*gameInstanceKey*/null, /*accountKey*/null, /*clientIp*/null, System.currentTimeMillis(), GameTemplateAuditRecordType.SYSTEM_CREATE_GAME_INSTANCE_FAILED, AuditRecordLevel.WARNING, /*detailsJson*/null, "Unable to create GameInstance - no tokens");
 					break;
 				}
 				checkTime = nextStartTime;
 			}
 		} catch (CronExpressionException e) {
-			// TODO Auto-generated catch block
 			logger.warning("Unable to checkGameInstanceFactory "+gif.getKey()+": "+e);
+			AuditUtils.logGameTemplateAuditRecordIfNovel(gif.getGameTemplateId(), gif.getKey(), /*gameInstanceKey*/null, /*accountKey*/null, /*clientIp*/null, System.currentTimeMillis(), GameTemplateAuditRecordType.SYSTEM_CREATE_GAME_INSTANCE_FAILED, AuditRecordLevel.WARNING, /*detailsJson*/null, "Unable to check GameInstanceFactory ("+e.getMessage()+")");
 		} catch (Exception e) {
 			logger.log(Level.WARNING, "error checking GameInstanceFactory "+gif, e);
+			AuditUtils.logGameTemplateAuditRecordIfNovel(gif.getGameTemplateId(), gif.getKey(), /*gameInstanceKey*/null, /*accountKey*/null, /*clientIp*/null, System.currentTimeMillis(), GameTemplateAuditRecordType.SYSTEM_CREATE_GAME_INSTANCE_FAILED, AuditRecordLevel.WARNING, /*detailsJson*/null, "Unable to check GameInstanceFactory ("+e.getMessage()+")");
 		}
 	}
 	/**

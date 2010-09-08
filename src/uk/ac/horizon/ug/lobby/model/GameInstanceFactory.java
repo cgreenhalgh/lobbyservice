@@ -19,6 +19,10 @@
  */
 package uk.ac.horizon.ug.lobby.model;
 
+import javax.persistence.AttributeOverride;
+import javax.persistence.AttributeOverrides;
+import javax.persistence.Column;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -102,6 +106,14 @@ public class GameInstanceFactory {
 	private long lastInstanceStartTime;
 	/** time ahead that instances should be created */
 	private long instanceCreateTimeWindowMs;
+	/** management/audit counter of instances created from this template */
+	@Embedded
+	@AttributeOverrides({
+		@AttributeOverride(name="value", column= @Column(name="newInstanceCounterValue")),
+		@AttributeOverride(name="startTime", column= @Column(name="newInstanceCounterStartTime")),
+		@AttributeOverride(name="updateTime", column= @Column(name="newInstanceCounterUpdateTime"))
+	})
+	private AuditCounter newInstanceCounter;
     /** cons */
     public GameInstanceFactory() {
     }
@@ -500,6 +512,18 @@ public class GameInstanceFactory {
 	 */
 	public void setType(GameInstanceFactoryType type) {
 		this.type = type;
+	}
+	/**
+	 * @return the newInstanceCounter
+	 */
+	public AuditCounter getNewInstanceCounter() {
+		return newInstanceCounter;
+	}
+	/**
+	 * @param newInstanceCounter the newInstanceCounter to set
+	 */
+	public void setNewInstanceCounter(AuditCounter newInstanceCounter) {
+		this.newInstanceCounter = newInstanceCounter;
 	}
 	
 }
