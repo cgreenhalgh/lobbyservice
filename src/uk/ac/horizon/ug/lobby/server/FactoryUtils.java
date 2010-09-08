@@ -19,6 +19,7 @@
  */
 package uk.ac.horizon.ug.lobby.server;
 
+import java.io.StringWriter;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
@@ -27,6 +28,13 @@ import java.util.SortedSet;
 import java.util.TimeZone;
 import java.util.TreeSet;
 import java.util.logging.Logger;
+
+import org.json.JSONArray;
+import org.json.JSONString;
+import org.json.JSONStringer;
+
+import com.google.appengine.repackaged.org.json.JSONException;
+import com.google.appengine.repackaged.org.json.JSONWriter;
 
 import uk.ac.horizon.ug.lobby.protocol.GameTimeOption;
 import uk.ac.horizon.ug.lobby.protocol.GameTimeOptions;
@@ -181,10 +189,7 @@ public class FactoryUtils {
 	 * 
 	 * return 0 if no match.
 	 */
-	public static long getNextCronTime(String cronExpression, long minTime, long maxTime) throws CronExpressionException {
-		// parse expression
-		String parts[] = getParts(cronExpression);
-		TreeSet values[] = getValues(parts);
+	public static long getNextCronTime(String cronExpression, TreeSet values[], long minTime, long maxTime) throws CronExpressionException {
 		// iteratively increase minTime until all constraints are satisified or maxTime reached
 		Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Z"));
 		// next second?!
@@ -204,7 +209,7 @@ public class FactoryUtils {
 			//logger.info("Check time "+minTime+": "+cal.get(Calendar.SECOND)+" "+cal.get(Calendar.MINUTE)+" "+cal.get(Calendar.HOUR_OF_DAY)+" "+cal.get(Calendar.DAY_OF_MONTH)+" "+cal.get(Calendar.MONTH)+" "+cal.get(Calendar.DAY_OF_WEEK)+" "+cal.get(Calendar.YEAR));
 			//cal.setTimeInMillis(minTime);
 			nextpart:
-			for (int pi=parts.length-1; pi>=0; pi--) {
+			for (int pi=values.length-1; pi>=0; pi--) {
 				Parts part = Parts.values()[pi];
 				int val = part.getValue(cal);
 				if (!values[pi].contains(val))
@@ -327,5 +332,42 @@ public class FactoryUtils {
 			vs[i] = vi.next();
 		gto.setOptions(vs);
 		return gto;
+	}
+	@SuppressWarnings("unchecked")
+	public static String getTimeOptionsJson(String cronExpression) throws CronExpressionException {
+		// parse expression
+		String parts[] = getParts(cronExpression);
+		TreeSet values[] = getValues(parts);
+		StringWriter sw = new StringWriter();
+		JSONWriter jw = new JSONWriter(sw);
+	
+		try {
+			jw.array();
+			for (int i=0; i<values.length; i++) {
+				jw.array();
+				for (Object o : values[i])
+					jw.value(o);
+				jw.endArray();
+			}
+			jw.endArray();
+		} catch (JSONException e) {
+			logger.warning("getTimeOptionsJson("+cronExpression+"): "+e);				
+			throw new CronExpressionException("getTimeOptionsJson("+cronExpression+"): "+e);
+		}
+		return sw.toString();
+	}
+	/** get TreeSet[] of values for use with getNextCronTime 
+	 * @throws org.json.JSONException */
+	public static TreeSet[] parseTimeOptionsJson(String timeOptionsJson) throws org.json.JSONException {
+		JSONArray array = new JSONArray(timeOptionsJson);
+		TreeSet values[] = new TreeSet[array.length()];
+		for (int i=0; i<array.length(); i++) {
+			TreeSet<Integer> ts = new TreeSet<Integer>();
+			values[i] = ts;
+			JSONArray va = array.getJSONArray(i);
+			for (int j=0; j<va.length(); j++)
+				ts.add(va.getInt(j));
+		}
+		return values;
 	}
 }

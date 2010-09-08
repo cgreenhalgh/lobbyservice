@@ -40,6 +40,14 @@ public class ServerConfiguration {
     private Key key; 
 	/** public base URL for the server */
 	private String baseUrl;
+	/** global limit on GameInstanceFactory newInstanceTokensMax, i.e. how many GameInstances it can make at once */
+	private Integer maxNewInstanceTokensMax;
+	/** default maxNewInstanceTokensMax - 10 */
+	public static int DEFAULT_MAX_NEW_INSTANCE_TOKENS_MAX = 10;
+	/** global limit on GameInstanceFactory newInstanceTokensPerHour, i.e. how many GameInstances it can make per hour in the long run */
+	private Integer maxNewInstanceTokensPerHour;
+	/** default maxNewInstanceTokensPerHour - 10 */
+	public static int DEFAULT_MAX_NEW_INSTANCE_TOKENS_PER_HOUR = 10;
 	/** for networking only - GameIndex configuration */
 	private transient GameIndex gameIndex;
 	/** fixed name */
@@ -83,5 +91,33 @@ public class ServerConfiguration {
 	 */
 	public void setGameIndex(GameIndex gameIndex) {
 		this.gameIndex = gameIndex;
+	}
+	/**
+	 * @return the maxNewInstanceTokensMax
+	 */
+	public int getMaxNewInstanceTokensMax() {
+		if (maxNewInstanceTokensMax==null)
+			return DEFAULT_MAX_NEW_INSTANCE_TOKENS_MAX;
+		return maxNewInstanceTokensMax;
+	}
+	/**
+	 * @param maxNewInstanceTokensMax the maxNewInstanceTokensMax to set
+	 */
+	public void setMaxNewInstanceTokensMax(int maxNewInstanceTokensMax) {
+		this.maxNewInstanceTokensMax = maxNewInstanceTokensMax;
+	}
+	/**
+	 * @return the maxNewInstanceTokensPerHour
+	 */
+	public int getMaxNewInstanceTokensPerHour() {
+		if (maxNewInstanceTokensPerHour==null)
+			return DEFAULT_MAX_NEW_INSTANCE_TOKENS_PER_HOUR;
+		return maxNewInstanceTokensPerHour;
+	}
+	/**
+	 * @param maxNewInstanceTokensPerHour the maxNewInstanceTokensPerHour to set
+	 */
+	public void setMaxNewInstanceTokensPerHour(int maxNewInstanceTokensPerHour) {
+		this.maxNewInstanceTokensPerHour = maxNewInstanceTokensPerHour;
 	}
 }

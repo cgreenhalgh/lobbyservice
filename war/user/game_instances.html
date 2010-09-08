@@ -35,7 +35,7 @@
 					if (!$.isPlainObject(item))
 						item = json[item];
 					//<td>title</td><td >game server id</td><td>start time</td><td>end time</td><td>latitude(E6)</td><td>longitude(E6)</td><td>radius (metres)</td><td>status</td><td>base url</td>
-		        	$('<tr class="game_template"><td>'+item.title+'</td><td>'+item.gameInstanceFactoryKey+'</td><td>'+item.visibility+'</td><td>'+timeToString(item.startTime)+'</td><td>'+timeToString(item.endTime)+'</td><td>'+item.maxNumSlots+'</td><td>'+item.numSlotsAllocated+'</td><td>'+item.locationName+'</td><td>'+item.latitudeE6+'</td><td>'+item.longitudeE6+'</td><td>'+item.radiusMetres+'</td><td>'+item.nominalStatus+'</td><td>'+item.baseUrl+'</td><!-- <td>'+item.gameServerId+'</td> --><td><input type="button" value="edit" onclick="select_template(\''+item.key+'\')"/></td></tr>').appendTo('#templates');
+		        	$('<tr class="game_template"><td>'+item.title+'</td><td>'+(item.gameInstanceFactoryKey!=undefined ? 'Yes' : 'No')+'</td><td>'+item.visibility+'</td><td>'+timeToString(item.startTime)+'</td><td>'+timeToString(item.endTime)+'</td><td>'+item.maxNumSlots+'</td><td>'+item.numSlotsAllocated+'</td><td>'+item.locationName+'</td><td>'+item.latitudeE6+'</td><td>'+item.longitudeE6+'</td><td>'+item.radiusMetres+'</td><td>'+item.nominalStatus+'</td><td>'+item.baseUrl+'</td><!-- <td>'+item.gameServerId+'</td> --><td><input type="button" value="edit" onclick="select_template(\''+item.key+'\')"/></td></tr>').appendTo('#templates');
 				}
         	});
     	}

@@ -23,6 +23,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Lob;
 
 import com.google.appengine.api.datastore.Key;
 
@@ -50,6 +51,9 @@ public class GameInstanceFactory {
     private long maxTime;
     /** CRON-style start time pattern - for search, lifecycle and instance start time*/
     private String startTimeCron;
+    /** JSON encoding of time options from startTimeCron - for search, lifecycle and instance start time*/
+    @Lob
+    private String startTimeOptionsJson;
     /** duration (milliseconds) - for search, lifecycle and instance end time*/
     private long durationMs;
     /** location name - human consumption - for search and instance*/
@@ -86,14 +90,16 @@ public class GameInstanceFactory {
 	private boolean createForNoClient;
 	/** create an instance for anonymous (non-account) client - instance creation constraint(s) */
 	private boolean createForAnonymousClient;
-	/** max number instances, total - instance creation constraint(s) */
-	private int maxNumInstancesTotal;
-	/** cache of running total number of instances */
-	private int numInstancesTotal;
-	/** max number instances, concurrent (e.g. for PLAYER_LOCATION type) - instance creation constraint(s) */
-	private int maxNumInstancesConcurrent;
+	/** new instance current quota (1 token = 1 instance) */
+	private int newInstanceTokens;
+	/** new instance max momentary quota (token bucket size) */
+	private int newInstanceTokensMax;
+	/** new instance quota increase rate */
+	private int newInstanceTokensPerHour;
 	/** last (java) time that this Factory was checked for new instances to create */
 	private long lastInstanceCheckTime;
+	/** (java) start time of last created instance */
+	private long lastInstanceStartTime;
 	/** time ahead that instances should be created */
 	private long instanceCreateTimeWindowMs;
     /** cons */
@@ -340,42 +346,6 @@ public class GameInstanceFactory {
 		this.createForAnonymousClient = createForAnonymousClient;
 	}
 	/**
-	 * @return the maxNumInstancesTotal
-	 */
-	public int getMaxNumInstancesTotal() {
-		return maxNumInstancesTotal;
-	}
-	/**
-	 * @param maxNumInstancesTotal the maxNumInstancesTotal to set
-	 */
-	public void setMaxNumInstancesTotal(int maxNumInstancesTotal) {
-		this.maxNumInstancesTotal = maxNumInstancesTotal;
-	}
-	/**
-	 * @return the numInstancesTotal
-	 */
-	public int getNumInstancesTotal() {
-		return numInstancesTotal;
-	}
-	/**
-	 * @param numInstancesTotal the numInstancesTotal to set
-	 */
-	public void setNumInstancesTotal(int numInstancesTotal) {
-		this.numInstancesTotal = numInstancesTotal;
-	}
-	/**
-	 * @return the maxNumInstancesConcurrent
-	 */
-	public int getMaxNumInstancesConcurrent() {
-		return maxNumInstancesConcurrent;
-	}
-	/**
-	 * @param maxNumInstancesConcurrent the maxNumInstancesConcurrent to set
-	 */
-	public void setMaxNumInstancesConcurrent(int maxNumInstancesConcurrent) {
-		this.maxNumInstancesConcurrent = maxNumInstancesConcurrent;
-	}
-	/**
 	 * @return the status
 	 */
 	public GameInstanceFactoryStatus getStatus() {
@@ -470,6 +440,66 @@ public class GameInstanceFactory {
 	 */
 	public void setInstanceCreateTimeWindowMs(long instanceCreateTimeWindowMs) {
 		this.instanceCreateTimeWindowMs = instanceCreateTimeWindowMs;
+	}
+	/**
+	 * @return the newInstanceTokens
+	 */
+	public int getNewInstanceTokens() {
+		return newInstanceTokens;
+	}
+	/**
+	 * @param newInstanceTokens the newInstanceTokens to set
+	 */
+	public void setNewInstanceTokens(int newInstanceTokens) {
+		this.newInstanceTokens = newInstanceTokens;
+	}
+	/**
+	 * @return the newInstanceTokensMax
+	 */
+	public int getNewInstanceTokensMax() {
+		return newInstanceTokensMax;
+	}
+	/**
+	 * @param newInstanceTokensMax the newInstanceTokensMax to set
+	 */
+	public void setNewInstanceTokensMax(int newInstanceTokensMax) {
+		this.newInstanceTokensMax = newInstanceTokensMax;
+	}
+	/**
+	 * @return the newInstanceTokensPerHour
+	 */
+	public int getNewInstanceTokensPerHour() {
+		return newInstanceTokensPerHour;
+	}
+	/**
+	 * @param newInstanceTokensPerHour the newInstanceTokensPerHour to set
+	 */
+	public void setNewInstanceTokensPerHour(int newInstanceTokensPerHour) {
+		this.newInstanceTokensPerHour = newInstanceTokensPerHour;
+	}
+	/**
+	 * @return the lastInstanceStartTime
+	 */
+	public long getLastInstanceStartTime() {
+		return lastInstanceStartTime;
+	}
+	/**
+	 * @param lastInstanceStartTime the lastInstanceStartTime to set
+	 */
+	public void setLastInstanceStartTime(long lastInstanceStartTime) {
+		this.lastInstanceStartTime = lastInstanceStartTime;
+	}
+	/**
+	 * @return the startTimeOptionsJson
+	 */
+	public String getStartTimeOptionsJson() {
+		return startTimeOptionsJson;
+	}
+	/**
+	 * @param startTimeOptionsJson the startTimeOptionsJson to set
+	 */
+	public void setStartTimeOptionsJson(String startTimeOptionsJson) {
+		this.startTimeOptionsJson = startTimeOptionsJson;
 	}
 	
 }

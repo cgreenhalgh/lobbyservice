@@ -9,7 +9,7 @@
 <html>
   <head>
     <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-    <title>Hello App Engine Administrator</title>
+    <title>Hello Lobby Administrator</title>
    
     <script type = "text/javascript" src="../resources/jquery-1.4.2.min.js"></script>
     <script type = "text/javascript" src="../resources/jquery.json-2.2.min.js"></script>
@@ -18,6 +18,7 @@
 	// start here...
 	$.ajaxSetup({cache:false});
 	function refresh_config(config) {
+    	$('#json').attr('value',$.toJSON(config));
     	set_input_from_field(document,config,'title');
     	set_input_from_field(document,config,'description');
     	set_input_from_field(document,config,'link', 'link_url');
@@ -26,22 +27,15 @@
     	set_input_from_field(document,config,'ttlMinutes');
     	set_input_from_field(document,config,'imageUrl');
     	set_input_from_field(document,config,'baseUrl');
+    	set_input_from_field(document,config,'maxNewInstanceTokensMax');
+    	set_input_from_field(document,config,'maxNewInstanceTokensPerHour');
 	}
 	function get_config() {
     	$.getJSON('AdminGameIndex',refresh_config);
 	}
 	$(document).ready(get_config());
 
-	function update_config(form) {
-    	var gt = {};
-    	add_field(form, gt, 'title');
-    	add_field(form, gt, 'description');
-    	add_field(form, gt, 'link', 'link_url');
-    	add_field(form, gt, 'language');
-    	add_int_field(form, gt, 'ttlMinutes');
-    	add_field(form, gt, 'imageUrl');
-    	add_field(form, gt, 'baseUrl');
-		var data = $.toJSON(gt);
+   	function ajax_update_game_config(data) {
 		$.ajax({url: 'AdminGameIndex', 
     		type: 'POST',
     		contentType: 'application/json',
@@ -52,18 +46,39 @@
     			//data = $.parseJSON(data);
     			//alert('Updated config ('+status+'): data='+data+' ('+$.toJSON(data)+')');
     			refresh_config(data);
+    			alert('Updated config');
 			},
 			error: function error(req, status) {
     			alert('Error updating config ('+req.status+': '+req.statusText+')');
 			}
 		});
+   	}   	 
+	function update_config(form) {
+    	var gt = {};
+    	add_field(form, gt, 'title');
+    	add_field(form, gt, 'description');
+    	add_field(form, gt, 'link', 'link_url');
+    	add_field(form, gt, 'language');
+    	add_int_field(form, gt, 'ttlMinutes');
+    	add_field(form, gt, 'imageUrl');
+    	add_field(form, gt, 'baseUrl');
+    	add_int_field(form, gt, 'maxNewInstanceTokensMax');
+    	add_int_field(form, gt, 'maxNewInstanceTokensPerHour');
+		var data = $.toJSON(gt);
+		ajax_update_game_config(data);
 		return false;
 	}	
+	function update_json() {
+    	var json = $('#json').attr('value');
+    	ajax_update_game_config(json);
+    	return false;
+	}
+
     </script>
   </head>
 
   <body>
-    <h1>Hello App Engine Administrator!</h1>
+    <h1>Hello Lobby Administrator</h1>
     <table>
       <tr>
         <td colspan="2"><a href="accounts.html">Accounts</a></td>        
@@ -83,8 +98,17 @@
 		<tr><td>TTL (minutes)</td><td><input type="text" name="ttlMinutes"/></td></tr>
 		<tr><td>Image URL</td><td><input type="text" name="imageUrl"/></td></tr>
 		<tr><td>Server base URL</td><td><input type="text" name="baseUrl"/></td></tr>
+		<tr><td>max new instance 'tokens' max</td><td><input type="text" name="maxNewInstanceTokensMax"/></td></tr>
+		<tr><td>max new instance 'tokens' per hour</td><td><input type="text" name="maxNewInstanceTokensPerHour"/></td></tr>
 		<tr><td><input type="submit" value="Update" /></td></tr>
 	</table>
 	</form>
+		<h3>Raw (JSON)</h3>
+		<form action="dummy"/>
+		<table>
+		 	<tr><td><textarea id="json" rows="5" cols="40" name="json"></textarea></td></tr>
+		 	<tr><td><input type="button" onclick="update_json()" value="Update config"/></td></tr>
+		</table>
+		</form>
   </body>
 </html>

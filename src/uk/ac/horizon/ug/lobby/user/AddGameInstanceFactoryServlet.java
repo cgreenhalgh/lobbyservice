@@ -41,6 +41,8 @@ import uk.ac.horizon.ug.lobby.model.GameServer;
 import uk.ac.horizon.ug.lobby.model.GameServerStatus;
 import uk.ac.horizon.ug.lobby.model.GameTemplate;
 import uk.ac.horizon.ug.lobby.protocol.JSONUtils;
+import uk.ac.horizon.ug.lobby.server.CronExpressionException;
+import uk.ac.horizon.ug.lobby.server.FactoryUtils;
 
 /** 
  * Add a GameInstanceFactory record (user view).
@@ -109,8 +111,18 @@ public class AddGameInstanceFactoryServlet extends HttpServlet implements Consta
 			}
 
 			// cache state
-			gi.setNumInstancesTotal(0);
-			
+			try {
+				if (gi.getStartTimeCron()==null)
+					gi.setStartTimeOptionsJson(null);
+				else
+					gi.setStartTimeOptionsJson(FactoryUtils.getTimeOptionsJson(gi.getStartTimeCron()));
+			}
+			catch (CronExpressionException e) {
+				// TODO log error
+			}
+			// start with one hour quota?!
+			gi.setNewInstanceTokens(gi.getNewInstanceTokensPerHour());
+
 			em.persist(gi);
 			logger.info("Creating GameInstanceFactory "+gi+" for Account "+account.getUserId()+" ("+account.getNickname()+")");
 		}

@@ -54,6 +54,8 @@ import uk.ac.horizon.ug.lobby.model.GameServer;
 import uk.ac.horizon.ug.lobby.model.GameTemplate;
 import uk.ac.horizon.ug.lobby.protocol.GameTemplateInfo;
 import uk.ac.horizon.ug.lobby.protocol.JSONUtils;
+import uk.ac.horizon.ug.lobby.server.CronExpressionException;
+import uk.ac.horizon.ug.lobby.server.FactoryUtils;
 
 /** 
  * Get all Accounts (admin view).
@@ -180,6 +182,8 @@ public class UserGameInstanceFactoryServlet extends HttpServlet implements Const
 			// note check of json, not ngi (which has default value(s))
 			if (json.has(INSTANCE_CREATE_TIME_WINDOW_MS))
 				gii.gameInstanceFactory.setInstanceCreateTimeWindowMs(ngi.getInstanceCreateTimeWindowMs());
+			// not lastInstanceCheckTime
+			// not lastInstanceStartTime
 			if (ngi.getLocationName()!=null)
 				gii.gameInstanceFactory.setLocationName(ngi.getLocationName());
 			if (ngi.getLocationType()!=null)
@@ -190,12 +194,13 @@ public class UserGameInstanceFactoryServlet extends HttpServlet implements Const
 			// note check of json, not ngi (which has default value(s))
 			if (json.has(LONGITUDE_E6))
 				gii.gameInstanceFactory.setLongitudeE6(ngi.getLongitudeE6());
+			// not newInstanceTokens
 			// note check of json, not ngi (which has default value(s))
-			if (json.has(MAX_NUM_INSTANCES_CONCURRENT))
-				gii.gameInstanceFactory.setMaxNumInstancesConcurrent(ngi.getMaxNumInstancesConcurrent());
+			if (json.has(NEW_INSTANCE_TOKENS_MAX))
+				gii.gameInstanceFactory.setNewInstanceTokensMax(ngi.getNewInstanceTokensMax());
 			// note check of json, not ngi (which has default value(s))
-			if (json.has(MAX_NUM_INSTANCES_TOTAL))
-				gii.gameInstanceFactory.setMaxNumInstancesTotal(ngi.getMaxNumInstancesTotal());
+			if (json.has(NEW_INSTANCE_TOKENS_PER_HOUR))
+				gii.gameInstanceFactory.setNewInstanceTokensPerHour(ngi.getNewInstanceTokensPerHour());
 			// note check of json, not ngi (which has default value(s))
 			if (json.has(MAX_NUM_SLOTS))
 				gii.gameInstanceFactory.setMaxNumSlots(ngi.getMaxNumSlots());
@@ -224,6 +229,7 @@ public class UserGameInstanceFactoryServlet extends HttpServlet implements Const
 				gii.gameInstanceFactory.setServerStartTimeOffsetMs(ngi.getServerStartTimeOffsetMs());
 			if (ngi.getStartTimeCron()!=null)
 				gii.gameInstanceFactory.setStartTimeCron(ngi.getStartTimeCron());
+			// not startTimeOptionsCron
 			if (ngi.getStatus()!=null)
 				// TODO act on status?!
 				gii.gameInstanceFactory.setStatus(ngi.getStatus());
@@ -233,9 +239,19 @@ public class UserGameInstanceFactoryServlet extends HttpServlet implements Const
 				gii.gameInstanceFactory.setVisibility(ngi.getVisibility());
 
 			// cache state
+			// cache state
+			try {
+				if (gii.gameInstanceFactory.getStartTimeCron()==null)
+					gii.gameInstanceFactory.setStartTimeOptionsJson(null);
+				else
+					gii.gameInstanceFactory.setStartTimeOptionsJson(FactoryUtils.getTimeOptionsJson(gii.gameInstanceFactory.getStartTimeCron()));
+			}
+			catch (CronExpressionException e) {
+				// TODO log error
+			}
 			// change of possible instances - force recheck
 			if (json.has(START_TIME_CRON) || json.has(MIN_TIME) || json.has(MAX_TIME)) 
-				gii.gameInstanceFactory.setLastInstanceCheckTime(System.currentTimeMillis());
+				gii.gameInstanceFactory.setLastInstanceStartTime(0);
 			// ?!
 			
 			em.merge(gii.gameInstanceFactory);

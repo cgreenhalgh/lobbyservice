@@ -47,6 +47,7 @@ public interface Constants {
 	public static final String LANGUAGE = "language";
 	public static final String LAST_BUILD_DATE = "lastBuildDate";
 	public static final String LAST_INSTANCE_CHECK_TIME = "lastInstanceCheckTime";
+	public static final String LAST_INSTANCE_START_TIME = "lastInstanceStartTime";
 	public static final String LAST_KNOWN_STATUS = "lastKnownStatus";
 	public static final String LAST_KNOWN_STATUS_TIME = "lastKnownStatusTime";
 	public static final String LATITUDE_E6 = "latitudeE6";
@@ -60,13 +61,16 @@ public interface Constants {
 	public static final String LONGITUDE_E6 = "longitudeE6";
 	public static final String MAJOR_VERSION = "majorVersion";
 	public static final String MAX_DURATION_MS = "maxDurationMs";
-	public static final String MAX_NUM_INSTANCES_CONCURRENT = "maxNumInstancesConcurrent";
-	public static final String MAX_NUM_INSTANCES_TOTAL = "maxNumInstancesTotal";
+	public static final String MAX_NEW_INSTANCE_TOKENS_MAX = "maxNewInstanceTokensMax";
+	public static final String MAX_NEW_INSTANCE_TOKENS_PER_HOUR = "maxNewInstanceTokensPerHour";
 	public static final String MAX_NUM_SLOTS = "maxNumSlots";
 	public static final String MAX_TIME = "maxTime";
 	public static final String MESSAGE = "message";
 	public static final String MINUTE = "minute";
 	public static final String MONTH = "month";
+	public static final String NEW_INSTANCE_TOKENS = "newInstanceTokens";
+	public static final String NEW_INSTANCE_TOKENS_MAX = "newInstanceTokensMax";
+	public static final String NEW_INSTANCE_TOKENS_PER_HOUR = "newInstanceTokensPerHour";
 	public static final String NICKNAME = "nickname";
 	public static final String MIN_DURATION_MS = "minDurationMs";
 	public static final String MIN_MINOR_VERSION = "minMinorVersion";
@@ -75,7 +79,6 @@ public interface Constants {
 	public static final String MIN_TIME = "minTime";
 	public static final String MINOR_VERSION = "minorVersion";
 	public static final String NOMINAL_STATUS = "nominalStatus";
-	public static final String NUM_INSTANCES_TOTAL = "numInstancesTotal";
 	public static final String NUM_SLOTS_ALLOCATED = "numSlotsAllocated";
 	public static final String OPTIONS = "options";
 	public static final String OWNER_ID = "ownerId";
@@ -93,6 +96,7 @@ public interface Constants {
 	public static final String SERVER_START_TIME_OFFSET_MS = "serverStartTimeOffsetMs";
 	public static final String START_TIME = "startTime";
 	public static final String START_TIME_CRON = "startTimeCron";
+	public static final String START_TIME_OPTIONS_JSON = "startTimeOptionsJson";
 	public static final String STATUS = "status";
 	public static final String SUBTITLE = "subtitle";
 	public static final String TARGET_STATUS = "targetStatus";

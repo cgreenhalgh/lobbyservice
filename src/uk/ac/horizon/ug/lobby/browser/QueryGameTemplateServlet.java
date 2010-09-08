@@ -33,6 +33,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeSet;
 import java.util.logging.Logger;
 
 import javax.persistence.EntityManager;
@@ -312,11 +313,6 @@ public class QueryGameTemplateServlet extends HttpServlet implements Constants {
 			//done: List<GameTemplateInfo> gtis = new LinkedList<GameTemplateInfo>();
 			
 			for (GameInstanceFactory gif : posgifs) {
-				// TODO check numInstances vs maxNumInstances ?!
-				if (gif.getNumInstancesTotal() >= gif.getMaxNumInstancesTotal()) {
-					logger.warning("GameInstanceFactory "+gif.getKey()+" has exceed maxNumInstancesTotal: "+gif.getNumInstancesTotal()+" / "+gif.getMaxNumInstancesTotal());
-					continue;
-				}
 				// location
 				boolean locationOk = true;
 				// only 'SPECIFIED_LOCATION' limits at this stage
@@ -340,8 +336,8 @@ public class QueryGameTemplateServlet extends HttpServlet implements Constants {
 				// TODO PLAYER_LOCATION might limit success due to maxNumInstancesConcurrent!
 
 				// calculate next game time from CRON pattern - check there is one and it is in range!
-				if (gif.getStartTimeCron()==null) {
-					logger.warning("GameTemplateFactory has no startTimeCron: "+gif);
+				if (gif.getStartTimeOptionsJson()==null) {
+					logger.warning("GameTemplateFactory has no startTimeOptionsJson: "+gif);
 					continue;
 				}
 				
@@ -363,8 +359,9 @@ public class QueryGameTemplateServlet extends HttpServlet implements Constants {
 				
 				long firstStartTime = 0;
 				try {
+					TreeSet values[] = FactoryUtils.parseTimeOptionsJson(gif.getStartTimeOptionsJson());
 					// find fist CRON firing no earlier than that
-					firstStartTime = FactoryUtils.getNextCronTime(gif.getStartTimeCron(), minTime, maxTime);
+					firstStartTime = FactoryUtils.getNextCronTime(gif.getStartTimeCron(), values, minTime, maxTime);
 				} catch (CronExpressionException cee) {
 					logger.warning("GameTemplateFactory error in startTimeCron: "+cee+" for "+gif);
 					continue;

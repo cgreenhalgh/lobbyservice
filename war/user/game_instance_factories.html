@@ -99,10 +99,10 @@
 	    		dataType: 'text',
 	    		success: function success(data, status) {
 	    			get_templates();
-	    			alert('Added instance ('+status+')');
+	    			alert('Added instance factory ('+status+')');
 				},
 				error: function error(req, status) {
-	    			alert('Error adding instance ('+req.status+': '+req.statusText+')');
+	    			alert('Error adding instance factory ('+req.status+': '+req.statusText+')');
 				}
 			});
     	}
@@ -116,10 +116,10 @@
         		dataType: 'text',
         		success: function success(data, status) {
         			get_templates();
-        			alert('Updated instance ('+status+')');
+        			alert('Updated instance factory ('+status+')');
     			},
     			error: function error(req, status) {
-        			alert('Error updating instance ('+req.status+': '+req.statusText+')');
+        			alert('Error updating instance factory ('+req.status+': '+req.statusText+')');
     			}
     		});
 		}
@@ -131,6 +131,7 @@
         	add_field(form, gt, 'instanceTitle');
         	gt.gameTemplateId = game_template_id;
         	add_field(form, gt, 'startTimeCron');
+        	// readonly: startTimeOptionsJson
         	add_int_field(form, gt, 'durationMs');
         	//add_field(form, gt, 'status');
         	add_select_field(form, gt, 'status');
@@ -152,10 +153,11 @@
         	add_int_field(form, gt, 'serverEndTimeOffsetMs');
         	add_boolean_field(form, gt, 'createForAnonymousClient');
         	add_boolean_field(form, gt, 'createForNoClient');
-			add_int_field(form, gt, 'maxNumInstancesTotal');
-			//readonly: add_int_field(form, gt, 'numInstancesTotal');
-			add_int_field(form, gt, 'maxNumInstancesConcurrent');
+			add_int_field(form, gt, 'newInstanceTokensMax');
+			//readonly: add_int_field(form, gt, 'newInstanceTokens');
+			add_int_field(form, gt, 'newInstanceTokensPerHour');
         	//readonly: lastInstanceCheckTime
+        	//readonly: lastInstanceStartTime
         	add_int_field(form, gt, 'instanceCreateTimeWindowMs');
 
 			var data = $.toJSON(gt);
@@ -171,14 +173,14 @@
     	// reset game template form to add 
     	function reset_game_template(form) {
         	current_game_template = null;
-        	$(':input[type=submit]').attr('value','Add game instance');
+        	$(':input[type=submit]').attr('value','Add game instance factory');
         	return true;
     	}
     	// reset game template form to add 
     	function select_template(id) {
         	//alert('select template '+id);
         	current_game_template = null;
-        	$(':input[type=submit]').attr('value','Update game instance');
+        	$(':input[type=submit]').attr('value','Update game instance factory');
         	$(':input[name=key]').attr('value',id);
         	$(':input[name=title]').attr('value','Loading data...');
         	$.getJSON('UserGameInstanceFactory/'+id, function(data) {
@@ -188,6 +190,7 @@
             	set_input_from_field(document,data,'title');
             	set_input_from_field(document,data,'instanceTitle');
             	set_input_from_field(document,data,'startTimeCron');
+            	set_input_from_field(document,data,'startTimeOptionsJson');
             	set_input_from_field(document,data,'durationMs');
             	set_input_from_field(document,data,'maxNumSlots');
             	set_input_from_field(document,data,'numSlotsAllocated');
@@ -205,10 +208,11 @@
             	set_input_from_field(document,data,'serverEndTimeOffsetMs');
             	set_checkbox_from_field(document,data,'createForAnonymousClient');
             	set_checkbox_from_field(document,data,'createForNoClient');
-            	set_input_from_field(document,data,'maxNumInstancesTotal');
-            	set_input_from_field(document,data,'numInstancesTotal');
-            	set_input_from_field(document,data,'maxNumInstancesConcurrent');
-            	set_input_from_field(document,data,'lastInstanceCheckTime');
+            	set_input_from_field(document,data,'newInstanceTokens');
+            	set_input_from_field(document,data,'newInstanceTokensMax');
+            	set_input_from_field(document,data,'newInstanceTokensPerHour');
+            	set_input_from_time_field(document,data,'lastInstanceCheckTime');
+            	set_input_from_time_field(document,data,'lastInstanceStartTime');
             	set_input_from_field(document,data,'instanceCreateTimeWindowMs');
 				$('select[name=gameServerId] > option[selected]').removeAttr('selected');
 				if (data.gameServerId!=null && data.gameServerId!='')
@@ -324,10 +328,11 @@
 			<tr><td>server end time offset (ms)</td><td><input type="text" name="serverEndTimeOffsetMs"/></td></tr>
 			<tr><td>create for anonymous client</td><td><input type="checkbox" name="createForAnonymousClient"/></td></tr>
 			<tr><td>create for no client</td><td><input type="checkbox" name="createForNoClient"/></td></tr>
-			<tr><td>max num instances (total)</td><td><input type="text" name="maxNumInstancesTotal" value="0"/></td></tr>
-			<tr><td>num instances (total)</td><td><input type="text" name="numInstancesTotal" readonly="readonly" value="0"/></td></tr>
-			<tr><td>max num instances (concurrent)</td><td><input type="text" name="maxNumInstancesConcurrent" value="0"/></td></tr>
-			<tr><td>last instance check time</td><td><input type="text" name="lastInstanceCheckTime" readonly="readonly" value="0"/></td></tr>
+			<tr><td>new instance 'tokens'</td><td><input type="text" name="newInstanceTokens" readonly="readonly"/></td></tr>
+			<tr><td>new instance tokens max</td><td><input type="text" name="newInstanceTokensMax" value="0" /></td></tr>
+			<tr><td>new instance tokens per hour</td><td><input type="text" name="newInstanceTokensPerHour" value="0"/></td></tr>
+			<tr><td>last instance check time</td><td><input type="text" name="lastInstanceCheckTime" readonly="readonly"/></td></tr>
+			<tr><td>last instance start time</td><td><input type="text" name="lastInstanceStartTime" readonly="readonly"/></td></tr>
 			<tr><td>instance create time window (ms)</td><td><input type="text" name="instanceCreateTimeWindowMs" value="0"/></td></tr>
 		</table>
 		<p><input type="submit" value="Add game instance factory"/><input type="reset" value="Reset/New" onclick="reset_game_template(this)"/></p>

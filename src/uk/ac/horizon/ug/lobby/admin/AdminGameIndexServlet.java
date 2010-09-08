@@ -103,6 +103,13 @@ public class AdminGameIndexServlet extends HttpServlet implements Constants {
 					gi.setTtlMinutes(json.getInt(key));
 				else if (key.equals(BASE_URL))
 					sc.setBaseUrl(json.getString(key));
+				else if (key.equals(MAX_NEW_INSTANCE_TOKENS_MAX))
+					sc.setMaxNewInstanceTokensMax(json.getInt(key));
+				else if (key.equals(MAX_NEW_INSTANCE_TOKENS_PER_HOUR))
+					sc.setMaxNewInstanceTokensPerHour(json.getInt(key));
+				else if (key.equals(VERSION)) {
+					// ignore?!
+				}
 				else 
 					throw new JSONException("Unsupported key '"+key+"' in GameIndex: "+json);
 			}

@@ -20,6 +20,7 @@
 package uk.ac.horizon.ug.lobby.server;
 
 import java.util.List;
+import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -27,6 +28,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 import javax.persistence.Query;
 
+import uk.ac.horizon.ug.lobby.ConfigurationUtils;
 import uk.ac.horizon.ug.lobby.Constants;
 import uk.ac.horizon.ug.lobby.model.EMF;
 import uk.ac.horizon.ug.lobby.model.GameInstance;
@@ -34,6 +36,7 @@ import uk.ac.horizon.ug.lobby.model.GameInstanceFactory;
 import uk.ac.horizon.ug.lobby.model.GameInstanceNominalStatus;
 import uk.ac.horizon.ug.lobby.model.GameTemplate;
 import uk.ac.horizon.ug.lobby.model.GameTemplateVisibility;
+import uk.ac.horizon.ug.lobby.model.ServerConfiguration;
 
 /** GameInstanceFactory tasks, e.g. create instances.
  * 
@@ -44,12 +47,13 @@ public class FactoryTasks implements Constants {
 	static Logger logger = Logger.getLogger(FactoryUtils.class.getName());
 	/** check all GameInstanceFactorys - periodic task */
 	public static void checkAllGameInstanceFactories() {
+		ServerConfiguration sc = ConfigurationUtils.getServerConfiguration();
 		EntityManager em = EMF.get().createEntityManager();
 		try {
 			Query q = em.createQuery("SELECT x FROM GameInstanceFactory x ORDER BY x."+LAST_INSTANCE_CHECK_TIME+" ASC");
 			List<GameInstanceFactory> gifs = (List<GameInstanceFactory>)q.getResultList();
 			for (GameInstanceFactory gif : gifs) {
-				checkGameInstanceFactory(gif);
+				checkGameInstanceFactory(sc, gif);
 			}
 		}
 		finally {
@@ -58,46 +62,124 @@ public class FactoryTasks implements Constants {
 	}
 	/** check all GameInstanceFactorys for a GameTemplate */
 	public static void checkGameInstanceFactories(GameTemplate gt) {
+		ServerConfiguration sc = ConfigurationUtils.getServerConfiguration();
 		EntityManager em = EMF.get().createEntityManager();
 		try {
 			Query q = em.createQuery("SELECT x FROM GameInstanceFactory x WHERE x."+GAME_TEMPLATE_ID+" = :"+GAME_TEMPLATE_ID+" ORDER BY x."+LAST_INSTANCE_CHECK_TIME+" ASC");
 			q.setParameter(GAME_TEMPLATE_ID, gt.getId());
 			List<GameInstanceFactory> gifs = (List<GameInstanceFactory>)q.getResultList();
 			for (GameInstanceFactory gif : gifs) {
-				checkGameInstanceFactory(gif);
+				checkGameInstanceFactory(sc, gif);
 			}
 		}
 		finally {
 			em.close();
 		}
 	}
+	/** max nominal check interval - limits rate at which tokens can be added (5 minutes) */
+	public static final long MAX_CHECK_INTERVAL_MS = 300000;
+	/** one hour */
+	public static final long ONE_HOUR = 3600000;
 	/**
 	 * @param em
 	 * @param gif
 	 */
-	public static void checkGameInstanceFactory(GameInstanceFactory gif) {
-		if (gif.getStartTimeCron()==null) {
+	public static void checkGameInstanceFactory(ServerConfiguration sc, GameInstanceFactory gif) {
+		EntityManager em = EMF.get().createEntityManager();
+		EntityTransaction et = em.getTransaction();
+		et.begin();
+		long now = System.currentTimeMillis();
+		try {
+			GameInstanceFactory ngif = em.find(GameInstanceFactory.class, gif.getKey());
+
+			// update tokens
+			long lastCheckTime = ngif.getLastInstanceCheckTime();
+			if (lastCheckTime==0)
+				lastCheckTime = now;
+			long elapsed = now-lastCheckTime;
+			if (elapsed > MAX_CHECK_INTERVAL_MS)
+			{
+				logger.warning("Limiting checkGameInstanceFactory elapsed to "+MAX_CHECK_INTERVAL_MS+" (was "+elapsed+"ms)");
+				elapsed = MAX_CHECK_INTERVAL_MS;
+			}
+			// lastCheckTime offset into hour
+			long lastCheckTimeHourOffsetMs = lastCheckTime % ONE_HOUR;
+			int perHour = ngif.getNewInstanceTokensPerHour();
+			if (perHour > sc.getMaxNewInstanceTokensPerHour())
+				perHour = sc.getMaxNewInstanceTokensPerHour();
+			// careful with those rounding errors, Eugene...
+			int newTokens = (int)((lastCheckTimeHourOffsetMs+elapsed)*perHour/ONE_HOUR-(lastCheckTimeHourOffsetMs)*perHour/ONE_HOUR);
+			// paranoid
+			if (newTokens>perHour) {
+				logger.warning("newTokens came out > perHour ("+newTokens+" vs "+perHour+") for "+gif);
+				newTokens = perHour;
+			}
+			if (newTokens<0) {
+				logger.warning("newTokens came out < 0 ("+newTokens+") for "+gif);
+				newTokens = 0;
+			}
+			int tokens = ngif.getNewInstanceTokens()+newTokens;
+			if (tokens > ngif.getNewInstanceTokensMax())
+				tokens = ngif.getNewInstanceTokensMax();
+			if (tokens > sc.getMaxNewInstanceTokensMax())
+				tokens = sc.getMaxNewInstanceTokensMax();
+			
+			if (tokens!=ngif.getNewInstanceTokens()) {
+				logger.info("Changed newInstanceTokens to "+tokens+" from "+ngif.getNewInstanceTokens()+" for "+gif.getTitle());
+			}
+			ngif.setNewInstanceTokens(tokens);
+			ngif.setLastInstanceCheckTime(now);
+			em.merge(ngif);
+			et.commit();
+			
+			gif = ngif;
+		}
+		finally {
+			if (et.isActive())
+				et.rollback();
+			em.close();
+		}		
+
+		if (gif.getStartTimeOptionsJson()==null) {
 			// no cron...
 			return;
 		}
-		long checkTime = gif.getLastInstanceCheckTime();
-		long endTime = System.currentTimeMillis()+gif.getInstanceCreateTimeWindowMs();
+
+		int tokensCache = gif.getNewInstanceTokens();
+		long checkTime = gif.getLastInstanceStartTime();
+		if (checkTime < now) {
+			logger.warning("Skipping checks from lastInstanceStartTime "+checkTime+" to now ("+now+") for "+gif.getTitle());
+			// TODO audit record
+			checkTime = now;
+		}
+		if (checkTime < gif.getMinTime()-1)
+			// will be advanced by one before first check!
+			checkTime = gif.getMinTime()-1;
+		
+		long maxTime = now+gif.getInstanceCreateTimeWindowMs();
+		if (gif.getMaxTime() < maxTime)
+			maxTime = gif.getMaxTime();		
+		
 		try {
-			// check ahead by InstanceCreateTimeWindowMs
-			if (gif.getMinTime()>checkTime) 
-				checkTime = gif.getMinTime();
-			// TODO starting from last check time repeatedly find the next start time,
-			while (checkTime<=endTime) {
+			TreeSet values[] = FactoryUtils.parseTimeOptionsJson(gif.getStartTimeOptionsJson());
+			
+			// starting from last check time repeatedly find the next start time,
+			while (checkTime<=maxTime) {
 				// advance first
 				checkTime = checkTime+1;
 				// TODO make more efficient by cacheing parsed state
-				long nextStartTime = FactoryUtils.getNextCronTime(gif.getStartTimeCron(), checkTime, gif.getMaxTime());
-				if (nextStartTime<=0 || nextStartTime>gif.getMaxTime())
+				long nextStartTime = FactoryUtils.getNextCronTime(gif.getStartTimeCron(), values, checkTime, maxTime);
+				if (nextStartTime<=0 || nextStartTime>maxTime)
 					// done
 					break;
 				// check if the instance already exists,
 				// if not create it
-				checkGameInstanceFactoryInstance(gif, nextStartTime);
+				tokensCache = checkGameInstanceFactoryInstance(gif, nextStartTime, tokensCache);
+				if (tokensCache<0) {
+					// TODO audit
+					logger.warning("GameInstanceFactory could not create instance at "+nextStartTime+" due to token limit: "+gif);
+					break;
+				}
 				checkTime = nextStartTime;
 			}
 		} catch (CronExpressionException e) {
@@ -106,29 +188,14 @@ public class FactoryTasks implements Constants {
 		} catch (Exception e) {
 			logger.log(Level.WARNING, "error checking GameInstanceFactory "+gif, e);
 		}
-		EntityManager em = EMF.get().createEntityManager();
-		EntityTransaction et = em.getTransaction();
-		et.begin();
-		try {
-			// finally, atomically update the lastInstanceCheckTime (if increased)
-			GameInstanceFactory ngif = em.find(GameInstanceFactory.class, gif.getKey());
-			if (ngif.getLastInstanceCheckTime()<endTime)
-				ngif.setLastInstanceCheckTime(endTime);
-			em.merge(ngif);
-			et.commit();
-		}
-		finally {
-			if (et.isActive())
-				et.rollback();
-			em.close();
-		}		
 	}
 	/**
 	 * @param gif
 	 * @param nextStartTime
+	 * @return new value of newInstanceTokens; returns -1 to signal could not create
 	 */
-	private static void checkGameInstanceFactoryInstance(
-			GameInstanceFactory gif, long startTime) {
+	private static int checkGameInstanceFactoryInstance(
+			GameInstanceFactory gif, long startTime, int tokensCache) {
 		EntityManager em = EMF.get().createEntityManager();
 		EntityTransaction et = em.getTransaction();
 		et.begin();
@@ -149,6 +216,9 @@ public class FactoryTasks implements Constants {
 				}
 			}
 			else {
+				if (tokensCache<=0) 
+					return -1;
+				
 				// create GameInstance on demand?!
 				GameInstance ngi = new GameInstance();
 				ngi.setAllowAnonymousClients(gif.isAllowAnonymousClients());
@@ -182,13 +252,30 @@ public class FactoryTasks implements Constants {
 
 				em.persist(ngi);
 				et.commit();
-				logger.info("Added GameInstance "+ngi);				
+				
+				// delete one from tokens
+				et.begin();
+				GameInstanceFactory ngif = em.find(GameInstanceFactory.class, gif.getKey());
+				ngif.setNewInstanceTokens(ngif.getNewInstanceTokens()-1);
+				if (startTime>ngif.getLastInstanceStartTime())
+					ngif.setLastInstanceStartTime(startTime);
+				else
+					logger.warning("GameInstanceFactory startTime "+startTime+" before lastInstanceStartTime "+ngif.getLastInstanceStartTime());
+				em.merge(ngif);
+				et.commit();
+				gif = ngif;
+				logger.info("Added GameInstance "+ngi+" (tokens="+ngif.getNewInstanceTokens()+")");		
+				if (ngif.getNewInstanceTokens()>0)
+					return ngif.getNewInstanceTokens();
+				logger.warning("GameInstanceFactory in token-debt ("+ngif.getNewInstanceTokens()+"): "+ngif);
+				return 0;
 			}
 		}
 		finally {
 			if (et.isActive())
 				et.rollback();
 			em.close();
-		}		
-}
+		}	
+		return tokensCache;
+	}
 }
