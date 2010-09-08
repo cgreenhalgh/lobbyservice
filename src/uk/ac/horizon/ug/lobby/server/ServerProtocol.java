@@ -19,6 +19,8 @@
  */
 package uk.ac.horizon.ug.lobby.server;
 
+import java.io.IOException;
+
 import javax.persistence.EntityManager;
 
 import uk.ac.horizon.ug.lobby.model.Account;
@@ -38,23 +40,27 @@ import uk.ac.horizon.ug.lobby.protocol.GameJoinResponse;
 public interface ServerProtocol {
 	/** handle an authenticated "PLAY" request from a client */
 	public void handlePlayRequest(GameJoinRequest gjreq, GameJoinResponse gjresp, GameInstance gi, GameInstanceSlot gs, GameServer server, GameClient gc, Account account, EntityManager em);
+	
+	/** check that factory/server are valid for this protocol */
+	public void validate(GameInstanceFactory factory, GameServer server) throws ConfigurationException;
+	
 	/** game instance maintenance task - called from GameInstanceTasks.checkGameInstance */
 	public void handleGameInstancePreparingFromPlanned(GameInstance gi,
-			GameInstanceFactory factory, GameServer server, EntityManager em);
+			GameInstanceFactory factory, GameServer server, EntityManager em) throws ConfigurationException, IOException;
 
 	/** game instance maintenance task - called from GameInstanceTasks.checkGameInstance */
 	public void handleGameInstanceReadyFromPreparing(GameInstance gi,
-			GameInstanceFactory factory, GameServer server, EntityManager em);
+			GameInstanceFactory factory, GameServer server, EntityManager em) throws ConfigurationException, IOException;
 
 	/** game instance maintenance task - called from GameInstanceTasks.checkGameInstance */
 	public void handleGameInstanceActiveFromReady(GameInstance gi,
-			GameInstanceFactory factory, GameServer server, EntityManager em);
+			GameInstanceFactory factory, GameServer server, EntityManager em) throws ConfigurationException, IOException;
 
 	/** game instance maintenance task - called from GameInstanceTasks.checkGameInstance */
 	public void handleGameInstanceEndingFromActive(GameInstance gi,
-			GameInstanceFactory factory, GameServer server, EntityManager em);
+			GameInstanceFactory factory, GameServer server, EntityManager em) throws ConfigurationException, IOException;
 
 	/** game instance maintenance task - called from GameInstanceTasks.checkGameInstance */
 	public void handleGameInstanceEnd(GameInstance gi,
-			GameInstanceFactory factory, GameServer server, EntityManager em);
+			GameInstanceFactory factory, GameServer server, EntityManager em) throws ConfigurationException, IOException;
 }

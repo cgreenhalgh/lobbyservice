@@ -27,7 +27,10 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URLEncoder;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -50,6 +53,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
@@ -73,6 +77,58 @@ public class ExplodingPlacesServerProtocol implements ServerProtocol {
 	static Logger logger = Logger.getLogger(ExplodingPlacesServerProtocol.class.getName());
 
 	static final int DEFAULT_TIMEOUT_MS = 30000;
+	/** do post of xml, return Connection */
+	public static Document doPost(String surl, Document doc) throws IOException {
+		try {
+			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+			dbf.setNamespaceAware(false);
+			DocumentBuilder db = dbf.newDocumentBuilder();
+			URL url = new  URL(surl);
+			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+			if (doc!=null)
+				conn.setDoInput(true);
+			conn.setDoOutput(true);
+			conn.setUseCaches(false);
+			conn.setRequestMethod("POST");
+			conn.setConnectTimeout(DEFAULT_TIMEOUT_MS);
+			conn.setReadTimeout(DEFAULT_TIMEOUT_MS);
+			conn.setRequestProperty("Content-Type", "text/xml;charset=UTF-8");
+			logger.info("Send request "+doc+" to "+url);
+			if (doc!=null) {
+				OutputStreamWriter osw = new OutputStreamWriter(conn.getOutputStream(), "UTF-8");
+				// TODO (standard) Xstream doesn't work on GAE :-(
+				Transformer dt = TransformerFactory.newInstance().newTransformer();
+				dt.transform(new DOMSource(doc), new StreamResult(osw));
+				osw.close();
+			}
+			int status = conn.getResponseCode();
+			if (status!=HttpServletResponse.SC_OK) 
+				throw new IOException("HTTP response "+status+": "+conn.getResponseMessage());
+			InputStream is = conn.getInputStream();
+			doc = db.parse(is);
+			is.close();
+			logger.info("Received response "+doc+" from "+url);
+			return doc;
+		}		
+		catch (IOException e) {
+			throw e;
+		} catch (TransformerConfigurationException e) {
+			logger.warning("doPost: "+e);
+			throw new IOException(e.toString());
+		} catch (TransformerFactoryConfigurationError e) {
+			logger.warning("doPost: "+e);
+			throw new IOException(e.toString());
+		} catch (TransformerException e) {
+			logger.warning("doPost: "+e);
+			throw new IOException(e.toString());
+		} catch (SAXException e) {
+			logger.warning("doPost: "+e);
+			throw new IOException(e.toString());
+		} catch (ParserConfigurationException e) {
+			logger.warning("doPost: "+e);
+			throw new IOException(e.toString());
+		}
+	}
 	@Override
 	public void handlePlayRequest(GameJoinRequest gjreq,
 			GameJoinResponse gjresp, GameInstance gi, GameInstanceSlot gs,
@@ -122,28 +178,9 @@ public class ExplodingPlacesServerProtocol implements ServerProtocol {
 			
 			if (gi.getBaseUrl()!=null && !gi.getBaseUrl().equals(server.getBaseUrl()))
 				logger.warning("GameInstance baseUrl does not match server baseUrl ("+gi.getBaseUrl()+" vs "+server.getBaseUrl()+") for "+gi);
-			URL url = new  URL(server.getBaseUrl()+"/rpc/login");
-			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-			conn.setDoInput(true);
-			conn.setDoOutput(true);
-			conn.setUseCaches(false);
-			conn.setRequestMethod("POST");
-			conn.setConnectTimeout(DEFAULT_TIMEOUT_MS);
-			conn.setReadTimeout(DEFAULT_TIMEOUT_MS);
-			conn.setRequestProperty("Content-Type", "application/json;charset=UTF-8");
-			logger.info("Send request "+doc+" to "+url);
-			OutputStreamWriter osw = new OutputStreamWriter(conn.getOutputStream(), "UTF-8");
-			// TODO (standard) Xstream doesn't work on GAE :-(
-			Transformer dt = TransformerFactory.newInstance().newTransformer();
-			dt.transform(new DOMSource(doc), new StreamResult(osw));
-			osw.close();
-			int status = conn.getResponseCode();
-			if (status!=HttpServletResponse.SC_OK) 
-				throw new IOException("HTTP response "+status+": "+conn.getResponseMessage());
-			InputStream is = conn.getInputStream();
-			doc = db.parse(is);
-			is.close();
-			logger.info("Received response "+doc+" from "+url);
+			String url = server.getBaseUrl()+"/rpc/login";
+			doc = doPost(url, doc);
+
 			String replyStatus = getElement(doc, "status");
 			if (!"OK".equals(replyStatus)) {
 				if ("FAILED".equals(replyStatus) || "GAME_NOT_FOUND".equals(replyStatus)) {
@@ -159,10 +196,6 @@ public class ExplodingPlacesServerProtocol implements ServerProtocol {
 			}
 			gjresp.getPlayData().put("gameId", getElement(doc, "gameId"));
 			gjresp.getPlayData().put("gameStatus", getElement(doc, "gameStatus"));
-		} catch (MalformedURLException e) {
-			logger.warning("Problem with request URL based on "+server.getBaseUrl()+": "+e);
-			JoinGameInstanceServlet.setTryLater(gjresp);
-			return;
 		} catch (IOException e) {
 			logger.log(Level.WARNING, "Problem doing login with URL based on "+server.getBaseUrl(), e);
 			JoinGameInstanceServlet.setTryLater(gjresp);
@@ -171,24 +204,7 @@ public class ExplodingPlacesServerProtocol implements ServerProtocol {
 			logger.log(Level.WARNING, "Problem with XML parser", e);
 			JoinGameInstanceServlet.setError(gjresp, GameJoinResponseStatus.ERROR_INTERNAL, "Problem with ExplodingPlaces protocol");
 			return;
-		} catch (TransformerConfigurationException e) {
-			logger.log(Level.WARNING, "Problem with XML transformer", e);
-			JoinGameInstanceServlet.setError(gjresp, GameJoinResponseStatus.ERROR_INTERNAL, "Problem with ExplodingPlaces protocol");
-			return;
-		} catch (TransformerFactoryConfigurationError e) {
-			logger.log(Level.WARNING, "Problem with XML transformer", e);
-			JoinGameInstanceServlet.setError(gjresp, GameJoinResponseStatus.ERROR_INTERNAL, "Problem with ExplodingPlaces protocol");
-			return;
-		} catch (TransformerException e) {
-			logger.log(Level.WARNING, "Problem with transforming request", e);
-			JoinGameInstanceServlet.setTryLater(gjresp);
-			return;
-		} catch (SAXException e) {
-			logger.log(Level.WARNING, "Problem with parsing request", e);
-			JoinGameInstanceServlet.setTryLater(gjresp);
-			return;
 		}
-
 		// generate client play URL. (Note conversationId is a required parameter)
 		// baseUrl/messages
 		gjresp.setPlayUrl(server.getBaseUrl()+"/rpc/");
@@ -211,7 +227,7 @@ public class ExplodingPlacesServerProtocol implements ServerProtocol {
 	 */
 	@Override
 	public void handleGameInstanceActiveFromReady(GameInstance gi,
-			GameInstanceFactory factory, GameServer server, EntityManager em) {
+			GameInstanceFactory factory, GameServer server, EntityManager em) throws ConfigurationException {
 		// TODO Auto-generated method stub
 		throw new RuntimeException("Unimplemented");
 		
@@ -223,7 +239,7 @@ public class ExplodingPlacesServerProtocol implements ServerProtocol {
 	 */
 	@Override
 	public void handleGameInstanceEnd(GameInstance gi,
-			GameInstanceFactory factory, GameServer server, EntityManager em) {
+			GameInstanceFactory factory, GameServer server, EntityManager em) throws ConfigurationException {
 		// TODO Auto-generated method stub
 		throw new RuntimeException("Unimplemented");
 		
@@ -234,24 +250,140 @@ public class ExplodingPlacesServerProtocol implements ServerProtocol {
 	 */
 	@Override
 	public void handleGameInstanceEndingFromActive(GameInstance gi,
-			GameInstanceFactory factory, GameServer server, EntityManager em) {
+			GameInstanceFactory factory, GameServer server, EntityManager em) throws ConfigurationException {
 		// TODO Auto-generated method stub
 		throw new RuntimeException("Unimplemented");
 		
 		// TODO ending game instance
 	}
 	/* (non-Javadoc)
+	 * @see uk.ac.horizon.ug.lobby.server.ServerProtocol#validate(uk.ac.horizon.ug.lobby.model.GameInstanceFactory, uk.ac.horizon.ug.lobby.model.GameServer)
+	 */
+	@Override
+	public void validate(GameInstanceFactory factory, GameServer server)
+			throws ConfigurationException {
+		getServerConfig(factory);
+	}
+	public static final String CONTENT_GROUP = "contentGroup";
+	private JSONObject getServerConfig(GameInstanceFactory factory) throws ConfigurationException {
+		if (factory.getServerConfigJson()==null) {
+			throw new ConfigurationException("serverConfigJson undefined");
+		}
+		try {
+			JSONObject o = new JSONObject(factory.getServerConfigJson());
+			if (!o.has(CONTENT_GROUP))
+				throw new ConfigurationException("Config must include "+CONTENT_GROUP+" property");
+			JSONObject contentGroup = o.getJSONObject(CONTENT_GROUP);
+			return o;
+		}
+		catch (JSONException e) {
+			throw new ConfigurationException(e.toString()+" for "+factory.getServerConfigJson());
+		}
+		
+	}
+	private JSONObject getContentGroupConfig(JSONObject config) throws ConfigurationException {
+		try {
+			return config.getJSONObject(CONTENT_GROUP);
+		} catch (JSONException e) {
+			throw new ConfigurationException("Config must include "+CONTENT_GROUP+" property with object value");
+		}
+	}
+	/* (non-Javadoc)
 	 * @see uk.ac.horizon.ug.lobby.server.ServerProtocol#handleGameInstancePreparingFromPlanned(uk.ac.horizon.ug.lobby.model.GameInstance, uk.ac.horizon.ug.lobby.model.GameInstanceFactory, uk.ac.horizon.ug.lobby.model.GameServer, javax.persistence.EntityManager)
 	 */
 	@Override
 	public void handleGameInstancePreparingFromPlanned(GameInstance gi,
-			GameInstanceFactory factory, GameServer server, EntityManager em) {
-		// TODO Auto-generated method stub
+			GameInstanceFactory factory, GameServer server, EntityManager em) throws ConfigurationException, IOException {
+		// identify appropriate ContentGroup
+
+		// serverConfigJson must include 'contentGroup':{...}
+		// where inner properties filter ContentGroups, e.g. name, location, version
+		JSONObject contentGroupConfig = getContentGroupConfig(getServerConfig(factory));
+		String getContentGroupsUrl = server.getBaseUrl()+"/orchestration/content_group_list";
+		// e.g.  
+		// <array size="2" elementjavatype="java.lang.Object">
+		//   <item>
+		//     <ContentGroup package="uk.ac.horizon.ug.exploding.db">
+		//       <ID>CG500</ID> 
+		//       <name>gameState.xml</name> 
+		//       <version>1.0</version> 
+		//       <location>Woolwich</location> 
+		//       <startYear>1900</startYear> 
+		//       <endYear>2020</endYear> 
+		//     </ContentGroup>
+		//   </item>
+		//   ...
+		Document doc = doPost(getContentGroupsUrl, null);
+		String contentGroupId = null;
+		
+		Element rootEl = doc.getDocumentElement();
+		NodeList items= rootEl.getElementsByTagName("item");
+		nextitem:
+		for (int ii=0; ii<items.getLength(); ii++) {
+			Element itemEl = (Element)items.item(ii);
+			NodeList cgs = rootEl.getElementsByTagName("ContentGroup");
+			for (int cgi=0; cgi<cgs.getLength(); cgi++) {
+				Element cgEl = (Element)cgs.item(cgi);
+				NodeList cns = cgEl.getChildNodes();
+				String id = null;
+				for (int cni=0; cni<cns.getLength(); cni++) {
+					Node cn = cns.item(cni);
+					if (cn instanceof Element) {
+						Element cnEl = (Element)cn;
+						String name = cnEl.getTagName();
+						String value = cnEl.getTextContent();
+						if (contentGroupConfig.has(name)) {
+							try {
+								if (!value.equals(contentGroupConfig.get(name)))
+									// mis-match
+									continue nextitem;
+							}
+							catch (JSONException je) {/*shouldn't happen*/}
+						}
+						if (name.equals("ID"))
+							id = value;
+					}
+				}
+				// satisfied any constraints
+				if (id!=null) {
+					contentGroupId = id;
+					break nextitem;
+				}
+			}				
+		}
+		
+		if (contentGroupId==null) 
+			throw new ConfigurationException("Server has no ContentGroup matching "+contentGroupConfig.toString());
+		
+		// generate and store Game Tag (for use with login)
+		String name = gi.getTitle()+"/"+(new Date());
+		String tag = gi.getTitle()+"/"+(new Date())+"/"+UUID.randomUUID().toString();
+		
+		// create game using orchestration form
+		// POST with url-encoded contentGroupID, name and tag to orchestration/create.html
+		String createUrl = server.getBaseUrl()+"/orchestration/lobby_create?"+
+			"contentGroupID="+URLEncoder.encode(contentGroupId, "UTF-8")+
+			"&name="+URLEncoder.encode(name, "UTF-8")+
+			"&tag="+URLEncoder.encode(tag, "UTF-8");
+		
+		doc = doPost(createUrl, null);
+		// returns something like:
+		// <?xml version="1.0"?>
+		// <Game package="uk.ac.horizon.ug.exploding.db">
+		//   <ID>GA514</ID>
+		//   <contentGroupID>CG500</contentGroupID>
+		//   <name>name</name>
+		//   <tag>tag</tag>
+		//   <timeCreated>1283957181008</timeCreated>
+		//   <gameTimeID>GT514</gameTimeID>
+		//   <state>NOT_STARTED</state>
+		//  </Game>
+		String gameId = getElement(doc, "ID");
+		if (gameId==null)
+			throw new IOException("No ID in return from lobby_create");
+		
+		// TODO store generated Game ID
 		throw new RuntimeException("Unimplemented");
-		// TODO actually create a game instance
-		// TODO requires identifying appropriate ContentGroup
-		// TODO requires generating and storing Game Tag (for use with login)
-		// TODO requires storing of generated Game ID
 	}
 	/* (non-Javadoc)
 	 * @see uk.ac.horizon.ug.lobby.server.ServerProtocol#handleGameInstanceReadyFromPreparing(uk.ac.horizon.ug.lobby.model.GameInstance, uk.ac.horizon.ug.lobby.model.GameInstanceFactory, uk.ac.horizon.ug.lobby.model.GameServer, javax.persistence.EntityManager)
