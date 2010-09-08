@@ -40,6 +40,13 @@ public class RunBackgroundTasksServlet extends HttpServlet {
 			logger.log(Level.WARNING,"Error doing checkAllGameInstanceFactories", e);
 		}
 			
+		try {
+			GameInstanceTasks.checkAllGameInstances();
+		} 
+		catch (Exception e) {
+			logger.log(Level.WARNING,"Error doing checkAllGameInstances", e);
+		}
+			
 		resp.setContentType("text/plain");
 		resp.getWriter().close();
 	}

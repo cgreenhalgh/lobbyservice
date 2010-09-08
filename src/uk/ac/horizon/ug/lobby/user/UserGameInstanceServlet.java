@@ -157,6 +157,7 @@ public class UserGameInstanceServlet extends HttpServlet implements Constants {
 			
 			logger.info("Update GameInstance "+gii.gameInstance+" -> "+ngi);
 			// fix up
+			// not status
 			if (ngi.getNominalStatus()!=null)
 				gii.gameInstance.setNominalStatus(ngi.getNominalStatus());
 			if (ngi.getBaseUrl()!=null)

@@ -33,7 +33,9 @@ import uk.ac.horizon.ug.lobby.Constants;
 import uk.ac.horizon.ug.lobby.model.EMF;
 import uk.ac.horizon.ug.lobby.model.GameInstance;
 import uk.ac.horizon.ug.lobby.model.GameInstanceFactory;
+import uk.ac.horizon.ug.lobby.model.GameInstanceFactoryType;
 import uk.ac.horizon.ug.lobby.model.GameInstanceNominalStatus;
+import uk.ac.horizon.ug.lobby.model.GameInstanceStatus;
 import uk.ac.horizon.ug.lobby.model.GameTemplate;
 import uk.ac.horizon.ug.lobby.model.GameTemplateVisibility;
 import uk.ac.horizon.ug.lobby.model.ServerConfiguration;
@@ -76,10 +78,10 @@ public class FactoryTasks implements Constants {
 			em.close();
 		}
 	}
-	/** max nominal check interval - limits rate at which tokens can be added (5 minutes) */
-	public static final long MAX_CHECK_INTERVAL_MS = 300000;
 	/** one hour */
 	public static final long ONE_HOUR = 3600000;
+	/** max nominal check interval - limits rate at which tokens can be added (5 minutes) */
+	public static final long MAX_CHECK_INTERVAL_MS = ONE_HOUR;
 	/**
 	 * @param em
 	 * @param gif
@@ -140,6 +142,10 @@ public class FactoryTasks implements Constants {
 			em.close();
 		}		
 
+		if (gif.getType()!=GameInstanceFactoryType.SCHEDULED)
+			// not scheduled
+			return;
+		
 		if (gif.getStartTimeOptionsJson()==null) {
 			// no cron...
 			return;
@@ -239,7 +245,9 @@ public class FactoryTasks implements Constants {
 				}
 				ngi.setLocationName(gif.getLocationName());
 				ngi.setMaxNumSlots(gif.getMaxNumSlots());
-				ngi.setNominalStatus(GameInstanceNominalStatus.POSSIBLE);
+				// SCHEDULED => PLANNED
+				ngi.setNominalStatus(GameInstanceNominalStatus.PLANNED);
+				ngi.setStatus(GameInstanceStatus.PLANNED);
 				ngi.setNumSlotsAllocated(0);
 				ngi.setStartTime(startTime);
 				//ngi.setStatus()

@@ -23,23 +23,7 @@ package uk.ac.horizon.ug.lobby.model;
  * @author cmg
  *
  */
-public enum GameInstanceStatus {
-	UNMANAGED, // nothing to do with us!
-//	POSSIBLE,
-	PLANNED,
-	CANCELLED, // i.e. never happened
-	PREPARING, // create sub-state - players cannot yet join
-	READY, // done create - players could now join
-//	STARTING, // transition to ACTIVE
-	ACTIVE, // done start - playing, normal, players can join
-	ENDING, // done ending - playing, ending, players can join
-	ENDED, // done end - stopped/ended, players cannot join
-//	ARCHIVED,
-//	ERROR, // temporary
-//	FAILED, // permanent
-//	STOPPING, // deliberate, transition to STOPPED
-//	STOPPED, // not supported
-//	PAUSING, // resumable, transition to PAUSED
-//	PAUSED, // not supported
-//	RESUMING; // transition to ACTIVE (from PAUSED)
+public enum GameInstanceFactoryType {
+	SCHEDULED
+	// not yet implemented: ON_DEMAND
 }

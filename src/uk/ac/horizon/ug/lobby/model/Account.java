@@ -25,6 +25,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
 import com.google.appengine.api.datastore.Key;
+import com.google.appengine.api.datastore.KeyFactory;
 
 /** Lobby service user (including Game administrator).
  * 
@@ -43,6 +44,10 @@ public class Account {
     private String nickname;
     /** game template quota - total number */
     private int gameTemplateQuota;
+    
+	public static Key userIdToKey(String id) {
+		return KeyFactory.createKey(Account.class.getSimpleName(), id);
+	}
     /** cons */
     public Account() {    	
     }

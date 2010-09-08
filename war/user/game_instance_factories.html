@@ -152,7 +152,7 @@
         	add_int_field(form, gt, 'serverEndingTimeOffsetMs');
         	add_int_field(form, gt, 'serverEndTimeOffsetMs');
         	add_boolean_field(form, gt, 'createForAnonymousClient');
-        	add_boolean_field(form, gt, 'createForNoClient');
+        	add_select_field(form, gt, 'type');
 			add_int_field(form, gt, 'newInstanceTokensMax');
 			//readonly: add_int_field(form, gt, 'newInstanceTokens');
 			add_int_field(form, gt, 'newInstanceTokensPerHour');
@@ -207,7 +207,7 @@
             	set_input_from_field(document,data,'serverEndingTimeOffsetMs');
             	set_input_from_field(document,data,'serverEndTimeOffsetMs');
             	set_checkbox_from_field(document,data,'createForAnonymousClient');
-            	set_checkbox_from_field(document,data,'createForNoClient');
+            	set_select_from_field(document,data,'type');
             	set_input_from_field(document,data,'newInstanceTokens');
             	set_input_from_field(document,data,'newInstanceTokensMax');
             	set_input_from_field(document,data,'newInstanceTokensPerHour');
@@ -276,13 +276,20 @@
 		<table border="1">
 			<tr><td>key</td><td><input type="text" name="key" readonly="readonly"/></td></tr>
 			<tr><td>title</td><td><input type="text" name="title"/></td></tr>
-			<tr><td>instance title</td><td><input type="text" name="instanceTitle"/></td></tr>
+			<tr><td>type</td><td>
+				<!-- <input type="text" name="nominalStatus"/>  -->
+				<select name="type">
+					<option label="Unspecified" value="" selected="true"></option>
+					<option label="SCHEDULED" value="SCHEDULED">SCHEDULED</option>
+				</select>  
+			</td></tr>
 			<tr><td>visibility</td><td>
 				<select name="visibility">
 					<option label="HIDDEN" value="HIDDEN">PUBLIC</option>
 					<option label="PUBLIC" value="PUBLIC">PUBLIC</option>
 				</select>
 			</td></tr>
+			<tr><td>instance title</td><td><input type="text" name="instanceTitle"/></td></tr>
 			<tr><td>instance visibility</td><td>
 				<select name="instanceVisibility">
 					<option label="HIDDEN" value="HIDDEN">PUBLIC</option>
@@ -319,7 +326,7 @@
 					<option label="ACTIVE" value="ACTIVE">ACTIVE</option>
 					<option label="PAUSED" value="PAUSED">PAUSED</option>
 					<option label="ARCHIVED" value="ARCHIVED">ARCHIVED</option>
-				/select>  
+				</select>  
 			</td></tr>
 			<tr><td>server config (JSON)</td><td><input type="text" name="serverConfigJson"/></td></tr>
 			<tr><td>server create time offset (ms)</td><td><input type="text" name="serverCreateTimeOffsetMs"/></td></tr>
@@ -327,7 +334,6 @@
 			<tr><td>server ending time offset (ms)</td><td><input type="text" name="serverEndingTimeOffsetMs"/></td></tr>
 			<tr><td>server end time offset (ms)</td><td><input type="text" name="serverEndTimeOffsetMs"/></td></tr>
 			<tr><td>create for anonymous client</td><td><input type="checkbox" name="createForAnonymousClient"/></td></tr>
-			<tr><td>create for no client</td><td><input type="checkbox" name="createForNoClient"/></td></tr>
 			<tr><td>new instance 'tokens'</td><td><input type="text" name="newInstanceTokens" readonly="readonly"/></td></tr>
 			<tr><td>new instance tokens max</td><td><input type="text" name="newInstanceTokensMax" value="0" /></td></tr>
 			<tr><td>new instance tokens per hour</td><td><input type="text" name="newInstanceTokensPerHour" value="0"/></td></tr>

@@ -28,6 +28,7 @@ import javax.persistence.Query;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.users.User;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
@@ -57,36 +58,48 @@ public class AccountUtils {
         	throw new RequestException(HttpServletResponse.SC_UNAUTHORIZED, "User is not authenticated");
         }
         
-        EntityManager em = EMF.get().createEntityManager();
-        Account account = null;
-        EntityTransaction et = em.getTransaction();
-        et.begin();
-        try {
-	        Query q = em.createQuery("SELECT x FROM "+Account.class.getName()+" x WHERE x.userId = :userId");
-	        q.setParameter("userId", user.getUserId());
-	        List<Account> accounts = (List<Account>)q.getResultList();
-	        if (accounts.size()==0) {
-	        	logger.info("Creating new Account for "+user.getUserId()+": email="+user.getEmail()+", nickname="+user.getNickname());
-	        	account = new Account();
-	        	account.setUserId(user.getUserId());
-	        	account.setNickname(user.getNickname());
-	        	// can't create by default
-	        	account.setGameTemplateQuota(0);
-	        	em.persist(account);
-	        	et.commit();
-	        }
-	        else	 {
-	        	account = accounts.get(0);
-	        	if (accounts.size()>1) {
-	        		logger.warning("Found "+accounts.size()+" Accounts for userId "+user.getUserId());
-	        	}
-	        }
+        // Something stinks here...
+        // when i run this code twice concurrently as first op on desktop deployment it
+        // throws java.lang.UnsupportedOperationException
+        //    at org.datanucleus.store.appengine.EntityUtils.getPropertyName(EntityUtils.java:62)
+        //    ...
+        // this appears to be an 'old' error with datanucleus initialisation:
+        //    http://groups.google.com/group/google-appengine-java/browse_thread/thread/ba7f6868ffbebbc9/930c3f3b313863e0?lnk=gst&q=UnsupportedOperationException+#930c3f3b313863e0
+        // but in that case why is it still happening now?!
+        synchronized (Account.class) {
+        	EntityManager em = EMF.get().createEntityManager();
+        	Account account = null;
+        	EntityTransaction et = em.getTransaction();
+        	et.begin();
+        	try {
+        		// Hmm. So (on GAE) any query without an ancestor constraint cannot be part of a transaction.
+        		// So assuming that we don't want to put all Accounts into the same EntityGroup (for performance)
+        		// we probably just have to make sure that our 'unique' name is actually used in the key,
+        		// so we are not really querying at all.
+        		//Query q = em.createQuery("SELECT x FROM "+Account.class.getName()+" x WHERE x.userId = :userId");
+        		//q.setParameter("userId", user.getUserId());
+        		Key accountKey = Account.userIdToKey(user.getUserId());
+
+        		// in transaction
+        		account = em.find(Account.class, accountKey);
+        		if (account==null) {
+        			logger.info("Creating new Account for "+user.getUserId()+": email="+user.getEmail()+", nickname="+user.getNickname());
+        			account = new Account();
+        			account.setKey(Account.userIdToKey(user.getUserId()));
+        			account.setUserId(user.getUserId());
+        			account.setNickname(user.getNickname());
+        			// can't create by default
+        			account.setGameTemplateQuota(0);
+        			em.persist(account);
+        			et.commit();
+        		}
+        	}
+        	finally {
+        		if (et.isActive())
+        			et.rollback();
+        		em.close();
+        	}
+        	return account;
         }
-        finally {
-        	if (et.isActive())
-        		et.rollback();
-        	em.close();
-        }
-        return account;
 	}
 }

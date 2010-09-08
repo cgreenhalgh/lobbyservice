@@ -24,10 +24,10 @@ package uk.ac.horizon.ug.lobby.model;
  *
  */
 public enum GameInstanceNominalStatus {
-	POSSIBLE,
-	PLANNED,
+//	POSSIBLE, // Not sure what this means at the moment!
+	PLANNED, // actively and speicifically, i.e. it should/will happen
 	CANCELLED,
-	AVAILABLE,
+	AVAILABLE, // it is available to players right now, c.f. status 
 	TEMPORARILY_UNAVAILABLE,
 	ENDED
 }

@@ -48,6 +48,7 @@ import uk.ac.horizon.ug.lobby.model.GameInstance;
 import uk.ac.horizon.ug.lobby.model.GameInstanceFactory;
 import uk.ac.horizon.ug.lobby.model.GameInstanceFactoryLocationType;
 import uk.ac.horizon.ug.lobby.model.GameInstanceFactoryStatus;
+import uk.ac.horizon.ug.lobby.model.GameInstanceFactoryType;
 import uk.ac.horizon.ug.lobby.model.GameInstanceNominalStatus;
 import uk.ac.horizon.ug.lobby.model.GameInstanceStatus;
 import uk.ac.horizon.ug.lobby.model.GameServer;
@@ -631,8 +632,10 @@ public class JSONUtils implements Constants {
 		jw.value(gs.isAllowAnonymousClients());
 		jw.key(CREATE_FOR_ANONYMOUS_CLIENT);
 		jw.value(gs.isCreateForAnonymousClient());
-		jw.key(CREATE_FOR_NO_CLIENT);
-		jw.value(gs.isCreateForNoClient());
+		if (gs.getType()!=null) {
+			jw.key(TYPE);
+			jw.value(gs.getType().toString());
+		}
 		jw.key(DURATION_MS);
 		jw.value(gs.getDurationMs());
 		jw.key(LATITUDE_E6);
@@ -695,8 +698,6 @@ public class JSONUtils implements Constants {
 				gs.setAllowAnonymousClients(json.getBoolean(key));
 			else if (key.equals(CREATE_FOR_ANONYMOUS_CLIENT))
 				gs.setCreateForAnonymousClient(json.getBoolean(key));
-			else if (key.equals(CREATE_FOR_NO_CLIENT))
-				gs.setCreateForNoClient(json.getBoolean(key));
 			else if (key.equals(DURATION_MS))
 				gs.setDurationMs(json.getLong(key));
 			else if (key.equals(GAME_SERVER_ID))
@@ -751,6 +752,8 @@ public class JSONUtils implements Constants {
 				gs.setStatus(GameInstanceFactoryStatus.valueOf(json.getString(key)));
 			else if (key.equals(TITLE))
 				gs.setTitle(json.getString(key));
+			else if (key.equals(TYPE))
+				gs.setType(GameInstanceFactoryType.valueOf(json.getString(key)));
 			else if (key.equals(VISIBILITY))
 				gs.setVisibility(GameTemplateVisibility.valueOf(json.getString(key)));
 			else

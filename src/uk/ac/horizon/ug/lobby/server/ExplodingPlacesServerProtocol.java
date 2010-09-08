@@ -58,6 +58,7 @@ import uk.ac.horizon.ug.lobby.model.Account;
 import uk.ac.horizon.ug.lobby.model.GameClient;
 import uk.ac.horizon.ug.lobby.model.GameClientType;
 import uk.ac.horizon.ug.lobby.model.GameInstance;
+import uk.ac.horizon.ug.lobby.model.GameInstanceFactory;
 import uk.ac.horizon.ug.lobby.model.GameInstanceSlot;
 import uk.ac.horizon.ug.lobby.model.GameServer;
 import uk.ac.horizon.ug.lobby.protocol.GameJoinRequest;
@@ -117,6 +118,8 @@ public class ExplodingPlacesServerProtocol implements ServerProtocol {
 			gjresp.setNickname(nickname);
 			addElement(doc, "playerName", nickname);
 
+			// TODO include game tag
+			
 			if (gi.getBaseUrl()!=null && !gi.getBaseUrl().equals(server.getBaseUrl()))
 				logger.warning("GameInstance baseUrl does not match server baseUrl ("+gi.getBaseUrl()+" vs "+server.getBaseUrl()+") for "+gi);
 			URL url = new  URL(server.getBaseUrl()+"/rpc/login");
@@ -202,6 +205,64 @@ public class ExplodingPlacesServerProtocol implements ServerProtocol {
 		Element el = doc.createElement(tag);
 		doc.getDocumentElement().appendChild(el);
 		el.appendChild(doc.createTextNode(value));		
+	}
+	/* (non-Javadoc)
+	 * @see uk.ac.horizon.ug.lobby.server.ServerProtocol#handleGameInstanceActiveFromReady(uk.ac.horizon.ug.lobby.model.GameInstance, uk.ac.horizon.ug.lobby.model.GameInstanceFactory, uk.ac.horizon.ug.lobby.model.GameServer, javax.persistence.EntityManager)
+	 */
+	@Override
+	public void handleGameInstanceActiveFromReady(GameInstance gi,
+			GameInstanceFactory factory, GameServer server, EntityManager em) {
+		// TODO Auto-generated method stub
+		throw new RuntimeException("Unimplemented");
+		
+		// TODO start game instance
+		
+	}
+	/* (non-Javadoc)
+	 * @see uk.ac.horizon.ug.lobby.server.ServerProtocol#handleGameInstanceEnd(uk.ac.horizon.ug.lobby.model.GameInstance, uk.ac.horizon.ug.lobby.model.GameInstanceFactory, uk.ac.horizon.ug.lobby.model.GameServer, javax.persistence.EntityManager)
+	 */
+	@Override
+	public void handleGameInstanceEnd(GameInstance gi,
+			GameInstanceFactory factory, GameServer server, EntityManager em) {
+		// TODO Auto-generated method stub
+		throw new RuntimeException("Unimplemented");
+		
+		// TODO end/finish game instance
+	}
+	/* (non-Javadoc)
+	 * @see uk.ac.horizon.ug.lobby.server.ServerProtocol#handleGameInstanceEndingFromActive(uk.ac.horizon.ug.lobby.model.GameInstance, uk.ac.horizon.ug.lobby.model.GameInstanceFactory, uk.ac.horizon.ug.lobby.model.GameServer, javax.persistence.EntityManager)
+	 */
+	@Override
+	public void handleGameInstanceEndingFromActive(GameInstance gi,
+			GameInstanceFactory factory, GameServer server, EntityManager em) {
+		// TODO Auto-generated method stub
+		throw new RuntimeException("Unimplemented");
+		
+		// TODO ending game instance
+	}
+	/* (non-Javadoc)
+	 * @see uk.ac.horizon.ug.lobby.server.ServerProtocol#handleGameInstancePreparingFromPlanned(uk.ac.horizon.ug.lobby.model.GameInstance, uk.ac.horizon.ug.lobby.model.GameInstanceFactory, uk.ac.horizon.ug.lobby.model.GameServer, javax.persistence.EntityManager)
+	 */
+	@Override
+	public void handleGameInstancePreparingFromPlanned(GameInstance gi,
+			GameInstanceFactory factory, GameServer server, EntityManager em) {
+		// TODO Auto-generated method stub
+		throw new RuntimeException("Unimplemented");
+		// TODO actually create a game instance
+		// TODO requires identifying appropriate ContentGroup
+		// TODO requires generating and storing Game Tag (for use with login)
+		// TODO requires storing of generated Game ID
+	}
+	/* (non-Javadoc)
+	 * @see uk.ac.horizon.ug.lobby.server.ServerProtocol#handleGameInstanceReadyFromPreparing(uk.ac.horizon.ug.lobby.model.GameInstance, uk.ac.horizon.ug.lobby.model.GameInstanceFactory, uk.ac.horizon.ug.lobby.model.GameServer, javax.persistence.EntityManager)
+	 */
+	@Override
+	public void handleGameInstanceReadyFromPreparing(GameInstance gi,
+			GameInstanceFactory factory, GameServer server, EntityManager em) {
+		// TODO Auto-generated method stub
+		throw new RuntimeException("Unimplemented");
+		
+		// TODO no-op
 	}
 
 }

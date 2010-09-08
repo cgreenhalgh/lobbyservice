@@ -166,9 +166,8 @@ public class UserGameInstanceFactoryServlet extends HttpServlet implements Const
 			// note check of json, not ngi (which has default value(s))
 			if (json.has(CREATE_FOR_ANONYMOUS_CLIENT))
 				gii.gameInstanceFactory.setCreateForAnonymousClient(ngi.isCreateForAnonymousClient());
-			// note check of json, not ngi (which has default value(s))
-			if (json.has(CREATE_FOR_NO_CLIENT))
-				gii.gameInstanceFactory.setCreateForNoClient(ngi.isCreateForNoClient());
+			if (ngi.getType()!=null) 
+				gii.gameInstanceFactory.setType(ngi.getType());
 			// note check of json, not ngi (which has default value(s))
 			if (json.has(DURATION_MS))
 				gii.gameInstanceFactory.setDurationMs(ngi.getDurationMs());

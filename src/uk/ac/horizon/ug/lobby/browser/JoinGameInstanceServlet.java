@@ -383,7 +383,7 @@ public class JoinGameInstanceServlet extends HttpServlet implements Constants {
 		// is game instance nominally available?
 		switch(gi.getNominalStatus()) {
 		case PLANNED:
-		case POSSIBLE:
+		//case POSSIBLE: // not supported at the moment (waiting for dynamic game support)
 		case TEMPORARILY_UNAVAILABLE:
 			if (now < gi.getStartTime()) {
 				// try later...

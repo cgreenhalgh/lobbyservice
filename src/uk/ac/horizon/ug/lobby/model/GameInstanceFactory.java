@@ -41,6 +41,8 @@ public class GameInstanceFactory {
     private String gameTemplateId;
     /** server - for lifecycle and instance */
     private Key gameServerId;
+    /** factory type, e.g. SCHEDULED */
+    private GameInstanceFactoryType type;
     /** title - for search and instance*/
     private String title;
     /** title - for instance*/
@@ -86,8 +88,6 @@ public class GameInstanceFactory {
 	private long serverEndingTimeOffsetMs;
 	/** time (delta) to end game on server related to nominal endTime - for lifecycle */
 	private long serverEndTimeOffsetMs;
-	/** always create an instance when it is due - instance creation constraint(s) */
-	private boolean createForNoClient;
 	/** create an instance for anonymous (non-account) client - instance creation constraint(s) */
 	private boolean createForAnonymousClient;
 	/** new instance current quota (1 token = 1 instance) */
@@ -370,18 +370,6 @@ public class GameInstanceFactory {
 		this.instanceTitle = instanceTitle;
 	}
 	/**
-	 * @return the createForNoClient
-	 */
-	public boolean isCreateForNoClient() {
-		return createForNoClient;
-	}
-	/**
-	 * @param createForNoClient the createForNoClient to set
-	 */
-	public void setCreateForNoClient(boolean createForNoClient) {
-		this.createForNoClient = createForNoClient;
-	}
-	/**
 	 * @return the minTime
 	 */
 	public long getMinTime() {
@@ -500,6 +488,18 @@ public class GameInstanceFactory {
 	 */
 	public void setStartTimeOptionsJson(String startTimeOptionsJson) {
 		this.startTimeOptionsJson = startTimeOptionsJson;
+	}
+	/**
+	 * @return the type
+	 */
+	public GameInstanceFactoryType getType() {
+		return type;
+	}
+	/**
+	 * @param type the type to set
+	 */
+	public void setType(GameInstanceFactoryType type) {
+		this.type = type;
 	}
 	
 }

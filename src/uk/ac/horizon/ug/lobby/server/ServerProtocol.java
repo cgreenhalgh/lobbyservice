@@ -24,6 +24,7 @@ import javax.persistence.EntityManager;
 import uk.ac.horizon.ug.lobby.model.Account;
 import uk.ac.horizon.ug.lobby.model.GameClient;
 import uk.ac.horizon.ug.lobby.model.GameInstance;
+import uk.ac.horizon.ug.lobby.model.GameInstanceFactory;
 import uk.ac.horizon.ug.lobby.model.GameInstanceSlot;
 import uk.ac.horizon.ug.lobby.model.GameServer;
 import uk.ac.horizon.ug.lobby.protocol.GameJoinRequest;
@@ -37,4 +38,23 @@ import uk.ac.horizon.ug.lobby.protocol.GameJoinResponse;
 public interface ServerProtocol {
 	/** handle an authenticated "PLAY" request from a client */
 	public void handlePlayRequest(GameJoinRequest gjreq, GameJoinResponse gjresp, GameInstance gi, GameInstanceSlot gs, GameServer server, GameClient gc, Account account, EntityManager em);
+	/** game instance maintenance task - called from GameInstanceTasks.checkGameInstance */
+	public void handleGameInstancePreparingFromPlanned(GameInstance gi,
+			GameInstanceFactory factory, GameServer server, EntityManager em);
+
+	/** game instance maintenance task - called from GameInstanceTasks.checkGameInstance */
+	public void handleGameInstanceReadyFromPreparing(GameInstance gi,
+			GameInstanceFactory factory, GameServer server, EntityManager em);
+
+	/** game instance maintenance task - called from GameInstanceTasks.checkGameInstance */
+	public void handleGameInstanceActiveFromReady(GameInstance gi,
+			GameInstanceFactory factory, GameServer server, EntityManager em);
+
+	/** game instance maintenance task - called from GameInstanceTasks.checkGameInstance */
+	public void handleGameInstanceEndingFromActive(GameInstance gi,
+			GameInstanceFactory factory, GameServer server, EntityManager em);
+
+	/** game instance maintenance task - called from GameInstanceTasks.checkGameInstance */
+	public void handleGameInstanceEnd(GameInstance gi,
+			GameInstanceFactory factory, GameServer server, EntityManager em);
 }

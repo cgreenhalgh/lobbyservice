@@ -130,7 +130,7 @@
         	add_field(form, gt, 'title');
         	gt.gameTemplateId = game_template_id;
         	add_field(form, gt, 'baseUrl');
-        	//add_field(form, gt, 'status');
+        	// readonly: status
         	add_select_field(form, gt, 'nominalStatus');
         	add_select_field(form, gt, 'visibility');
         	add_time_field(form, gt, 'startTime');
@@ -175,6 +175,7 @@
             	set_input_from_field(document,data,'maxNumSlots');
             	set_input_from_field(document,data,'numSlotsAllocated');
             	set_input_from_field(document,data,'full');
+            	set_input_from_field(document,data,'status');
             	set_select_from_field(document,data,'visibility');
             	set_input_from_field(document,data,'locationName');
             	set_checkbox_from_field(document,data,'allowAnonymousClients');
@@ -279,6 +280,7 @@
 					<option label="ENDED" value="ENDED">ENDED</option>
 				</select>  
 			</td></tr>
+			<tr><td>(external server) status</td><td><input type="text" name="status" readonly/></td></tr>
 			<tr><td>base url</td><td><input type="text" name="baseUrl"/></td></tr>
 		</table>
 		<p><input type="submit" value="Add game instance"/><input type="reset" value="Reset/New" onclick="reset_game_template(this)"/></p>

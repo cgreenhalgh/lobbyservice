@@ -36,6 +36,7 @@ import uk.ac.horizon.ug.lobby.RequestException;
 import uk.ac.horizon.ug.lobby.model.Account;
 import uk.ac.horizon.ug.lobby.model.EMF;
 import uk.ac.horizon.ug.lobby.model.GameInstance;
+import uk.ac.horizon.ug.lobby.model.GameInstanceStatus;
 import uk.ac.horizon.ug.lobby.model.GameServer;
 import uk.ac.horizon.ug.lobby.model.GameServerStatus;
 import uk.ac.horizon.ug.lobby.model.GameTemplate;
@@ -105,7 +106,9 @@ public class AddGameInstanceServlet extends HttpServlet implements Constants {
 				resp.sendError(HttpServletResponse.SC_FORBIDDEN,"Add GameInstance GameTemplate '"+gi.getGameTemplateId()+"' not owned by "+account.getNickname());
 				return;				
 			}
-
+			// cannot add managed instances by hand - requires GameInstanceFactory
+			gi.setStatus(GameInstanceStatus.UNMANAGED);
+			
 			// cache state
 			if (gi.getMaxNumSlots()<=0)
 				gi.setFull(true);
