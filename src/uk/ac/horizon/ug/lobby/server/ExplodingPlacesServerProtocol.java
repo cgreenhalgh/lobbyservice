@@ -186,9 +186,8 @@ public class ExplodingPlacesServerProtocol implements ServerProtocol {
 				nickname = "Anonymous";
 			gjresp.setNickname(nickname);
 			addElement(doc, "playerName", nickname);
+			addElement(doc, "gameTag", getGameTag(gi));
 
-			// TODO include game tag
-			
 			if (gi.getBaseUrl()!=null && !gi.getBaseUrl().equals(server.getBaseUrl()))
 				logger.warning("GameInstance baseUrl does not match server baseUrl ("+gi.getBaseUrl()+" vs "+server.getBaseUrl()+") for "+gi);
 			String url = server.getBaseUrl()+"/rpc/login";
@@ -362,15 +361,15 @@ public class ExplodingPlacesServerProtocol implements ServerProtocol {
 			throw new ConfigurationException("Server has no ContentGroup matching "+contentGroupConfig.toString());
 		
 		// generate and store Game Tag (for use with login)
-		String name = gi.getTitle()+"/"+(new Date());
-		String tag = gi.getTitle()+"/"+(new Date())+"/"+UUID.randomUUID().toString();
+		String name = gi.getTitle()+"/"+(new Date(gi.getStartTime()));
+		String gameTag = gi.getTitle()+"/"+(new Date(gi.getStartTime()))+"/"+UUID.randomUUID().toString();
 		
 		// create game using orchestration form
 		// POST with url-encoded contentGroupID, name and tag to orchestration/create.html
 		String createUrl = server.getBaseUrl()+"/orchestration/lobby_create?"+
 			"contentGroupID="+URLEncoder.encode(contentGroupId, "UTF-8")+
 			"&name="+URLEncoder.encode(name, "UTF-8")+
-			"&tag="+URLEncoder.encode(tag, "UTF-8");
+			"&tag="+URLEncoder.encode(gameTag, "UTF-8");
 		
 		// TODO audit
 		doc = doPost(createUrl, null);
@@ -396,6 +395,7 @@ public class ExplodingPlacesServerProtocol implements ServerProtocol {
 		try {
 			JSONObject config = new JSONObject();
 			config.put(GAME_ID, gameId);
+			config.put(GAME_TAG, gameTag);
 			GameInstance ngi = em.find(GameInstance.class, gi.getKey());
 			ngi.setServerConfigJson(config.toString());
 			em.merge(ngi);
@@ -408,6 +408,7 @@ public class ExplodingPlacesServerProtocol implements ServerProtocol {
 		}
 	}
 	public static final String GAME_ID = "gameId";
+	public static final String GAME_TAG = "gameTag";
 	private String getGameId(GameInstance gi) throws IOException {
 		if (gi.getServerConfigJson()==null) {
 			throw new IOException("instance serverConfigJson undefined");
@@ -415,6 +416,18 @@ public class ExplodingPlacesServerProtocol implements ServerProtocol {
 		try {
 			JSONObject o = new JSONObject(gi.getServerConfigJson());
 			return o.getString(GAME_ID);
+		}
+		catch (JSONException e) {
+			throw new IOException(e.toString()+" for "+gi.getServerConfigJson());
+		}
+	}
+	private String getGameTag(GameInstance gi) throws IOException {
+		if (gi.getServerConfigJson()==null) {
+			throw new IOException("instance serverConfigJson undefined");
+		}
+		try {
+			JSONObject o = new JSONObject(gi.getServerConfigJson());
+			return o.getString(GAME_TAG);
 		}
 		catch (JSONException e) {
 			throw new IOException(e.toString()+" for "+gi.getServerConfigJson());
