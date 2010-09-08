@@ -35,6 +35,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityTransaction;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -79,6 +80,10 @@ public class ExplodingPlacesServerProtocol implements ServerProtocol {
 	static final int DEFAULT_TIMEOUT_MS = 30000;
 	/** do post of xml, return Connection */
 	public static Document doPost(String surl, Document doc) throws IOException {
+		return doPost(surl, doc, true);
+	}
+	/** do post of xml, return Connection */
+	public static Document doPost(String surl, Document doc, boolean readResponse) throws IOException {
 		try {
 			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 			dbf.setNamespaceAware(false);
@@ -86,8 +91,8 @@ public class ExplodingPlacesServerProtocol implements ServerProtocol {
 			URL url = new  URL(surl);
 			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 			if (doc!=null)
-				conn.setDoInput(true);
-			conn.setDoOutput(true);
+				conn.setDoOutput(true);
+			conn.setDoInput(true);
 			conn.setUseCaches(false);
 			conn.setRequestMethod("POST");
 			conn.setConnectTimeout(DEFAULT_TIMEOUT_MS);
@@ -104,10 +109,18 @@ public class ExplodingPlacesServerProtocol implements ServerProtocol {
 			int status = conn.getResponseCode();
 			if (status!=HttpServletResponse.SC_OK) 
 				throw new IOException("HTTP response "+status+": "+conn.getResponseMessage());
-			InputStream is = conn.getInputStream();
-			doc = db.parse(is);
-			is.close();
-			logger.info("Received response "+doc+" from "+url);
+
+			if (readResponse) {
+				InputStream is = conn.getInputStream();
+				doc = db.parse(is);
+				is.close();
+				logger.info("Received response "+doc+" from "+url);
+			}
+			else {
+				InputStream is = conn.getInputStream();
+				is.close();
+				doc = null;
+			}
 			return doc;
 		}		
 		catch (IOException e) {
@@ -227,34 +240,27 @@ public class ExplodingPlacesServerProtocol implements ServerProtocol {
 	 */
 	@Override
 	public void handleGameInstanceActiveFromReady(GameInstance gi,
-			GameInstanceFactory factory, GameServer server, EntityManager em) throws ConfigurationException {
-		// TODO Auto-generated method stub
-		throw new RuntimeException("Unimplemented");
-		
-		// TODO start game instance
-		
+			GameInstanceFactory factory, GameServer server, EntityManager em) throws ConfigurationException, IOException {
+		// TODO audit
+		doPost(server.getBaseUrl()+"/orchestration/play.html?gameID="+getGameId(gi), null, false);
 	}
 	/* (non-Javadoc)
 	 * @see uk.ac.horizon.ug.lobby.server.ServerProtocol#handleGameInstanceEnd(uk.ac.horizon.ug.lobby.model.GameInstance, uk.ac.horizon.ug.lobby.model.GameInstanceFactory, uk.ac.horizon.ug.lobby.model.GameServer, javax.persistence.EntityManager)
 	 */
 	@Override
 	public void handleGameInstanceEnd(GameInstance gi,
-			GameInstanceFactory factory, GameServer server, EntityManager em) throws ConfigurationException {
-		// TODO Auto-generated method stub
-		throw new RuntimeException("Unimplemented");
-		
-		// TODO end/finish game instance
+			GameInstanceFactory factory, GameServer server, EntityManager em) throws ConfigurationException, IOException {
+		// TODO audit
+		doPost(server.getBaseUrl()+"/orchestration/stop.html?gameID="+getGameId(gi), null, false);
 	}
 	/* (non-Javadoc)
 	 * @see uk.ac.horizon.ug.lobby.server.ServerProtocol#handleGameInstanceEndingFromActive(uk.ac.horizon.ug.lobby.model.GameInstance, uk.ac.horizon.ug.lobby.model.GameInstanceFactory, uk.ac.horizon.ug.lobby.model.GameServer, javax.persistence.EntityManager)
 	 */
 	@Override
 	public void handleGameInstanceEndingFromActive(GameInstance gi,
-			GameInstanceFactory factory, GameServer server, EntityManager em) throws ConfigurationException {
-		// TODO Auto-generated method stub
-		throw new RuntimeException("Unimplemented");
-		
-		// TODO ending game instance
+			GameInstanceFactory factory, GameServer server, EntityManager em) throws ConfigurationException, IOException {
+		// TODO audit
+		doPost(server.getBaseUrl()+"/orchestration/finish.html?gameID="+getGameId(gi), null, false);
 	}
 	/* (non-Javadoc)
 	 * @see uk.ac.horizon.ug.lobby.server.ServerProtocol#validate(uk.ac.horizon.ug.lobby.model.GameInstanceFactory, uk.ac.horizon.ug.lobby.model.GameServer)
@@ -366,6 +372,7 @@ public class ExplodingPlacesServerProtocol implements ServerProtocol {
 			"&name="+URLEncoder.encode(name, "UTF-8")+
 			"&tag="+URLEncoder.encode(tag, "UTF-8");
 		
+		// TODO audit
 		doc = doPost(createUrl, null);
 		// returns something like:
 		// <?xml version="1.0"?>
@@ -381,9 +388,37 @@ public class ExplodingPlacesServerProtocol implements ServerProtocol {
 		String gameId = getElement(doc, "ID");
 		if (gameId==null)
 			throw new IOException("No ID in return from lobby_create");
-		
-		// TODO store generated Game ID
-		throw new RuntimeException("Unimplemented");
+
+		// store generated Game ID
+		EntityTransaction et = em.getTransaction();
+		et.rollback();
+		et.begin();
+		try {
+			JSONObject config = new JSONObject();
+			config.put(GAME_ID, gameId);
+			GameInstance ngi = em.find(GameInstance.class, gi.getKey());
+			ngi.setServerConfigJson(config.toString());
+			em.merge(ngi);
+			et.commit();
+			et.begin();
+		} catch (Exception e) {
+			et.rollback();
+			et.begin();
+			throw new IOException("Problem saving gameId ("+gameId+"): "+e);
+		}
+	}
+	public static final String GAME_ID = "gameId";
+	private String getGameId(GameInstance gi) throws IOException {
+		if (gi.getServerConfigJson()==null) {
+			throw new IOException("instance serverConfigJson undefined");
+		}
+		try {
+			JSONObject o = new JSONObject(gi.getServerConfigJson());
+			return o.getString(GAME_ID);
+		}
+		catch (JSONException e) {
+			throw new IOException(e.toString()+" for "+gi.getServerConfigJson());
+		}
 	}
 	/* (non-Javadoc)
 	 * @see uk.ac.horizon.ug.lobby.server.ServerProtocol#handleGameInstanceReadyFromPreparing(uk.ac.horizon.ug.lobby.model.GameInstance, uk.ac.horizon.ug.lobby.model.GameInstanceFactory, uk.ac.horizon.ug.lobby.model.GameServer, javax.persistence.EntityManager)
@@ -391,10 +426,7 @@ public class ExplodingPlacesServerProtocol implements ServerProtocol {
 	@Override
 	public void handleGameInstanceReadyFromPreparing(GameInstance gi,
 			GameInstanceFactory factory, GameServer server, EntityManager em) {
-		// TODO Auto-generated method stub
-		throw new RuntimeException("Unimplemented");
-		
-		// TODO no-op
+		// no-op
 	}
 
 }

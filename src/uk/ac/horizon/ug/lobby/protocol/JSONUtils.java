@@ -432,6 +432,10 @@ public class JSONUtils implements Constants {
 			jw.key(KEY);
 			jw.value(KeyFactory.keyToString(gs.getKey()));
 		}
+		if (gs.getServerConfigJson()!=null) {
+			jw.key(SERVER_CONFIG_JSON);
+			jw.value(gs.getServerConfigJson().toString());
+		}
 		if (gs.getStatus()!=null) {
 			jw.key(STATUS);
 			jw.value(gs.getStatus().toString());
@@ -518,6 +522,7 @@ public class JSONUtils implements Constants {
 				gs.setNominalStatus(GameInstanceNominalStatus.valueOf(json.getString(key)));
 			else if (key.equals(RADIUS_METRES))
 				gs.setRadiusMetres(json.getDouble(key));
+			// not serverConfigJson?!
 			else if (key.equals(START_TIME))
 				gs.setStartTime(json.getLong(key));
 			else if (key.equals(STATUS))

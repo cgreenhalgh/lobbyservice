@@ -19,6 +19,7 @@
  */
 package uk.ac.horizon.ug.lobby.server;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -391,31 +392,31 @@ public class GameInstanceTasks implements Constants {
 		updateStatus(gi, GameInstanceStatus.PLANNED, GameInstanceStatus.CANCELLED, em);
 	}
 	private static void doPreparingFromPlanned(GameInstance gi,
-			GameInstanceFactory factory, GameServer server, EntityManager em) {
+			GameInstanceFactory factory, GameServer server, EntityManager em) throws ConfigurationException, IOException {
 		getServerProtocol(server).handleGameInstancePreparingFromPlanned(gi, factory, server, em);
 		
 		updateStatus(gi, GameInstanceStatus.PLANNED, GameInstanceStatus.PREPARING, em);
 	}
 	private static void doReadyFromPreparing(GameInstance gi,
-			GameInstanceFactory factory, GameServer server, EntityManager em) {
+			GameInstanceFactory factory, GameServer server, EntityManager em) throws ConfigurationException, IOException {
 		getServerProtocol(server).handleGameInstanceReadyFromPreparing(gi, factory, server, em);
 
 		updateStatus(gi, GameInstanceStatus.PREPARING, GameInstanceStatus.READY, em);	
 	}
 	private static void doActiveFromReady(GameInstance gi,
-			GameInstanceFactory factory, GameServer server, EntityManager em) {
+			GameInstanceFactory factory, GameServer server, EntityManager em) throws ConfigurationException, IOException {
 		getServerProtocol(server).handleGameInstanceActiveFromReady(gi, factory, server, em);
 		
 		updateStatus(gi, GameInstanceStatus.READY, GameInstanceStatus.ACTIVE, em);
 	}
 	private static void doEndingFromActive(GameInstance gi,
-			GameInstanceFactory factory, GameServer server, EntityManager em) {
+			GameInstanceFactory factory, GameServer server, EntityManager em) throws ConfigurationException, IOException {
 		getServerProtocol(server).handleGameInstanceEndingFromActive(gi, factory, server, em);
 		
 		updateStatus(gi, GameInstanceStatus.ACTIVE, GameInstanceStatus.ENDING, em);
 	}
 	private static void doEndFromPreparing(GameInstance gi,
-			GameInstanceFactory factory, GameServer server, EntityManager em) {
+			GameInstanceFactory factory, GameServer server, EntityManager em) throws ConfigurationException, IOException {
 		// Note: this can also be called from READY, ACTIVE and ENDING
 		getServerProtocol(server).handleGameInstanceEnd(gi, factory, server, em);
 		

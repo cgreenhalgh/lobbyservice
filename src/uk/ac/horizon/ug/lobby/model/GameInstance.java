@@ -74,7 +74,8 @@ public class GameInstance {
     private Key gameInstanceFactoryKey;
     /** created time */
     private Long createdTime;
-    // TODO conditions for actually starting/stopping instances
+	/** server configuration info (JSON) - for lifecycle */
+	private String serverConfigJson;
     /** cons */
     public GameInstance() {
     }
@@ -317,6 +318,18 @@ public class GameInstance {
 	 */
 	public void setCreatedTime(Long createdTime) {
 		this.createdTime = createdTime;
+	}
+	/**
+	 * @return the serverConfigJson
+	 */
+	public String getServerConfigJson() {
+		return serverConfigJson;
+	}
+	/**
+	 * @param serverConfigJson the serverConfigJson to set
+	 */
+	public void setServerConfigJson(String serverConfigJson) {
+		this.serverConfigJson = serverConfigJson;
 	}
     
 }
