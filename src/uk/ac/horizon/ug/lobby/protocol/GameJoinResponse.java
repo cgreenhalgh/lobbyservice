@@ -45,8 +45,10 @@ public class GameJoinResponse {
 	private GameJoinResponseStatus status;
 	/** message - for user */
 	private String message;
-	/** time when you can (next) try to PLAY */
+	/** time when you can (next) try to PLAY (or NEW_INSTANCE, if that failed on [say] quota) */
 	private Long playTime;
+	/** join Url - for NEW_INSTANCE response (if mapped to a GameInstance) for subsequent interaction */
+	private String joinUrl;
 	/** play Url - for the real server */
 	private String playUrl;
 	/** additional client-specific information */
@@ -188,16 +190,28 @@ public class GameJoinResponse {
 	public void setNickname(String nickname) {
 		this.nickname = nickname;
 	}
+	/**
+	 * @return the joinUrl
+	 */
+	public String getJoinUrl() {
+		return joinUrl;
+	}
+	/**
+	 * @param joinUrl the joinUrl to set
+	 */
+	public void setJoinUrl(String joinUrl) {
+		this.joinUrl = joinUrl;
+	}
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public String toString() {
 		return "GameJoinResponse [clientId=" + clientId + ", gameSlotId="
-				+ gameSlotId + ", message=" + message + ", nickname="
-				+ nickname + ", playData=" + playData + ", playTime="
-				+ playTime + ", playUrl=" + playUrl + ", status=" + status
-				+ ", time=" + time + ", type=" + type + ", version=" + version
-				+ "]";
+				+ gameSlotId + ", joinUrl=" + joinUrl + ", message=" + message
+				+ ", nickname=" + nickname + ", playData=" + playData
+				+ ", playTime=" + playTime + ", playUrl=" + playUrl
+				+ ", status=" + status + ", time=" + time + ", type=" + type
+				+ ", version=" + version + "]";
 	}
 }

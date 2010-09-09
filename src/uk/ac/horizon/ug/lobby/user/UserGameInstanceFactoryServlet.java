@@ -164,6 +164,9 @@ public class UserGameInstanceFactoryServlet extends HttpServlet implements Const
 			if (json.has(ALLOW_ANONYMOUS_CLIENTS))
 				gii.gameInstanceFactory.setAllowAnonymousClients(ngi.isAllowAnonymousClients());
 			// note check of json, not ngi (which has default value(s))
+			if (json.has(ALLOW_PRIVATE_INSTANCES))
+				gii.gameInstanceFactory.setAllowPrivateInstances(ngi.isAllowPrivateInstances());
+			// note check of json, not ngi (which has default value(s))
 			if (json.has(CREATE_FOR_ANONYMOUS_CLIENT))
 				gii.gameInstanceFactory.setCreateForAnonymousClient(ngi.isCreateForAnonymousClient());
 			if (ngi.getType()!=null) 

@@ -82,16 +82,16 @@ public class JSONUtils implements Constants {
 	/** write GameTemplateInfo
 	 * @throws JSONException */
 	public static void writeGameTemplate(JSONWriter jw, GameTemplateInfo gameTemplateInfo) throws JSONException {
-		writeGameTemplate(jw, gameTemplateInfo.getGameTemplate(), gameTemplateInfo.getGameClientTemplates(), gameTemplateInfo.getQueryUrl(), gameTemplateInfo.getGameInstance(), gameTemplateInfo.getJoinUrl(), gameTemplateInfo.getGameInstanceFactory(), gameTemplateInfo.getFirstStartTime(), gameTemplateInfo.getGameTimeOptions());
+		writeGameTemplate(jw, gameTemplateInfo.getGameTemplate(), gameTemplateInfo.getGameClientTemplates(), gameTemplateInfo.getQueryUrl(), gameTemplateInfo.getGameInstance(), gameTemplateInfo.getJoinUrl(), gameTemplateInfo.getGameInstanceFactory(), gameTemplateInfo.getFirstStartTime(), gameTemplateInfo.getGameTimeOptions(), gameTemplateInfo.getNewInstanceUrl());
 	}
 	/** write GameTemplate summary 
 	 * @throws JSONException */
 	public static void writeGameTemplate(JSONWriter jw, GameTemplate gameTemplate) throws JSONException {
-		writeGameTemplate(jw, gameTemplate, null, null, null, null, null, null, null);
+		writeGameTemplate(jw, gameTemplate, null, null, null, null, null, null, null, null);
 	}
 	/** write GameTemplate summary 
 	 * @throws JSONException */
-	public static void writeGameTemplate(JSONWriter jw, GameTemplate gameTemplate, List<GameClientTemplate> gameClientTemplates, String queryUrl, GameInstance gameInstance, String joinUrl, GameInstanceFactory gameInstanceFactory, Long firstStartTime, GameTimeOptions gameTimeOptions) throws JSONException {
+	public static void writeGameTemplate(JSONWriter jw, GameTemplate gameTemplate, List<GameClientTemplate> gameClientTemplates, String queryUrl, GameInstance gameInstance, String joinUrl, GameInstanceFactory gameInstanceFactory, Long firstStartTime, GameTimeOptions gameTimeOptions, String newInstanceUrl) throws JSONException {
 		jw.object();
 		if (gameTemplate.getId()!=null) {
 			jw.key(ID);
@@ -158,6 +158,10 @@ public class JSONUtils implements Constants {
 		if (queryUrl!=null) {
 			jw.key(QUERY_URL);
 			jw.value(queryUrl);
+		}
+		if (newInstanceUrl!=null) {
+			jw.key(NEW_INSTANCE_URL);
+			jw.value(newInstanceUrl);
 		}
 		if (gameInstance!=null) {
 			writeGameInstancePublicFields(jw, gameInstance, true);
@@ -636,6 +640,8 @@ public class JSONUtils implements Constants {
 		// TODO Auto-generated method stub
 		jw.key(ALLOW_ANONYMOUS_CLIENTS);
 		jw.value(gs.isAllowAnonymousClients());
+		jw.key(ALLOW_PRIVATE_INSTANCES);
+		jw.value(gs.isAllowPrivateInstances());
 		jw.key(CREATE_FOR_ANONYMOUS_CLIENT);
 		jw.value(gs.isCreateForAnonymousClient());
 		if (gs.getType()!=null) {
@@ -702,6 +708,8 @@ public class JSONUtils implements Constants {
 			String key = (String)keys.next();
 			if (key.equals(ALLOW_ANONYMOUS_CLIENTS))
 				gs.setAllowAnonymousClients(json.getBoolean(key));
+			else if (key.equals(ALLOW_PRIVATE_INSTANCES))
+				gs.setAllowPrivateInstances(json.getBoolean(key));
 			else if (key.equals(CREATE_FOR_ANONYMOUS_CLIENT))
 				gs.setCreateForAnonymousClient(json.getBoolean(key));
 			else if (key.equals(DURATION_MS))
@@ -962,14 +970,16 @@ public class JSONUtils implements Constants {
 				o.setLongitudeE6(json.getInt(key));
 			else if (key.equals(MAJOR_VERSION))
 				o.setMajorVersion(json.getInt(key));
+			else if (key.equals(NEW_INSTANCE_START_TIME))
+				o.setNewInstanceStartTime(json.getLong(key));
+			else if (key.equals(NEW_INSTANCE_VISIBILITY))
+				o.setNewInstanceVisibility(GameTemplateVisibility.valueOf(json.getString(key)));
 			else if (key.equals(NICKNAME))
 				o.setNickname(json.getString(key));
 			else if (key.equals(MINOR_VERSION))
 				o.setMinorVersion(json.getInt(key));
 			else if (key.equals(SEQ_NO))
 				o.setSeqNo(json.getInt(key));
-			else if (key.equals(START_TIME))
-				o.setStartTime(json.getLong(key));
 			else if (key.equals(TIME))
 				o.setTime(json.getLong(key));
 			else if (key.equals(TYPE))
@@ -994,6 +1004,10 @@ public class JSONUtils implements Constants {
 		if (gs.getGameSlotId()!=null) {
 			jw.key(GAME_SLOT_ID);
 			jw.value(gs.getGameSlotId());
+		}
+		if (gs.getJoinUrl()!=null) {
+			jw.key(JOIN_URL);
+			jw.value(gs.getJoinUrl());
 		}
 		if (gs.getMessage()!=null) {
 			jw.key(MESSAGE);

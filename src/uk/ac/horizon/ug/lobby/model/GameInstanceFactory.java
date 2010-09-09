@@ -92,8 +92,10 @@ public class GameInstanceFactory {
 	private long serverEndingTimeOffsetMs;
 	/** time (delta) to end game on server related to nominal endTime - for lifecycle */
 	private long serverEndTimeOffsetMs;
-	/** create an instance for anonymous (non-account) client - instance creation constraint(s) */
+	/** create an instance for anonymous (non-account) client - ON_DEMAND instance creation constraint(s) */
 	private boolean createForAnonymousClient;
+	/** create an instance with more limited visibility if requested by client - for ON_DEMAND */
+	private boolean allowPrivateInstances;
 	/** new instance current quota (1 token = 1 instance) */
 	private int newInstanceTokens;
 	/** new instance max momentary quota (token bucket size) */
@@ -524,6 +526,18 @@ public class GameInstanceFactory {
 	 */
 	public void setNewInstanceCounter(AuditCounter newInstanceCounter) {
 		this.newInstanceCounter = newInstanceCounter;
+	}
+	/**
+	 * @return the allowPrivateInstances
+	 */
+	public boolean isAllowPrivateInstances() {
+		return allowPrivateInstances;
+	}
+	/**
+	 * @param allowPrivateInstances the allowPrivateInstances to set
+	 */
+	public void setAllowPrivateInstances(boolean allowPrivateInstances) {
+		this.allowPrivateInstances = allowPrivateInstances;
 	}
 	
 }

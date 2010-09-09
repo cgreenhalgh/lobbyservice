@@ -43,9 +43,11 @@ public class GameTemplateInfo {
 	private GameTimeOptions gameTimeOptions;
 	/** client templates */
 	private List<GameClientTemplate> gameClientTemplates;
-	/** game (template)-specific URL for lobby client interaction */
+	/** game (template)-specific URL for lobby client interaction - query API (Template) */
 	private String queryUrl;
-	/** game (instance)-specific URL for lobby client interaction */
+	/** game (factory)-specific URL for lobby client interaction - new instance API (Factory) */
+	private String newInstanceUrl;
+	/** game (instance)-specific URL for lobby client interaction - reserve/join (Instance) */
 	private String joinUrl;
 	/** cons */
 	public GameTemplateInfo() {		
@@ -145,6 +147,18 @@ public class GameTemplateInfo {
 	 */
 	public void setGameTimeOptions(GameTimeOptions gameTimeOptions) {
 		this.gameTimeOptions = gameTimeOptions;
+	}
+	/**
+	 * @return the newInstanceUrl
+	 */
+	public String getNewInstanceUrl() {
+		return newInstanceUrl;
+	}
+	/**
+	 * @param newInstanceUrl the newInstanceUrl to set
+	 */
+	public void setNewInstanceUrl(String newInstanceUrl) {
+		this.newInstanceUrl = newInstanceUrl;
 	}
 	
 }

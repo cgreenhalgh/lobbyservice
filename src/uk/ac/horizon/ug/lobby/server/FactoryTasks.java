@@ -30,6 +30,7 @@ import javax.persistence.Query;
 
 import uk.ac.horizon.ug.lobby.ConfigurationUtils;
 import uk.ac.horizon.ug.lobby.Constants;
+import uk.ac.horizon.ug.lobby.model.Account;
 import uk.ac.horizon.ug.lobby.model.AuditRecordLevel;
 import uk.ac.horizon.ug.lobby.model.EMF;
 import uk.ac.horizon.ug.lobby.model.GameInstance;
@@ -225,71 +226,93 @@ public class FactoryTasks implements Constants {
 				else if (fgi.getNominalStatus()==GameInstanceNominalStatus.CANCELLED || fgi.getNominalStatus()==GameInstanceNominalStatus.ENDED) {
 					logger.warning("GameInstance "+gif.getKey()+" / "+startTime+" exists but is "+fgi.getNominalStatus());						
 				}
+				return tokensCache;
 			}
-			else {
-				if (tokensCache<=0) 
-					return -1;
-				
-				// create GameInstance on demand?!
-				GameInstance ngi = new GameInstance();
-				ngi.setAllowAnonymousClients(gif.isAllowAnonymousClients());
-				//ngi.setBaseUrl();
-				ngi.setCreatedTime(System.currentTimeMillis());
-				ngi.setEndTime(startTime+gif.getDurationMs());
-				ngi.setGameInstanceFactoryKey(gif.getKey());
-				ngi.setGameServerId(gif.getGameServerId());
-				ngi.setGameTemplateId(gif.getGameTemplateId());
-				switch(gif.getLocationType()) {
-				case GLOBAL:
-					ngi.setRadiusMetres(0);
-					break;
-				case SPECIFIED_LOCATION:
-					ngi.setLatitudeE6(gif.getLatitudeE6());
-					ngi.setLongitudeE6(gif.getLongitudeE6());
-					break;
-				}
-				ngi.setLocationName(gif.getLocationName());
-				ngi.setMaxNumSlots(gif.getMaxNumSlots());
-				// SCHEDULED => PLANNED
-				ngi.setNominalStatus(GameInstanceNominalStatus.PLANNED);
-				ngi.setStatus(GameInstanceStatus.PLANNED);
-				ngi.setNumSlotsAllocated(0);
-				ngi.setStartTime(startTime);
-				//ngi.setStatus()
-				// TODO symbol subst? in title
-				ngi.setTitle(gif.getInstanceTitle());
-				ngi.setVisibility(gif.getInstanceVisibility());
-				
-				// cache
-				ngi.setFull(ngi.getNumSlotsAllocated()>=ngi.getMaxNumSlots());
-
-				em.persist(ngi);
-				et.commit();
-				
-				// delete one from tokens
-				et.begin();
-				GameInstanceFactory ngif = em.find(GameInstanceFactory.class, gif.getKey());
-				ngif.setNewInstanceTokens(ngif.getNewInstanceTokens()-1);
-				if (startTime>ngif.getLastInstanceStartTime())
-					ngif.setLastInstanceStartTime(startTime);
-				else
-					logger.warning("GameInstanceFactory startTime "+startTime+" before lastInstanceStartTime "+ngif.getLastInstanceStartTime());
-				em.merge(ngif);
-				et.commit();
-				gif = ngif;
-				AuditUtils.logGameTemplateAuditRecord(gif.getGameTemplateId(), gif.getKey(), ngi.getKey(), /*accountKey*/null, /*clientIp*/null, System.currentTimeMillis(), GameTemplateAuditRecordType.SYSTEM_CREATE_GAME_INSTANCE, AuditRecordLevel.NORMAL, /*detailsJson*/null, "Created GameInstance");
-				//logger.info("Added GameInstance "+ngi+" (tokens="+ngif.getNewInstanceTokens()+")");		
-				if (ngif.getNewInstanceTokens()>0)
-					return ngif.getNewInstanceTokens();
-				logger.warning("GameInstanceFactory in token-debt ("+ngif.getNewInstanceTokens()+"): "+ngif);
-				return 0;
-			}
+			if (tokensCache<=0) 
+				return -1;
+			et.rollback();
+			// if you reach here you need to create it...
+			int rtokens[] = new int[1];
+			createGameInstanceFactoryInstance(gif, startTime, null, null, rtokens);
+			return rtokens[0];
 		}
 		finally {
 			if (et.isActive())
 				et.rollback();
 			em.close();
 		}	
-		return tokensCache;
+	}
+	/**
+	 * @param gif
+	 * @param nextStartTime
+	 * @return new value of newInstanceTokens; returns -1 to signal could not create
+	 */
+	public static GameInstance createGameInstanceFactoryInstance(
+			GameInstanceFactory gif, long startTime, Account account, String clientIp, int rtokens[]) {
+		EntityManager em = EMF.get().createEntityManager();
+		EntityTransaction et = em.getTransaction();
+		et.begin();
+		try {
+			// create GameInstance on demand?!
+			GameInstance ngi = new GameInstance();
+			ngi.setAllowAnonymousClients(gif.isAllowAnonymousClients());
+			//ngi.setBaseUrl();
+			ngi.setCreatedTime(System.currentTimeMillis());
+			ngi.setEndTime(startTime+gif.getDurationMs());
+			ngi.setGameInstanceFactoryKey(gif.getKey());
+			ngi.setGameServerId(gif.getGameServerId());
+			ngi.setGameTemplateId(gif.getGameTemplateId());
+			switch(gif.getLocationType()) {
+			case GLOBAL:
+				ngi.setRadiusMetres(0);
+				break;
+			case SPECIFIED_LOCATION:
+				ngi.setLatitudeE6(gif.getLatitudeE6());
+				ngi.setLongitudeE6(gif.getLongitudeE6());
+				break;
+			}
+			ngi.setLocationName(gif.getLocationName());
+			ngi.setMaxNumSlots(gif.getMaxNumSlots());
+			// SCHEDULED => PLANNED
+			ngi.setNominalStatus(GameInstanceNominalStatus.PLANNED);
+			ngi.setStatus(GameInstanceStatus.PLANNED);
+			ngi.setNumSlotsAllocated(0);
+			ngi.setStartTime(startTime);
+			//ngi.setStatus()
+			// TODO symbol subst? in title
+			ngi.setTitle(gif.getInstanceTitle());
+			ngi.setVisibility(gif.getInstanceVisibility());
+
+			// cache
+			ngi.setFull(ngi.getNumSlotsAllocated()>=ngi.getMaxNumSlots());
+
+			em.persist(ngi);
+			et.commit();
+
+			// delete one from tokens
+			et.begin();
+			GameInstanceFactory ngif = em.find(GameInstanceFactory.class, gif.getKey());
+			ngif.setNewInstanceTokens(ngif.getNewInstanceTokens()-1);
+			if (startTime>ngif.getLastInstanceStartTime())
+				ngif.setLastInstanceStartTime(startTime);
+			else
+				logger.warning("GameInstanceFactory startTime "+startTime+" before lastInstanceStartTime "+ngif.getLastInstanceStartTime());
+			em.merge(ngif);
+			et.commit();
+			gif = ngif;
+			AuditUtils.logGameTemplateAuditRecord(gif.getGameTemplateId(), gif.getKey(), ngi.getKey(), account!=null ? account.getKey() : null, clientIp, System.currentTimeMillis(), GameTemplateAuditRecordType.SYSTEM_CREATE_GAME_INSTANCE, AuditRecordLevel.NORMAL, /*detailsJson*/"{}", "Created GameInstance");
+			//logger.info("Added GameInstance "+ngi+" (tokens="+ngif.getNewInstanceTokens()+")");		
+			//if (ngif.getNewInstanceTokens()>0)
+			//return ngif.getNewInstanceTokens();
+			if (rtokens!=null)
+				rtokens[0] = ngif.getNewInstanceTokens();
+			logger.warning("GameInstanceFactory in token-debt ("+ngif.getNewInstanceTokens()+"): "+ngif);
+			return ngi;
+		}
+		finally {
+			if (et.isActive())
+				et.rollback();
+			em.close();
+		}	
 	}
 }

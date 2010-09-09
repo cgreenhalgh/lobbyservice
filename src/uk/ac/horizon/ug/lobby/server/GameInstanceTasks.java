@@ -198,6 +198,7 @@ public class GameInstanceTasks implements Constants {
 			}
 			
 			try {
+				logger.info("NominalStatus="+gi.getNominalStatus()+", target="+targetNominalStatus+", status="+gi.getStatus()+", target="+targetStatus);
 				// lets try to achieve these target states...
 				switch (gi.getStatus()) {
 				case ACTIVE:
@@ -350,6 +351,7 @@ public class GameInstanceTasks implements Constants {
 				ngi.setNominalStatus(targetNominalStatus);
 				em.merge(ngi);
 				et.commit();
+				logger.info("GameInstance reached targetStatus="+targetStatus+"; updating nominalStatus to "+targetNominalStatus);
 			}
 			else {
 				// didn't meet target, so...
@@ -357,6 +359,8 @@ public class GameInstanceTasks implements Constants {
 				if (targetNominalStatus==GameInstanceNominalStatus.AVAILABLE && ngi.getNominalStatus()==GameInstanceNominalStatus.AVAILABLE && (ngi.getStatus()!=GameInstanceStatus.READY && ngi.getStatus()!=GameInstanceStatus.ACTIVE && ngi.getStatus()!=GameInstanceStatus.ENDING)) {
 					logger.warning("Failed to reach AVAILABLE status: "+ngi.getStatus()+"; marking "+gi.getKey()+" as TEMPORARILY_UNAVAILABLE");
 					ngi.setNominalStatus(GameInstanceNominalStatus.TEMPORARILY_UNAVAILABLE);
+					em.merge(ngi);
+					et.commit();
 				}
 				else
 					logger.warning("Failed to reach target status "+targetStatus+": "+ngi.getStatus()+"; leaving nominal status ("+ngi.getNominalStatus()+")");
@@ -379,7 +383,9 @@ public class GameInstanceTasks implements Constants {
 		ngi.setStatus(newStatus);
 		em.merge(ngi);
 		et.commit();
-		et.begin();		
+		et.begin();	
+		// fiddle with cache too
+		gi.setStatus(newStatus);
 	}
 	private static ServerProtocol getServerProtocol(GameServer server) {
 		if (server.getTargetStatus()!=GameServerStatus.UP) 

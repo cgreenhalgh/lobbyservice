@@ -20,6 +20,7 @@
 package uk.ac.horizon.ug.lobby.protocol;
 
 import uk.ac.horizon.ug.lobby.model.GameClientType;
+import uk.ac.horizon.ug.lobby.model.GameTemplateVisibility;
 
 /** Query from client to server, looking for a specific game.
  * 
@@ -59,8 +60,10 @@ public class GameJoinRequest {
 	private Integer latitudeE6;
 	/** client current location - optional */
 	private Integer longitudeE6;
-	/** start time - required when using a GameInstanceTemplate */
-	private Long startTime;
+	/** start time - required when using a GameInstanceFactory (NEW_INSTANCE) */
+	private Long newInstanceStartTime;
+	/** suggested visibility of created game (HIDDEN -> personal?!) - optional, only when using a GameInstanceFactory (NEW_INSTANCE) */
+	private GameTemplateVisibility newInstanceVisibility;
 	/** cons */
 	public GameJoinRequest() {			
 	}
@@ -245,17 +248,31 @@ public class GameJoinRequest {
 		this.nickname = nickname;
 	}
 	
+
 	/**
-	 * @return the startTime
+	 * @return the newInstanceStartTime
 	 */
-	public Long getStartTime() {
-		return startTime;
+	public Long getNewInstanceStartTime() {
+		return newInstanceStartTime;
 	}
 	/**
-	 * @param startTime the startTime to set
+	 * @param newInstanceStartTime the newInstanceStartTime to set
 	 */
-	public void setStartTime(Long startTime) {
-		this.startTime = startTime;
+	public void setNewInstanceStartTime(Long newInstanceStartTime) {
+		this.newInstanceStartTime = newInstanceStartTime;
+	}
+	/**
+	 * @return the newInstanceVisibility
+	 */
+	public GameTemplateVisibility getNewInstanceVisibility() {
+		return newInstanceVisibility;
+	}
+	/**
+	 * @param newInstanceVisibility the newInstanceVisibility to set
+	 */
+	public void setNewInstanceVisibility(
+			GameTemplateVisibility newInstanceVisibility) {
+		this.newInstanceVisibility = newInstanceVisibility;
 	}
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
@@ -267,8 +284,11 @@ public class GameJoinRequest {
 				+ deviceId + ", gameSlotId=" + gameSlotId + ", latitudeE6="
 				+ latitudeE6 + ", longitudeE6=" + longitudeE6
 				+ ", majorVersion=" + majorVersion + ", minorVersion="
-				+ minorVersion + ", nickname=" + nickname + ", seqNo=" + seqNo
-				+ ", time=" + time + ", type=" + type + ", updateVersion="
-				+ updateVersion + ", version=" + version + "]";
+				+ minorVersion + ", newInstanceStartTime="
+				+ newInstanceStartTime + ", newInstanceVisibility="
+				+ newInstanceVisibility + ", nickname=" + nickname + ", seqNo="
+				+ seqNo + ", time=" + time + ", type=" + type
+				+ ", updateVersion=" + updateVersion + ", version=" + version
+				+ "]";
 	}
 }

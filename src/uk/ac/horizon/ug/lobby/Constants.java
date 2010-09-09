@@ -3,6 +3,7 @@ package uk.ac.horizon.ug.lobby;
 public interface Constants {
 	public static final String ACCOUNT_KEY = "accountKey";	
 	public static final String ALLOW_ANONYMOUS_CLIENTS = "allowAnonymousClients";	
+	public static final String ALLOW_PRIVATE_INSTANCES = "allowPrivateInstances";	
 	public static final String APPLICATION_LAUNCH_ID = "applicationLaunchId";
 	public static final String APPLICATION_MARKET_ID = "applicationMarketId";
 	public static final String BASE_URL = "baseUrl";	
@@ -72,9 +73,12 @@ public interface Constants {
 	public static final String MESSAGE = "message";
 	public static final String MINUTE = "minute";
 	public static final String MONTH = "month";
+	public static final String NEW_INSTANCE_START_TIME = "newInstanceStartTime";
 	public static final String NEW_INSTANCE_TOKENS = "newInstanceTokens";
 	public static final String NEW_INSTANCE_TOKENS_MAX = "newInstanceTokensMax";
 	public static final String NEW_INSTANCE_TOKENS_PER_HOUR = "newInstanceTokensPerHour";
+	public static final String NEW_INSTANCE_URL = "newInstanceUrl";
+	public static final String NEW_INSTANCE_VISIBILITY = "newInstanceVisibility";
 	public static final String NICKNAME = "nickname";
 	public static final String MIN_DURATION_MS = "minDurationMs";
 	public static final String MIN_MINOR_VERSION = "minMinorVersion";

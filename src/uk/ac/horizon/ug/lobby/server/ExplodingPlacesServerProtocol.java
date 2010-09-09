@@ -59,6 +59,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import uk.ac.horizon.ug.lobby.browser.JoinGameInstanceServlet;
+import uk.ac.horizon.ug.lobby.browser.JoinUtils;
 import uk.ac.horizon.ug.lobby.model.Account;
 import uk.ac.horizon.ug.lobby.model.GameClient;
 import uk.ac.horizon.ug.lobby.model.GameClientType;
@@ -169,7 +170,7 @@ public class ExplodingPlacesServerProtocol implements ServerProtocol {
 			addElement(doc, "clientId", gc.getId());
 			// conversationId is limited to 20 chars. 
 			// each log should be a new conversationId.
-			gs.setClientSharedSecret(JoinGameInstanceServlet.createClientSharedSecret(20*4));
+			gs.setClientSharedSecret(JoinUtils.createClientSharedSecret(20*4));
 			addElement(doc, "conversationId", gs.getClientSharedSecret());
 			gjresp.getPlayData().put("conversationId", gs.getClientSharedSecret());
 			
@@ -198,7 +199,7 @@ public class ExplodingPlacesServerProtocol implements ServerProtocol {
 				if ("FAILED".equals(replyStatus) || "GAME_NOT_FOUND".equals(replyStatus)) {
 					logger.warning("Retryable error logging into "+url+": reply");
 					// worth retrying
-					JoinGameInstanceServlet.setTryLater(gjresp);
+					JoinUtils.setTryLater(gjresp);
 					return;
 				}
 				logger.warning("Terminal error logging into "+url+": reply");
@@ -210,11 +211,11 @@ public class ExplodingPlacesServerProtocol implements ServerProtocol {
 			gjresp.getPlayData().put("gameStatus", getElement(doc, "gameStatus"));
 		} catch (IOException e) {
 			logger.log(Level.WARNING, "Problem doing login with URL based on "+server.getBaseUrl(), e);
-			JoinGameInstanceServlet.setTryLater(gjresp);
+			JoinUtils.setTryLater(gjresp);
 			return;
 		} catch (ParserConfigurationException e) {
 			logger.log(Level.WARNING, "Problem with XML parser", e);
-			JoinGameInstanceServlet.setError(gjresp, GameJoinResponseStatus.ERROR_INTERNAL, "Problem with ExplodingPlaces protocol");
+			JoinUtils.setError(gjresp, GameJoinResponseStatus.ERROR_INTERNAL, "Problem with ExplodingPlaces protocol");
 			return;
 		}
 		// generate client play URL. (Note conversationId is a required parameter)
@@ -401,6 +402,10 @@ public class ExplodingPlacesServerProtocol implements ServerProtocol {
 			em.merge(ngi);
 			et.commit();
 			et.begin();
+			
+			// fiddle the cached value too
+			gi.setServerConfigJson(ngi.getServerConfigJson());
+			
 		} catch (Exception e) {
 			et.rollback();
 			et.begin();

@@ -85,6 +85,10 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
 		<servlet-class>uk.ac.horizon.ug.lobby.browser.JoinGameInstanceServlet</servlet-class>
 	</servlet>
 	<servlet>
+		<servlet-name>NewGameInstance</servlet-name>
+		<servlet-class>uk.ac.horizon.ug.lobby.browser.NewGameInstanceServlet</servlet-class>
+	</servlet>
+	<servlet>
 		<servlet-name>RunBackgroundTasks</servlet-name>
 		<servlet-class>uk.ac.horizon.ug.lobby.server.RunBackgroundTasksServlet</servlet-class>
 	</servlet>
@@ -167,6 +171,10 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
 	<servlet-mapping>
 		<servlet-name>JoinGameInstance</servlet-name>
 		<url-pattern>/browser/JoinGameInstance/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>NewGameInstance</servlet-name>
+		<url-pattern>/browser/NewGameInstance/*</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>RunBackgroundTasks</servlet-name>

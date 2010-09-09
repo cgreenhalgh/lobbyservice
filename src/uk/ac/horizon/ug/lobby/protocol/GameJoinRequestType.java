@@ -24,7 +24,8 @@ package uk.ac.horizon.ug.lobby.protocol;
  *
  */
 public enum GameJoinRequestType {
-	RESERVE,
-	RELEASE,
-	PLAY
+	RESERVE, // for GameInstance
+	RELEASE, // for GameInstance
+	PLAY,    // for GameInstance
+	NEW_INSTANCE // for GameInstanceFactory
 }

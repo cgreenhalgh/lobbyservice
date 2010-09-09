@@ -142,6 +142,7 @@
         	add_time_field(form, gt, 'maxTime');
         	add_int_field(form, gt, 'maxNumSlots');
         	add_boolean_field(form, gt, 'allowAnonymousClients');
+        	add_boolean_field(form, gt, 'allowPrivateInstances');
         	add_field(form, gt, 'locationName');
         	add_int_field(form, gt, 'latitudeE6');
         	add_int_field(form, gt, 'longitudeE6');
@@ -201,6 +202,7 @@
             	set_input_from_field(document,data,'locationName');
             	set_select_from_field(document,data,'status');
             	set_checkbox_from_field(document,data,'allowAnonymousClients');
+            	set_checkbox_from_field(document,data,'allowPrivateInstances');
             	set_input_from_field(document,data,'serverConfigJson');
             	set_input_from_field(document,data,'serverCreateTimeOffsetMs');
             	set_input_from_field(document,data,'serverStartTimeOffsetMs');
@@ -281,6 +283,7 @@
 				<select name="type">
 					<option label="Unspecified" value="" selected="true"></option>
 					<option label="SCHEDULED" value="SCHEDULED">SCHEDULED</option>
+					<option label="ON_DEMAND" value="ON_DEMAND">ON_DEMAND</option>
 				</select>  
 			</td></tr>
 			<tr><td>visibility</td><td>
@@ -334,6 +337,7 @@
 			<tr><td>server ending time offset (ms)</td><td><input type="text" name="serverEndingTimeOffsetMs"/></td></tr>
 			<tr><td>server end time offset (ms)</td><td><input type="text" name="serverEndTimeOffsetMs"/></td></tr>
 			<tr><td>create for anonymous client</td><td><input type="checkbox" name="createForAnonymousClient"/></td></tr>
+			<tr><td>allow private instances</td><td><input type="checkbox" name="allowPrivateInstances"/></td></tr>
 			<tr><td>new instance 'tokens'</td><td><input type="text" name="newInstanceTokens" readonly="readonly"/></td></tr>
 			<tr><td>new instance tokens max</td><td><input type="text" name="newInstanceTokensMax" value="0" /></td></tr>
 			<tr><td>new instance tokens per hour</td><td><input type="text" name="newInstanceTokensPerHour" value="0"/></td></tr>

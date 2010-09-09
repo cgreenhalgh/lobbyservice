@@ -24,7 +24,7 @@ package uk.ac.horizon.ug.lobby.protocol;
  *
  */
 public enum GameJoinResponseStatus {
-	OK,
+	OK, 
 	TRY_LATER, // play but not yet time (or server/instance not yet active)
 	ERROR_FULL, // game is full
 	ERROR_UNSUPPORTED_CLIENT, 
@@ -36,5 +36,10 @@ public enum GameJoinResponseStatus {
 	ERROR_INTERNAL,
 	ERROR_BLOCKED, // slot/client explicitly blocked
 	ERROR_CANCELLED, // game cancelled
-	ERROR_ENDED // game cancelled
+	ERROR_ENDED, // game cancelled
+	ERROR_SCHEDULED_ONLY, // NEW_INSTANCE request made to SCHEDULED GameInstanceFactory
+	ERROR_SYSTEM_QUOTA_EXCEEDED, // NEW_INSTANCE request, but Factory has no quota left
+//	ERROR_USER_QUOTA_EXCEEDED // NEW_INSTANCE request, but no Client/Account quota left - not implemented
+	ERROR_START_TIME_TOO_SOON, // NEW_INSTANCE request, start time too soon (too close to now)
+	ERROR_START_TIME_INVALID, // NEW_INSTANCE request, start time not one supported by factory (e.g. out of range)
 }

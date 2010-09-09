@@ -59,6 +59,7 @@ import uk.ac.horizon.ug.lobby.model.GameInstance;
 import uk.ac.horizon.ug.lobby.model.GameInstanceFactory;
 import uk.ac.horizon.ug.lobby.model.GameInstanceFactoryLocationType;
 import uk.ac.horizon.ug.lobby.model.GameInstanceFactoryStatus;
+import uk.ac.horizon.ug.lobby.model.GameInstanceFactoryType;
 import uk.ac.horizon.ug.lobby.model.GameInstanceNominalStatus;
 import uk.ac.horizon.ug.lobby.model.GameInstanceStatus;
 import uk.ac.horizon.ug.lobby.model.GameServer;
@@ -473,14 +474,21 @@ public class QueryGameTemplateServlet extends HttpServlet implements Constants {
 				GameTemplateInfo gti = new GameTemplateInfo();
 				gti.setGameTemplate(gt);
 				gti.setGameInstanceFactory(gif);
-				try {
-					gti.setGameTimeOptions(FactoryUtils.getGameTimeOptions(gif.getStartTimeCron(), firstStartTime));
-				} catch (CronExpressionException e) {
-					logger.warning("Generating GameTimeOptions: "+e);
-				}
+				// now in startTimeOptionsJson...
+//				try {
+//					gti.setGameTimeOptions(FactoryUtils.getGameTimeOptions(gif.getStartTimeCron(), firstStartTime));
+//				} catch (CronExpressionException e) {
+//					logger.warning("Generating GameTimeOptions: "+e);
+//				}
 				gti.setFirstStartTime(firstStartTime);
-				// note re-query, not join!
-				gti.setQueryUrl(GetGameIndexServlet.makeQueryUrl(sc, gt));
+				if (gif.getType()==GameInstanceFactoryType.ON_DEMAND) {
+					// link to GIF newInstance request handler
+					gti.setNewInstanceUrl(makeNewInstanceUrl(sc, gif));
+				}
+				else {
+					// note re-query, not join!
+					gti.setQueryUrl(GetGameIndexServlet.makeQueryUrl(sc, gt));
+				}
 				if (locationOk)
 					gti.setGameClientTemplates(gcts);
 				else 
@@ -605,7 +613,7 @@ public class QueryGameTemplateServlet extends HttpServlet implements Constants {
 		return gcts;
 	}
 	private static final String JOIN_PATH = "browser/JoinGameInstance/";
-	private String makeJoinUrl(ServerConfiguration sc, GameInstance gi) {
+	static String makeJoinUrl(ServerConfiguration sc, GameInstance gi) {
 		StringBuilder sb = new StringBuilder();
 		if (sc.getBaseUrl()==null) {
 			logger.warning("Server BaseURL not configured");
@@ -617,6 +625,22 @@ public class QueryGameTemplateServlet extends HttpServlet implements Constants {
 				sb.append("/");			
 		}
 		sb.append(JOIN_PATH);
+		sb.append(KeyFactory.keyToString(gi.getKey()));
+		return sb.toString();
+	}
+	private static final String NEW_INSTANCE_PATH = "browser/NewGameInstance/";
+	private String makeNewInstanceUrl(ServerConfiguration sc, GameInstanceFactory gi) {
+		StringBuilder sb = new StringBuilder();
+		if (sc.getBaseUrl()==null) {
+			logger.warning("Server BaseURL not configured");
+			sb.append(GetGameIndexServlet.DEFAULT_BASE_URL);
+		}
+		else {
+			sb.append(sc.getBaseUrl());
+			if (!sc.getBaseUrl().endsWith("/"))
+				sb.append("/");			
+		}
+		sb.append(NEW_INSTANCE_PATH);
 		sb.append(KeyFactory.keyToString(gi.getKey()));
 		return sb.toString();
 	}

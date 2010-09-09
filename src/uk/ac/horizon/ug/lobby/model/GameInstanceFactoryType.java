@@ -24,6 +24,6 @@ package uk.ac.horizon.ug.lobby.model;
  *
  */
 public enum GameInstanceFactoryType {
-	SCHEDULED
-	// not yet implemented: ON_DEMAND
+	SCHEDULED,
+	ON_DEMAND
 }

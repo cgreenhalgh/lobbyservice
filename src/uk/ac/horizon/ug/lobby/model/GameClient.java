@@ -33,13 +33,12 @@ import com.google.appengine.api.datastore.KeyFactory;
  */
 @Entity
 public class GameClient {
-	/** key - parent is Account if client is associated with account.
-	 * Name is external ClientID (GUID) */
+	/* Name is external ClientID (GUID) */
     @Id 
     @GeneratedValue(strategy = GenerationType.IDENTITY) 
     private Key key; 
     /** ID - also key name, but separate to allow query without knowledge of Account ID */
-    private String id;
+    //private String id;
     /** account key - if client is associated with account */
     private Key accountKey;
     /** default nickname */
@@ -57,11 +56,12 @@ public class GameClient {
     /** IMEI */
     private String imei;
     /** generate key */
-    public static final Key idToKey(Key accountKey, String id) {
-    	if (accountKey!=null) 
-    		return KeyFactory.createKey(accountKey, GameClient.class.getSimpleName(), id);
-    	else
-    		return KeyFactory.createKey(GameClient.class.getSimpleName(), id);
+    public static final Key idToKey(String id) {
+    	// No point making Account parent, and it makes the create new client have more of a race!
+//    	if (accountKey!=null) 
+//    		return KeyFactory.createKey(accountKey, GameClient.class.getSimpleName(), id);
+//    	else
+    	return KeyFactory.createKey(GameClient.class.getSimpleName(), id);
     }
     /** cons */
     public GameClient() {    	
@@ -82,13 +82,21 @@ public class GameClient {
 	 * @return the id
 	 */
 	public String getId() {
-		return id;
+		if (key!=null)
+			return key.getName();
+		else
+			return null;
+		//return id;
 	}
 	/**
 	 * @param id the id to set
 	 */
 	public void setId(String id) {
-		this.id = id;
+		if (id==null)
+			key = null;
+		else
+			key = idToKey(id);
+		//this.id = id;
 	}
 	/**
 	 * @return the accountKey

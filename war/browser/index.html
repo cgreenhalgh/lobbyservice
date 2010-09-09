@@ -33,8 +33,16 @@
 			//alert('select game '+i+': '+item);
 			$('#item2').empty();
 			$('#item2').append('<table><h3><a href="'+item.link+'">'+item.title+'</a></h3>'+
+					(item.newInstanceUrl!=undefined ? '<p>(Factory)</p>' : '<p>(Specific Game)<p>')+
 					'<h2>'+item.subtitle+'</h2>'+
 					'<p>'+item.description+'</p></table>');
+			if (item2.newInstanceUrl!=undefined) {
+				$('#join_json').attr('value', 
+						'{"version":1,"type":"NEW_INSTANCE","newInstanceStartTime":'+item2.firstStartTime+',"clientType":"ANDROID","majorVersion":1,"minorVersion":6,"updateVersion":0}');
+			} else {
+				$('#join_json').attr('value', 
+						'{"version":1,"type":"PLAY","clientType":"ANDROID","majorVersion":1,"minorVersion":6,"updateVersion":0}');
+			}
 		}
 
 		function rebuild_index(index, table) {
@@ -84,6 +92,8 @@
 					button = '<input type="button" value="Go!" onclick="select_game('+i+')"/>';
 				if (item.joinUrl!=undefined) 
 					button = button+'<input type="button" value="Join!" onclick="join_game('+i+')"/>';
+				if (item.newInstanceUrl!=undefined) 
+					button = button+'<input type="button" value="Create!" onclick="join_game('+i+')"/>';
 				table.append('<tr><td>'+image+'</td><td>'+
 						'<h3><a href="'+item.link+'">'+item.title+'</a></h3>'+subtitle+
 						'<p>'+item.description+'</p>'+
@@ -139,24 +149,51 @@
 				return false;
 			}
 			var data = $('#join_json',form).attr('value');
-			try {
-				$.ajax({url: item2.joinUrl, 
-		    		type: 'POST',
-		    		contentType: 'application/json',
-		    		processData: false,
-		    		data: data,
-		    		dataType: 'json',
-		    		success: function success(data, status) {
-		    			//data = $.parseJSON(data);
-		    			//alert('Updated config ('+status+'): data='+data+' ('+$.toJSON(data)+')');
-	    				$('#join_resp',form).attr('value',$.toJSON(data));
-					},
-					error: function error(req, status) {
-		    			alert('Error doing join ('+req.status+': '+req.statusText+')');
-					}
-				});
-			} catch (err) {
-				alert('Error attempting join on '+item.joinUrl+': '+err);
+			var req = $.parseJSON(data);
+			var type = req.type;
+			if (type=='NEW_INSTANCE') {
+				// factory op
+				try {
+					$.ajax({url: item2.newInstanceUrl, 
+			    		type: 'POST',
+			    		contentType: 'application/json',
+			    		processData: false,
+			    		data: data,
+			    		dataType: 'json',
+			    		success: function success(data, status) {
+			    			//data = $.parseJSON(data);
+			    			//alert('Updated config ('+status+'): data='+data+' ('+$.toJSON(data)+')');
+		    				$('#join_resp',form).attr('value',$.toJSON(data));
+						},
+						error: function error(req, status) {
+			    			alert('Error doing newInstance ('+req.status+': '+req.statusText+')');
+						}
+					});
+				} catch (err) {
+					alert('Error attempting newInstance on '+item.newInstanceUrl+': '+err);
+				}
+			}
+			else {
+				// instance op
+				try {
+					$.ajax({url: item2.joinUrl, 
+			    		type: 'POST',
+			    		contentType: 'application/json',
+			    		processData: false,
+			    		data: data,
+			    		dataType: 'json',
+			    		success: function success(data, status) {
+			    			//data = $.parseJSON(data);
+			    			//alert('Updated config ('+status+'): data='+data+' ('+$.toJSON(data)+')');
+		    				$('#join_resp',form).attr('value',$.toJSON(data));
+						},
+						error: function error(req, status) {
+			    			alert('Error doing join ('+req.status+': '+req.statusText+')');
+						}
+					});
+				} catch (err) {
+					alert('Error attempting join on '+item.joinUrl+': '+err);
+				}
 			}
 			return false;
 		}
@@ -229,7 +266,7 @@
     		<li>"gameSlotId":"..." (for update ops)</li>
     		<li>"startTime":... (for instance factory join)</li>
     		<li>"nickname":"..."</li>
-    		<li>"type":"RESERVE" (or "RELEASE" or "PLAY")</li>
+    		<li>"type":"RESERVE" (or "RELEASE" or "PLAY" or "NEW_INSTANCE")</li>
     		<li>"clientType":"ANDROID"</li>
     		<li>"clientTitle":"..."</li>
     		<li>"majorVersion":1</li>
