@@ -19,14 +19,16 @@
  */
 package uk.ac.horizon.ug.lobby.model;
 
-import javax.persistence.Embeddable;
+import javax.jdo.annotations.EmbeddedOnly;
+import javax.jdo.annotations.PersistenceCapable;
 
 /** SNMP-style experiment - embeddable counter.
  * 
  * @author cmg
  *
  */
-@Embeddable
+@PersistenceCapable
+@EmbeddedOnly
 public class AuditCounter {
 	/** current value */
 	private int value;

@@ -19,10 +19,10 @@
  */
 package uk.ac.horizon.ug.lobby.model;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.jdo.annotations.IdGeneratorStrategy;
+import javax.jdo.annotations.PersistenceCapable;
+import javax.jdo.annotations.Persistent;
+import javax.jdo.annotations.PrimaryKey;
 
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
@@ -31,11 +31,11 @@ import com.google.appengine.api.datastore.KeyFactory;
  * @author cmg
  *
  */
-@Entity
+@PersistenceCapable
 public class GameClient {
 	/* Name is external ClientID (GUID) */
-    @Id 
-    @GeneratedValue(strategy = GenerationType.IDENTITY) 
+    @PrimaryKey 
+    @Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
     private Key key; 
     /** ID - also key name, but separate to allow query without knowledge of Account ID */
     //private String id;

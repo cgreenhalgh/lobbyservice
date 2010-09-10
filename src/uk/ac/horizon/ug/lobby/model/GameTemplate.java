@@ -19,8 +19,10 @@
  */
 package uk.ac.horizon.ug.lobby.model;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import javax.jdo.annotations.IdGeneratorStrategy;
+import javax.jdo.annotations.PersistenceCapable;
+import javax.jdo.annotations.Persistent;
+import javax.jdo.annotations.PrimaryKey;
 
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
@@ -29,10 +31,11 @@ import com.google.appengine.api.datastore.KeyFactory;
  * @author cmg
  *
  */
-@Entity
+@PersistenceCapable
 public class GameTemplate {
 	/** globally unique (random) ID and primary key */
-	@Id
+    @PrimaryKey 
+    @Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
 	private Key key;
 	/** title  (cf. RSS2.0 item, required unless description present)*/
 	private String title;

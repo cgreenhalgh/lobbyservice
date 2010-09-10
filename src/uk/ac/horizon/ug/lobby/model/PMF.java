@@ -19,22 +19,14 @@
  */
 package uk.ac.horizon.ug.lobby.model;
 
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
+import javax.jdo.JDOHelper; 
+import javax.jdo.PersistenceManagerFactory;  
 
-/**
- * @author cmg
- *
- */
-public class EMF {
-	// changed to JDO / PMF
-//    private static final EntityManagerFactory emfInstance = 
-//        Persistence.createEntityManagerFactory("transactions-optional"); 
-// 
-//    private EMF() {} 
-// 
-//    public static EntityManagerFactory get() { 
-//        return emfInstance; 
-//    } 
-
+public final class PMF {     
+	private static final PersistenceManagerFactory pmfInstance =         
+		JDOHelper.getPersistenceManagerFactory("transactions-optional");      
+	private PMF() {}      
+	public static PersistenceManagerFactory get() {       
+		return pmfInstance;     
+	} 
 }
