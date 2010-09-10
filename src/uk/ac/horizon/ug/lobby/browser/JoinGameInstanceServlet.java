@@ -111,7 +111,6 @@ public class JoinGameInstanceServlet extends HttpServlet implements Constants {
 
 		EntityManager em = EMF.get().createEntityManager();
 		EntityTransaction et = em.getTransaction();
-		et.begin();
 		try {
 			BufferedReader br = req.getReader();
 			String line = br.readLine();
@@ -126,7 +125,11 @@ public class JoinGameInstanceServlet extends HttpServlet implements Constants {
 				resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Request type must be PLAY/RELEASE/RESERVER ("+gjreq.getType()+")");
 				return;
 			}
+			et.rollback();
+			et.begin();
 			GameInstance gi = getGameInstance(req, em);
+			et.rollback();
+			et.begin();
 			
 			GameJoinResponse gjresp = new GameJoinResponse();
 			gjresp.setTime(System.currentTimeMillis());
@@ -134,11 +137,13 @@ public class JoinGameInstanceServlet extends HttpServlet implements Constants {
 			gjresp.setType(gjreq.getType());
 			
 			// authenticate client
+			et.rollback();
+			// own em/etc.
 			JoinUtils.JoinAuthInfo jai = JoinUtils.authenticate(gjreq, gjresp, gi.isAllowAnonymousClients(), resp, line, auth);
 			if (jai==null)
 				// dealt with
 				return;
-			
+			et.begin();
 			handleJoinRequestInternal(req, resp, sc, em, et, gjreq, gjresp, jai, gi);
 
 			
@@ -211,6 +216,7 @@ public class JoinGameInstanceServlet extends HttpServlet implements Constants {
 			// new Game Slot...
 			
 			// check if full
+			// TODO re-work as this isn't really consistent anyway
 			Query q;
 			q = em.createQuery("SELECT x FROM "+GameInstanceSlot.class.getSimpleName()+" x WHERE x."+GAME_INSTANCE_KEY+" = :"+GAME_INSTANCE_KEY);
 			q.setParameter(GAME_INSTANCE_KEY, gi.getKey());
