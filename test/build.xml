@@ -12,8 +12,8 @@
             like it says
     </description>
 
-	<propertyfile file="build.properties"></propertyfile>
-	<property name="sdk_root" location="/cmg/eclipse/eclipse-3.5/plugins/com.google.appengine.eclipse.sdkbundle.1.3.7_1.3.7.v201008311405/appengine-java-sdk-1.3.7"/>
+	<property file="build.properties"/>
+	<!--<property name="sdk_root" location="/cmg/eclipse/eclipse-3.5/plugins/com.google.appengine.eclipse.sdkbundle.1.3.7_1.3.7.v201008311405/appengine-java-sdk-1.3.7"/>-->
 	
 	<import file="${sdk_root}/config/user/ant-macros.xml" /> 
 	
@@ -21,9 +21,9 @@
           target: test              
          ================================= -->
     <target name="test" depends="compile" >
-        <junit printsummary="withOutAndErr" haltonerror="true" haltonfailure="true" >
+        <junit printsummary="on" haltonerror="true" haltonfailure="true" >
         	<classpath refid="testcp"/>
-        	<formatter type="plain" usefile="false"/>
+        	<formatter type="plain"/>
         	<test name="TestTest"/>
             <test name="JPATest"/>
     	</junit>
