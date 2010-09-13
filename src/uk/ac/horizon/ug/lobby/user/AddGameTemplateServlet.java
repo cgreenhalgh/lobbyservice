@@ -34,6 +34,7 @@ import java.util.logging.Logger;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.EntityTransaction;
 import javax.persistence.Query;
 import javax.servlet.http.*;
 
@@ -79,15 +80,25 @@ public class AddGameTemplateServlet extends HttpServlet implements Constants {
 			return;
 		}
         
-		Account account = null;
 		try {
-			account = AccountUtils.getAccount(req);
+			Account account = AccountUtils.getAccount(req);
+			handleAddGameTemplate(gameTemplateInfo, account);
+
+			// echo
+			JSONUtils.sendGameTemplate(resp, gameTemplateInfo);
 		}catch (RequestException re) {
 			resp.sendError(re.getErrorCode(), re.getMessage());
 			return;
 		}
+	}
+	public static void testHandleAddGameTemplate(GameTemplateInfo gameTemplateInfo, Account account) throws RequestException {
+		handleAddGameTemplate(gameTemplateInfo, account);
+	}
+	private static void handleAddGameTemplate(GameTemplateInfo gameTemplateInfo, Account account) throws RequestException {
 		EntityManager em = EMF.get().createEntityManager();
+		String id = gameTemplateInfo.getGameTemplate().getId();
 		try {
+			// Note: this is not entirely safe: concurrent adds won't be counted...
 			Query q = em.createQuery("SELECT COUNT(x) FROM "+GameTemplate.class.getName()+" x WHERE x."+OWNER_ID+" = :"+OWNER_ID);
 			q.setParameter(OWNER_ID, account.getKey());
 			int count = (Integer)q.getSingleResult();
@@ -95,28 +106,36 @@ public class AddGameTemplateServlet extends HttpServlet implements Constants {
 			if (account.getGameTemplateQuota() <= count) {
 				String msg = "Account "+account.getUserId()+" ("+account.getNickname()+") cannot add GameTemplate: quota="+account.getGameTemplateQuota()+", existing templates="+count;
 				logger.info(msg);
-				resp.sendError(HttpServletResponse.SC_FORBIDDEN, msg);
-				return;
+				throw new RequestException(HttpServletResponse.SC_FORBIDDEN, msg);
 			}
-			
-			// fill in missing info
-			String id = gameTemplateInfo.getGameTemplate().getId();
-			if (id==null) {
-				id = GUIDFactory.newGUID();
-				gameTemplateInfo.getGameTemplate().setId(id);
-			}
-			Key key = gameTemplateInfo.getGameTemplate().getKey();
-			gameTemplateInfo.getGameTemplate().setOwnerId(account.getKey());
-			
+		}
+		finally {
+			em.close();
+		}
+		
+		// fill in missing info
+		if (id==null) {
+			id = GUIDFactory.newGUID();
+			gameTemplateInfo.getGameTemplate().setId(id);
+		}
+		Key key = gameTemplateInfo.getGameTemplate().getKey();
+		gameTemplateInfo.getGameTemplate().setOwnerId(account.getKey());
+
+		em = EMF.get().createEntityManager();
+		EntityTransaction et = em.getTransaction();
+		try {
+			// atomic
+			et.begin();
+
 			if (em.find(GameTemplate.class, id)!=null) {
 				String msg = "GameTemplate "+id+" already exists";
 				logger.info(msg+" - add request by Account "+account.getUserId()+" ("+account.getNickname()+"");
-				resp.sendError(HttpServletResponse.SC_CONFLICT, msg);
-				return;
+				throw new RequestException(HttpServletResponse.SC_CONFLICT, msg);
 			}
 			em.persist(gameTemplateInfo.getGameTemplate());
 			logger.info("Creating GameTemplate "+gameTemplateInfo.getGameTemplate());
 			
+			// client templates are part of GameTemplate entity group (and so same transaction)
 			if (gameTemplateInfo.getGameClientTemplates()!=null) {
 				int i=1;
 				for (GameClientTemplate gameClientTemplate : gameTemplateInfo.getGameClientTemplates()) {
@@ -127,11 +146,12 @@ public class AddGameTemplateServlet extends HttpServlet implements Constants {
 					em.persist(gameClientTemplate);
 				}
 			}
+			et.commit();
 		}
 		finally {
+			if (et.isActive())
+				et.rollback();
 			em.close();
 		}
-
-		JSONUtils.sendGameTemplate(resp, gameTemplateInfo);
 	}
 }

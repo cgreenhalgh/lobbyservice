@@ -40,6 +40,7 @@ import uk.ac.horizon.ug.lobby.model.GameInstanceStatus;
 import uk.ac.horizon.ug.lobby.model.GameServer;
 import uk.ac.horizon.ug.lobby.model.GameServerStatus;
 import uk.ac.horizon.ug.lobby.model.GameTemplate;
+import uk.ac.horizon.ug.lobby.protocol.GameTemplateInfo;
 import uk.ac.horizon.ug.lobby.protocol.JSONUtils;
 
 /** 
@@ -52,6 +53,24 @@ import uk.ac.horizon.ug.lobby.protocol.JSONUtils;
 public class AddGameInstanceServlet extends HttpServlet implements Constants {
 	static Logger logger = Logger.getLogger(AddGameInstanceServlet.class.getName());
 	
+	public static class GameInstanceInfo {
+		public GameInstance gi;
+		public GameTemplate gt;
+		public GameServer gs;
+		public GameInstanceInfo() {}
+		/**
+		 * @param gi
+		 * @param gt
+		 * @param gs
+		 */
+		public GameInstanceInfo(GameInstance gi, GameTemplate gt, GameServer gs) {
+			super();
+			this.gi = gi;
+			this.gt = gt;
+			this.gs = gs;
+		}
+		
+	}
 	@Override
 	public void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException {
@@ -70,56 +89,65 @@ public class AddGameInstanceServlet extends HttpServlet implements Constants {
 			return;
 		}
         
-		Account account = null;
 		try {
-			account = AccountUtils.getAccount(req);
+			Account account = AccountUtils.getAccount(req);
+			GameInstanceInfo gii = handleAddGameInstance(gi, account);
+			JSONUtils.sendGameInstance(resp, gii.gi, gii.gt, gii.gs);
 		}catch (RequestException re) {
 			resp.sendError(re.getErrorCode(), re.getMessage());
 			return;
 		}
+	}
+	
+	
+	public static GameInstanceInfo testHandleAddGameInstance(GameInstance gi,
+			Account account) throws RequestException {
+		return handleAddGameInstance(gi, account);
+	}
+	private static GameInstanceInfo handleAddGameInstance(GameInstance gi,
+			Account account) throws RequestException {
+
 		EntityManager em = EMF.get().createEntityManager();
-		GameServer gs = null;
-		GameTemplate gt = null;
-		try {
+		try {			
+			GameServer gs = null;
+			GameTemplate gt = null;
+			if (gi.getKey()!=null) 
+				throw new RequestException(HttpServletResponse.SC_BAD_REQUEST, "addGameInstance cannot have key specified");
+
 			// not sure when to enforce this...
 			if (gi.getGameServerId()!=null) {
 				gs = em.find(GameServer.class, gi.getGameServerId());
 				if (gs==null) {
-					resp.sendError(HttpServletResponse.SC_BAD_REQUEST,"Add GameInstance GameServer '"+gi.getGameServerId()+"' unknown");
-					return;
+					throw new RequestException(HttpServletResponse.SC_BAD_REQUEST,"Add GameInstance GameServer '"+gi.getGameServerId()+"' unknown");
 				}
 				if (!KeyFactory.keyToString(gs.getOwnerId()).equals(KeyFactory.keyToString(account.getKey()))) {
-					resp.sendError(HttpServletResponse.SC_FORBIDDEN,"Add GameInstance GameServer '"+gi.getGameServerId()+"' not owned by "+account.getNickname());
-					return;				
+					throw new RequestException(HttpServletResponse.SC_FORBIDDEN,"Add GameInstance GameServer '"+gi.getGameServerId()+"' not owned by "+account.getNickname());
 				}
 			}
 			if (gi.getGameTemplateId()==null) {
-				resp.sendError(HttpServletResponse.SC_BAD_REQUEST,"Add GameInstance must have gameTemplateId");
-				return;
+				throw new RequestException(HttpServletResponse.SC_BAD_REQUEST,"Add GameInstance must have gameTemplateId");
 			}
 			gt = em.find(GameTemplate.class, GameTemplate.idToKey(gi.getGameTemplateId()));
 			if (gt==null) {
-				resp.sendError(HttpServletResponse.SC_BAD_REQUEST,"Add GameInstance GameTemplate '"+gi.getGameTemplateId()+"' unknown");
-				return;
+				throw new RequestException(HttpServletResponse.SC_BAD_REQUEST,"Add GameInstance GameTemplate '"+gi.getGameTemplateId()+"' unknown");
 			}
 			if (!KeyFactory.keyToString(gt.getOwnerId()).equals(KeyFactory.keyToString(account.getKey()))) {
-				resp.sendError(HttpServletResponse.SC_FORBIDDEN,"Add GameInstance GameTemplate '"+gi.getGameTemplateId()+"' not owned by "+account.getNickname());
-				return;				
+				throw new RequestException(HttpServletResponse.SC_FORBIDDEN,"Add GameInstance GameTemplate '"+gi.getGameTemplateId()+"' not owned by "+account.getNickname());
 			}
 			// cannot add managed instances by hand - requires GameInstanceFactory
 			gi.setStatus(GameInstanceStatus.UNMANAGED);
-			
+
 			// cache state
 			if (gi.getMaxNumSlots()<=0)
 				gi.setFull(true);
-			
+
 			em.persist(gi);
 			logger.info("Creating GameInstance "+gi+" for Account "+account.getUserId()+" ("+account.getNickname()+")");
+
+			return new GameInstanceInfo(gi, gt, gs);
 		}
 		finally {
 			em.close();
 		}
-
-		JSONUtils.sendGameInstance(resp, gi, gt, gs);
 	}
 }

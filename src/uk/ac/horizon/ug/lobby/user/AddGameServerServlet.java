@@ -65,20 +65,31 @@ public class AddGameServerServlet extends HttpServlet implements Constants {
 			return;
 		}
         
-		Account account = null;
 		try {
-			account = AccountUtils.getAccount(req);
-		}catch (RequestException re) {
+			Account account = AccountUtils.getAccount(req);
+			handleAddGameServer(gs, account);
+			JSONUtils.sendGameServer(resp, gs);
+		
+		} catch (RequestException re) {
 			resp.sendError(re.getErrorCode(), re.getMessage());
 			return;
 		}
+	}
+
+	public static void testHandleAddGameServer(GameServer gs, Account account) throws RequestException {
+		handleAddGameServer(gs, account);
+	}
+	
+	private static void handleAddGameServer(GameServer gs, Account account) throws RequestException {
 		if (account.getGameTemplateQuota()<=0) {
 			// can't have servers if don't have templates
 			String msg = "Account "+account.getUserId()+" ("+account.getNickname()+") cannot add GameServer: quota=0";
 			logger.info(msg);
-			resp.sendError(HttpServletResponse.SC_FORBIDDEN, msg);
-			return;
+			throw new RequestException(HttpServletResponse.SC_FORBIDDEN, msg);
 		}
+		if (gs.getKey()!=null) 
+			throw new RequestException(HttpServletResponse.SC_BAD_REQUEST, "addGameServer cannot have key specified");
+
 		EntityManager em = EMF.get().createEntityManager();
 		try {
 			// fill in missing info
@@ -93,6 +104,5 @@ public class AddGameServerServlet extends HttpServlet implements Constants {
 			em.close();
 		}
 
-		JSONUtils.sendGameServer(resp, gs);
 	}
 }

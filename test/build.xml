@@ -27,6 +27,7 @@
         	<test name="TestTest"/>
             <test name="JPATest"/>
             <test name="AdminTests"/>
+            <test name="UserTests"/>
     	</junit>
     </target>
 

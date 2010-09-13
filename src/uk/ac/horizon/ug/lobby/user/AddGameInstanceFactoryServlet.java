@@ -84,6 +84,9 @@ public class AddGameInstanceFactoryServlet extends HttpServlet implements Consta
 		GameServer gs = null;
 		GameTemplate gt = null;
 		try {
+			if (gi.getKey()!=null) 
+				throw new RequestException(HttpServletResponse.SC_BAD_REQUEST, "addGameInstanceFactory cannot have key specified");
+
 			// not sure when to enforce this...
 			if (gi.getGameServerId()!=null) {
 				gs = em.find(GameServer.class, gi.getGameServerId());
@@ -125,6 +128,9 @@ public class AddGameInstanceFactoryServlet extends HttpServlet implements Consta
 
 			em.persist(gi);
 			logger.info("Creating GameInstanceFactory "+gi+" for Account "+account.getUserId()+" ("+account.getNickname()+")");
+		} catch (RequestException re) {
+			resp.sendError(re.getErrorCode(), re.getMessage());
+			return;
 		}
 		finally {
 			em.close();

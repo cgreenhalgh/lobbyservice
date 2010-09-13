@@ -15,9 +15,13 @@ import uk.ac.horizon.ug.lobby.model.EMF;
 import uk.ac.horizon.ug.lobby.model.GUIDFactory;
 import uk.ac.horizon.ug.lobby.model.GameTemplate;
 import uk.ac.horizon.ug.lobby.model.ServerConfiguration;
+import uk.ac.horizon.ug.lobby.protocol.GameTemplateInfo;
+import uk.ac.horizon.ug.lobby.protocol.JSONUtils;
 import uk.ac.horizon.ug.lobby.user.AccountUtils;
+import uk.ac.horizon.ug.lobby.user.AddGameTemplateServlet;
 
 import com.google.appengine.api.datastore.Key;
+import com.google.appengine.api.urlfetch.HTTPRequest;
 import com.google.appengine.api.users.User;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
@@ -81,11 +85,10 @@ public class AdminTests {
 		setConfig();
 		Account account = AccountUtils.getAccount(null);
 		assertNotNull("Account not created", account);
-		JSONObject json = new JSONObject("{'userId':'"+TEST_USER_ID+"','gameTemplateQuota':10}");
+		JSONObject json = new JSONObject("{'userId':'"+TEST_USER_ID+"','gameTemplateQuota':1}");
 		UpdateAccountServlet.testUpdateAccount(TEST_USER_ID, json);
+		// NB it is for our own account
 		account = AccountUtils.getAccount(null);
-		assertEquals("Account gameTemplateQuota not update", 10, account.getGameTemplateQuota());
+		assertEquals("Account gameTemplateQuota not update", 1, account.getGameTemplateQuota());
 	}
-	
-	// TODO 
 }

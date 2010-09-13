@@ -97,6 +97,7 @@ public class UpdateAccountServlet extends HttpServlet implements Constants {
 				logger.info("Updated account "+userId+" gameTemplateQuota to "+account.getGameTemplateQuota());
 				//em.merge(account);
 			}		
+			// check/update 
 			return account;
 			//em.flush();
 			//tx.commit();
