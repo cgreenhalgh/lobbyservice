@@ -48,7 +48,7 @@ public class AccountUtils {
 	public static Account getAccount(HttpServletRequest req) throws RequestException {
         UserService userService = UserServiceFactory.getUserService(); 
         
-        if (req.getUserPrincipal() == null) { 
+        if (req!=null && req.getUserPrincipal() == null) { 
         	logger.warning("getUserPrinciple failed");
         	throw new RequestException(HttpServletResponse.SC_UNAUTHORIZED, "User is not authenticated");
         }
@@ -78,15 +78,22 @@ public class AccountUtils {
         		// so we are not really querying at all.
         		//Query q = em.createQuery("SELECT x FROM "+Account.class.getName()+" x WHERE x.userId = :userId");
         		//q.setParameter("userId", user.getUserId());
-        		Key accountKey = Account.userIdToKey(user.getUserId());
+        		// on testing userId = null; fall back to email?!
+        		String userId = user.getUserId();
+        		if (userId==null)
+        		{
+        			userId = user.getEmail();
+        			logger.warning("getAccount falling back to email for "+userId+" ("+user+")");
+        		}
+        		Key accountKey = Account.userIdToKey(userId);
 
         		// in transaction
         		account = em.find(Account.class, accountKey);
         		if (account==null) {
-        			logger.info("Creating new Account for "+user.getUserId()+": email="+user.getEmail()+", nickname="+user.getNickname());
+        			logger.info("Creating new Account for "+userId+": email="+user.getEmail()+", nickname="+user.getNickname());
         			account = new Account();
-        			account.setKey(Account.userIdToKey(user.getUserId()));
-        			account.setUserId(user.getUserId());
+        			account.setKey(Account.userIdToKey(userId));
+        			account.setUserId(userId);
         			account.setNickname(user.getNickname());
         			// can't create by default
         			account.setGameTemplateQuota(0);

@@ -57,9 +57,8 @@ public class UpdateAccountServlet extends HttpServlet implements Constants {
 			throws ServletException, IOException {
 		//logger.info("Get: contextPath="+req.getContextPath()+", pathInfo="+req.getPathInfo()+", queryString="+req.getQueryString());
 		
-		EntityManager em = EMF.get().createEntityManager();
-		//EntityTransaction tx = em.getTransaction();
-		Account account = null;
+		String userId = null;
+		JSONObject json = null;
 		try {
 			//tx.begin();
 			BufferedReader r = req.getReader();
@@ -67,26 +66,43 @@ public class UpdateAccountServlet extends HttpServlet implements Constants {
 			//logger.info("UpdateAccount(1): "+line);
 			// why does this seem to read {} ??
 			//JSONObject json = new JSONObject(req.getReader());
-			JSONObject json = new JSONObject(line);
+			json = new JSONObject(line);
 			//logger.info("UpdateAccount: "+json);
-			String userId = json.getString(USER_ID);
-			Query q = em.createQuery("SELECT x FROM "+Account.class.getName()+" x WHERE "+USER_ID+" = :"+USER_ID);
-			q.setParameter(USER_ID, userId);
-			account = (Account)q.getSingleResult();
+			userId = json.getString(USER_ID);
+		} catch (JSONException je) {
+			throw new IOException(je);
+		}
+		
+		try {
+			
+			Account account = updateAccount(userId, json);
+			JSONUtils.sendAccount(resp, account);
+
+		} catch (JSONException je) {
+			throw new IOException(je);
+		}
+
+	}
+
+	public static Account testUpdateAccount(String userId, JSONObject json) throws JSONException {
+		return updateAccount(userId, json);
+	}
+	private static Account updateAccount(String userId, JSONObject json) throws JSONException {
+		EntityManager em = EMF.get().createEntityManager();
+		//EntityTransaction tx = em.getTransaction();
+		try {
+			Account account = em.find(Account.class, Account.userIdToKey(userId));
 			if (json.has(GAME_TEMPLATE_QUOTA)) {
 				account.setGameTemplateQuota(json.getInt(GAME_TEMPLATE_QUOTA));
 				logger.info("Updated account "+userId+" gameTemplateQuota to "+account.getGameTemplateQuota());
 				//em.merge(account);
-			}			
+			}		
+			return account;
 			//em.flush();
 			//tx.commit();
-		} catch (JSONException je) {
-			throw new IOException(je);
 		}
 		finally {
 			em.close();
 		}
-
-		JSONUtils.sendAccount(resp, account);
 	}
 }

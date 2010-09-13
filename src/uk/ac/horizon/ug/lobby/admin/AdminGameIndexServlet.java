@@ -70,16 +70,38 @@ public class AdminGameIndexServlet extends HttpServlet implements Constants {
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
 
-		// force create
-		ServerConfiguration sc = ConfigurationUtils.getServerConfiguration();
-		GameIndex gi = sc.getGameIndex();
-		
-		EntityManager em = EMF.get().createEntityManager();
+		JSONObject json = null;
 		try {
 			BufferedReader r = req.getReader();
 			String line = r.readLine();
-			JSONObject json = new JSONObject(line);
+			json = new JSONObject(line);
+		} catch (JSONException e) {
+			resp.sendError(HttpServletResponse.SC_BAD_REQUEST, e.toString());
+			return;
+		}
 
+		try {
+			handlePost(json);			
+		} catch (JSONException e) {
+			resp.sendError(HttpServletResponse.SC_BAD_REQUEST, e.toString());
+			return;
+		}
+		// finish as Get
+		doGet(req, resp);
+	}
+
+	/** for testing only */
+	public static void testHandlePost(JSONObject json) throws JSONException {
+		handlePost(json);
+	}
+	private static void handlePost(JSONObject json) throws JSONException {
+		// force create
+		ServerConfiguration sc = ConfigurationUtils.getServerConfiguration();
+		GameIndex gi = sc.getGameIndex();
+
+		// WARNING: non-transactional
+		EntityManager em = EMF.get().createEntityManager();
+		try {
 			Iterator keys = json.keys();
 			while(keys.hasNext()) {
 				String key = (String)keys.next();
@@ -116,13 +138,9 @@ public class AdminGameIndexServlet extends HttpServlet implements Constants {
 			// ? 
 			em.merge(gi);
 			em.merge(sc);
-		} catch (JSONException e) {
-			resp.sendError(HttpServletResponse.SC_BAD_REQUEST, e.toString());
-			return;
 		}
 		finally {
 			em.close();
 		}
-		JSONUtils.sendServerConfiguration(resp, sc);
 	}
 }

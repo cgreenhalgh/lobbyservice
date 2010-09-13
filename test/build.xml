@@ -26,6 +26,7 @@
         	<formatter type="plain"/>
         	<test name="TestTest"/>
             <test name="JPATest"/>
+            <test name="AdminTests"/>
     	</junit>
     </target>
 
@@ -35,11 +36,12 @@
     <target name="compile">
 		<echo message="sdk_root= ${sdk_root}"/>
     	<mkdir dir="bin"/>
-    	<javac failonerror="yes" classpathref="testcp" srcdir="src" destdir="bin">
+    	<javac failonerror="yes" debug="true" classpathref="testcp" srcdir="../src" destdir="bin">
     	</javac>
-    	<javac failonerror="yes" classpathref="testcp" srcdir="../src" destdir="bin">
+    	<javac failonerror="yes" debug="true" classpathref="testcp" srcdir="src" destdir="bin">
     	</javac>
     	<copy file="../src/META-INF/persistence.xml" tofile="bin/META-INF/persistence.xml"/>
+    	<copy file="../src/log4j.properties" tofile="bin/log4j.properties"/>
     	<!-- enhance -->
     	<java fork="yes" failonerror="yes" classname="org.datanucleus.enhancer.DataNucleusEnhancer">
     		<classpath refid="testcp"></classpath>
@@ -67,8 +69,8 @@
 		<pathelement location="${sdk_root}/lib/impl/appengine-api-labs.jar"/>
 		<fileset includes="*.jar" dir="${sdk_root}/lib/shared"/>
 		<fileset includes="*.jar" dir="${sdk_root}/lib/user/orm"/> -->
-		<fileset includes="*.jar" dir="lib"/>
 		<pathelement location="bin"/>
+		<fileset includes="*.jar" dir="lib"/>
 		<pathelement location="${sdk_root}/lib/impl/appengine-api-stubs.jar"/> 
 		<pathelement location="${sdk_root}/lib/testing/appengine-testing.jar"/>
 		<pathelement location="${sdk_root}/lib/shared/geronimo-servlet_2.5_spec-1.2.jar"/>
