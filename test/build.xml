@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ====================================================================== 
+     13 Sep 2010 10:43:14                                                        
+
+     lobbyservice unit and integration tests    
+     like it says
+                   
+     cmg                                                                
+     ====================================================================== -->
+<project name="lobbyservice unit and integration tests" default="test">
+    <description>
+            like it says
+    </description>
+
+	<propertyfile file="build.properties"></propertyfile>
+	<property name="sdk_root" location="/cmg/eclipse/eclipse-3.5/plugins/com.google.appengine.eclipse.sdkbundle.1.3.7_1.3.7.v201008311405/appengine-java-sdk-1.3.7"/>
+	
+	<import file="${sdk_root}/config/user/ant-macros.xml" /> 
+	
+    <!-- ================================= 
+          target: test              
+         ================================= -->
+    <target name="test" depends="compile" >
+        <junit printsummary="withOutAndErr" haltonerror="true" haltonfailure="true" >
+        	<classpath refid="testcp"/>
+        	<formatter type="plain" usefile="false"/>
+        	<test name="TestTest"/>
+            <test name="JPATest"/>
+    	</junit>
+    </target>
+
+    <!-- - - - - - - - - - - - - - - - - - 
+          target: compile                      
+         - - - - - - - - - - - - - - - - - -->
+    <target name="compile">
+		<echo message="sdk_root= ${sdk_root}"/>
+    	<mkdir dir="bin"/>
+    	<javac failonerror="yes" classpathref="testcp" srcdir="src" destdir="bin">
+    	</javac>
+    	<javac failonerror="yes" classpathref="testcp" srcdir="../src" destdir="bin">
+    	</javac>
+    	<copy file="../src/META-INF/persistence.xml" tofile="bin/META-INF/persistence.xml"/>
+    	<!-- enhance -->
+    	<java fork="yes" failonerror="yes" classname="org.datanucleus.enhancer.DataNucleusEnhancer">
+    		<classpath refid="testcp"></classpath>
+    		<arg value="-api"/>
+    		<arg value="JPA"/>
+    		<arg value="-v"/>
+    		<arg value="bin/uk/ac/horizon/ug/lobby/model/GameTemplate.class"/>
+    		<arg value="bin/uk/ac/horizon/ug/lobby/model/GameTemplateAuditRecord.class"/>
+    		<arg value="bin/uk/ac/horizon/ug/lobby/model/GameInstance.class"/>
+    		<arg value="bin/uk/ac/horizon/ug/lobby/model/GameInstanceSlot.class"/>
+    		<arg value="bin/uk/ac/horizon/ug/lobby/model/GameClient.class"/>
+    		<arg value="bin/uk/ac/horizon/ug/lobby/model/Account.class"/>
+    		<arg value="bin/uk/ac/horizon/ug/lobby/model/ServerConfiguration.class"/>
+    		<arg value="bin/uk/ac/horizon/ug/lobby/model/GameIndex.class"/>
+    		<arg value="bin/uk/ac/horizon/ug/lobby/model/GameServer.class"/>
+    		<arg value="bin/uk/ac/horizon/ug/lobby/model/GameInstanceFactory.class"/>
+    		<arg value="bin/uk/ac/horizon/ug/lobby/model/AuditCounter.class"/>
+    		<arg value="bin/uk/ac/horizon/ug/lobby/model/GameClientTemplate.class"/>
+    	</java>
+    	<!--<fail/>-->
+    </target>
+
+	<path id="testcp">
+<!--		<pathelement location="${sdk_root}/lib/impl/appengine-api.jar"/>
+		<pathelement location="${sdk_root}/lib/impl/appengine-api-labs.jar"/>
+		<fileset includes="*.jar" dir="${sdk_root}/lib/shared"/>
+		<fileset includes="*.jar" dir="${sdk_root}/lib/user/orm"/> -->
+		<fileset includes="*.jar" dir="lib"/>
+		<pathelement location="bin"/>
+		<pathelement location="${sdk_root}/lib/impl/appengine-api-stubs.jar"/> 
+		<pathelement location="${sdk_root}/lib/testing/appengine-testing.jar"/>
+		<pathelement location="${sdk_root}/lib/shared/geronimo-servlet_2.5_spec-1.2.jar"/>
+		<pathelement location="${sdk_root}/lib/impl/appengine-local-runtime.jar"/>
+		<pathelement location="${sdk_root}/lib/shared/appengine-local-runtime-shared.jar"/>
+		<pathelement location="${sdk_root}/lib/tools/orm/datanucleus-enhancer-1.1.4.jar"/>
+		<pathelement location="${sdk_root}/lib/tools/orm/asm-3.1.jar"/>
+		<fileset includes="*.jar" dir="../war/WEB-INF/lib"/>
+	</path>
+
+</project>

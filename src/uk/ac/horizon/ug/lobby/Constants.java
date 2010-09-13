@@ -35,10 +35,14 @@ public interface Constants {
 	public static final String GAME_TEMPLATE_ID = "gameTemplateId";
 	public static final String GAME_TEMPLATE = "gameTemplate";
 	public static final String GAME_TEMPLATE_QUOTA = "gameTemplateQuota";
+	public static final String GAMES = "games";
 	public static final String GENERATOR = "generator";
 	public static final String HOUR = "hour";
 	public static final String ID = "id";
 	public static final String IMAGE_URL = "imageUrl";
+	public static final String INCLUDE_AVAILABLE = "includeAvailable";
+	public static final String INCLUDE_ENDED = "includeEnded";
+	public static final String INCLUDE_PLANNED = "includePlanned";
 	public static final String INCLUDE_STARTED = "includeStarted";
 	public static final String INITIAL_VALUE = "initialValue";
 	public static final String INSTANCE_CREATE_TIME_WINDOW_MS = "instanceCreateTimeWindowMs";
@@ -95,6 +99,7 @@ public interface Constants {
 	public static final String PLAY_URL = "playUrl";
 	public static final String QUERY_URL = "queryUrl";
 	public static final String RADIUS_METRES = "radiusMetres";
+	public static final String SCOPE = "scope";
 	public static final String SECOND = "second";
 	public static final String SEQ_NO = "seqNo";
 	public static final String SERVER_CONFIG_JSON = "serverConfigJson";

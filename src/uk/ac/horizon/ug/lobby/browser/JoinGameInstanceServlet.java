@@ -109,15 +109,17 @@ public class JoinGameInstanceServlet extends HttpServlet implements Constants {
 		ServerConfiguration sc = ConfigurationUtils.getServerConfiguration();
 		GameIndex gindex = sc.getGameIndex();
 
-		EntityManager em = EMF.get().createEntityManager();
-		EntityTransaction et = em.getTransaction();
+		// parse request
+		String line = null;
+		String auth = null;
+		GameJoinRequest gjreq = null;
 		try {
 			BufferedReader br = req.getReader();
-			String line = br.readLine();
+			line = br.readLine();
 			JSONObject json = new JSONObject(line);
-			GameJoinRequest gjreq = JSONUtils.parseGameJoinRequest(json);
+			gjreq = JSONUtils.parseGameJoinRequest(json);
 			// second line is digital signature (if given)
-			String auth = br.readLine();
+			auth = br.readLine();
 			
 			logger.info("GameJoinRequest "+gjreq);
 			// check type supported...
@@ -125,7 +127,15 @@ public class JoinGameInstanceServlet extends HttpServlet implements Constants {
 				resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Request type must be PLAY/RELEASE/RESERVER ("+gjreq.getType()+")");
 				return;
 			}
-			et.rollback();
+		}
+		catch (JSONException e) {
+			logger.warning(e.toString());
+			resp.sendError(HttpServletResponse.SC_BAD_REQUEST, e.toString());
+			return;			
+		}
+		EntityManager em = EMF.get().createEntityManager();
+		EntityTransaction et = em.getTransaction();
+		try {
 			et.begin();
 			GameInstance gi = getGameInstance(req, em);
 			et.rollback();
@@ -139,20 +149,30 @@ public class JoinGameInstanceServlet extends HttpServlet implements Constants {
 			// authenticate client
 			et.rollback();
 			// own em/etc.
-			JoinUtils.JoinAuthInfo jai = JoinUtils.authenticate(gjreq, gjresp, gi.isAllowAnonymousClients(), resp, line, auth);
-			if (jai==null)
-				// dealt with
-				return;
+			JoinUtils.ClientInfo clientInfo = new JoinUtils.ClientInfo(gjreq.getClientType(), gjreq.getMajorVersion(), gjreq.getMinorVersion(), gjreq.getUpdateVersion());
+			JoinUtils.JoinAuthInfo jai = JoinUtils.authenticate(gjreq.getClientId(), gjreq.getDeviceId(), clientInfo, gi.isAllowAnonymousClients(), line, auth);
+			if (jai.anonymous && gjreq.getGameSlotId()!=null){
+				throw new JoinException(GameJoinResponseStatus.ERROR_CLIENT_AUTHENTICATION_REQUIRED, "Changing an existing game slot requires a client to be identified");
+			}
+			gjresp.setClientId(jai.gc.getId());
 			et.begin();
-			handleJoinRequestInternal(req, resp, sc, em, et, gjreq, gjresp, jai, gi);
+			
+			handleJoinRequestInternal(sc, em, et, gjreq, gjresp, jai, gi);
 
+			// write final response
+			JSONUtils.sendGameJoinResponse(resp, gjresp);
 			
 		} catch (RequestException e) {
 			resp.sendError(e.getErrorCode(), e.getMessage());
 			return;
-		} catch (JSONException e) {
+		} catch (JoinException e) {
+			GameJoinResponse gjresp = new GameJoinResponse();
+			gjresp.setTime(System.currentTimeMillis());
+			gjresp.setType(gjreq.getType());
+			gjresp.setStatus(e.getStatus());
+			gjresp.setMessage(e.getMessage());
 			logger.warning(e.toString());
-			resp.sendError(HttpServletResponse.SC_BAD_REQUEST, e.toString());
+			JSONUtils.sendGameJoinResponse(resp, gjresp);
 			return;
 		}
 		finally {	
@@ -161,11 +181,12 @@ public class JoinGameInstanceServlet extends HttpServlet implements Constants {
 			em.close();
 		}
 	}
-	/** common code for Join (above) and NEW_INSTANCE */
-	static void handleJoinRequestInternal(HttpServletRequest req,
-			HttpServletResponse resp, ServerConfiguration sc, EntityManager em,
+	/** common code for Join (above) and NEW_INSTANCE 
+	 * @throws JoinException 
+	 * @throws RequestException */
+	static void handleJoinRequestInternal(ServerConfiguration sc, EntityManager em,
 			EntityTransaction et, GameJoinRequest gjreq,
-			GameJoinResponse gjresp, JoinAuthInfo jai, GameInstance gi) throws IOException {
+			GameJoinResponse gjresp, JoinAuthInfo jai, GameInstance gi) throws IOException, JoinException, RequestException {
 		// TODO Auto-generated method stub
 		GameClient gc = jai.gc;
 		Account account = jai.account;
@@ -177,20 +198,17 @@ public class JoinGameInstanceServlet extends HttpServlet implements Constants {
 		if (gjreq.getGameSlotId()!=null) {
 			if (gc==null) {
 				// should already be checked
-				JoinUtils.sendError(resp, gjresp, GameJoinResponseStatus.ERROR_CLIENT_AUTHENTICATION_REQUIRED, "Changing an existing game slot requires a client to be identified");
-				return;
+				throw new JoinException(GameJoinResponseStatus.ERROR_CLIENT_AUTHENTICATION_REQUIRED, "Changing an existing game slot requires a client to be identified");
 			}
 			Key gskey = GameInstanceSlot.idToKey(gi.getKey(), gjreq.getGameSlotId());
 			gs = em.find(GameInstanceSlot.class, gskey);
 			if (gs==null) {
-				JoinUtils.sendError(resp, gjresp, GameJoinResponseStatus.ERROR_UNKNOWN_SLOT, "GameSlot "+gjreq.getGameSlotId()+" not found");
-				return;
+				throw new JoinException(GameJoinResponseStatus.ERROR_UNKNOWN_SLOT, "GameSlot "+gjreq.getGameSlotId()+" not found");
 			}
 			// correct client?
 			if (!gs.getGameClientKey().equals(gc.getKey())) {
 				// TODO another client of the same account?!
-				JoinUtils.sendError(resp, gjresp, GameJoinResponseStatus.ERROR_NOT_PERMITTED, "Game slot "+gjreq.getGameSlotId()+" is not owned by client "+gjreq.getClientId());
-				return;
+				throw new JoinException(GameJoinResponseStatus.ERROR_NOT_PERMITTED, "Game slot "+gjreq.getGameSlotId()+" is not owned by client "+gjreq.getClientId());
 			}
 		}
 		else {
@@ -210,8 +228,7 @@ public class JoinGameInstanceServlet extends HttpServlet implements Constants {
 		if (gs==null) {
 			// new slot
 			if (gjreq.getType()==GameJoinRequestType.RELEASE) {
-				resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Release request for unspecified gameSlotId");
-				return;
+				throw new RequestException(HttpServletResponse.SC_BAD_REQUEST, "Release request for unspecified gameSlotId");
 			}
 			// new Game Slot...
 			
@@ -233,8 +250,7 @@ public class JoinGameInstanceServlet extends HttpServlet implements Constants {
 			if (full) {
 				// num/full might have changed
 				et.commit();
-				JoinUtils.sendError(resp, gjresp, GameJoinResponseStatus.ERROR_FULL, "This game is full");
-				return;
+				throw new JoinException(GameJoinResponseStatus.ERROR_FULL, "This game is full");
 			}
 			
 			// check that a valid client type exists
@@ -243,8 +259,7 @@ public class JoinGameInstanceServlet extends HttpServlet implements Constants {
 			if (gcts.size()==0) {
 				// num/full might have changed
 				et.commit();
-				JoinUtils.sendError(resp, gjresp, GameJoinResponseStatus.ERROR_UNSUPPORTED_CLIENT, "This game does not support your client");
-				return;
+				throw new JoinException(GameJoinResponseStatus.ERROR_UNSUPPORTED_CLIENT, "This game does not support your client");
 			}
 			
 			GameClientTemplate gct = null;
@@ -316,10 +331,6 @@ public class JoinGameInstanceServlet extends HttpServlet implements Constants {
 			break;
 		}
 		et.commit();
-
-		// response
-		JSONUtils.sendGameJoinResponse(resp, gjresp);
-
 	}
 
 	/** client request to play (authenticated, etc.).

@@ -1169,4 +1169,70 @@ public class JSONUtils implements Constants {
 		}
 		jw.endObject();
 	}
+	/** parse JSON Object to ClientRequest
+	 * @throws JSONException */
+	public static ClientRequest parseClientRequest(JSONObject json) throws JSONException {
+		ClientRequest o = new ClientRequest();
+		Iterator keys = json.keys();
+		while(keys.hasNext()) {
+			String key = (String)keys.next();
+			if (key.equals(CLIENT_ID))
+				o.setClientId(json.getString(key));
+			else if (key.equals(INCLUDE_AVAILABLE))
+				o.setIncludeAvailable(json.getBoolean(key));
+			else if (key.equals(INCLUDE_ENDED))
+				o.setIncludeEnded(json.getBoolean(key));
+			else if (key.equals(INCLUDE_PLANNED))
+				o.setIncludePlanned(json.getBoolean(key));
+			else if (key.equals(SCOPE))
+				o.setScope(ClientRequestScope.valueOf(json.getString(key)));
+			else if (key.equals(SEQ_NO))
+				o.setSeqNo(json.getInt(key));
+			else if (key.equals(TIME))
+				o.setTime(json.getLong(key));
+			else if (key.equals(TYPE))
+				o.setType(ClientRequestType.valueOf(json.getString(key)));
+			else if (key.equals(VERSION))
+				o.setVersion(json.getInt(key));
+			else
+				throw new JSONException("Unsupported key '"+key+"' in ClientRequest: "+json);
+		}
+		return o;
+	}
+	/** write ClientResponse object for user 
+	 * @throws JSONException */
+	public static void writeClientResponse(JSONWriter jw, ClientResponse o) throws JSONException {
+		jw.object();
+		if (o.getGames()!=null) {
+			jw.key(GAMES);
+			writeGameTemplateInfos(jw, o.getGames());
+		}
+		if (o.getMessage()!=null) {
+			jw.key(MESSAGE);
+			jw.value(o.getMessage());
+		}
+		if (o.getStatus()!=null) {
+			jw.key(STATUS);
+			jw.value(o.getStatus().toString());
+		}
+		if (o.getTime()!=null) {
+			jw.key(TIME);
+			jw.value(o.getTime());
+		}
+		jw.key(VERSION);
+		jw.value(o.getVersion());
+		jw.endObject();
+	}
+	/** set ClientResponse as response 
+	 * @throws IOException */
+	public static void sendClientResponse(HttpServletResponse resp, ClientResponse o) throws IOException {
+		Writer w = JSONUtils.getResponseWriter(resp);
+		JSONWriter jw = new JSONWriter(w);
+		try {
+			JSONUtils.writeClientResponse(jw, o);	
+		} catch (JSONException je) {
+			throw new IOException(je);
+		}
+		w.close();
+	}
 }

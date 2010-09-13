@@ -34,11 +34,13 @@ import javax.servlet.http.HttpServletResponse;
 import com.google.appengine.api.datastore.Key;
 
 import uk.ac.horizon.ug.lobby.Constants;
+import uk.ac.horizon.ug.lobby.RequestException;
 import uk.ac.horizon.ug.lobby.model.Account;
 import uk.ac.horizon.ug.lobby.model.EMF;
 import uk.ac.horizon.ug.lobby.model.GUIDFactory;
 import uk.ac.horizon.ug.lobby.model.GameClient;
 import uk.ac.horizon.ug.lobby.model.GameClientTemplate;
+import uk.ac.horizon.ug.lobby.model.GameClientType;
 import uk.ac.horizon.ug.lobby.protocol.GameJoinRequest;
 import uk.ac.horizon.ug.lobby.protocol.GameJoinResponse;
 import uk.ac.horizon.ug.lobby.protocol.GameJoinResponseStatus;
@@ -56,10 +58,89 @@ public class JoinUtils implements Constants {
 		public Account account = null;
 		public boolean anonymous = false;
 	}
+	/** client info - for create anon */
+	public static class ClientInfo {
+		public GameClientType clientType;
+		public Integer majorVersion;
+		public Integer minorVersion;
+		public Integer updateVersion;
+		/** cons */
+		public ClientInfo() {}
+		
+		/**
+		 * @param clientType
+		 * @param majorVersion
+		 * @param minorVersion
+		 * @param updateVersion
+		 */
+		public ClientInfo(GameClientType clientType, Integer majorVersion,
+				Integer minorVersion, Integer updateVersion) {
+			super();
+			this.clientType = clientType;
+			this.majorVersion = majorVersion;
+			this.minorVersion = minorVersion;
+			this.updateVersion = updateVersion;
+		}
+
+		/**
+		 * @return the clientType
+		 */
+		public GameClientType getClientType() {
+			return clientType;
+		}
+		/**
+		 * @param clientType the clientType to set
+		 */
+		public void setClientType(GameClientType clientType) {
+			this.clientType = clientType;
+		}
+		/**
+		 * @return the majorVersion
+		 */
+		public Integer getMajorVersion() {
+			return majorVersion;
+		}
+		/**
+		 * @param majorVersion the majorVersion to set
+		 */
+		public void setMajorVersion(Integer majorVersion) {
+			this.majorVersion = majorVersion;
+		}
+		/**
+		 * @return the minorVersion
+		 */
+		public Integer getMinorVersion() {
+			return minorVersion;
+		}
+		/**
+		 * @param minorVersion the minorVersion to set
+		 */
+		public void setMinorVersion(Integer minorVersion) {
+			this.minorVersion = minorVersion;
+		}
+		/**
+		 * @return the updateVersion
+		 */
+		public Integer getUpdateVersion() {
+			return updateVersion;
+		}
+		/**
+		 * @param updateVersion the updateVersion to set
+		 */
+		public void setUpdateVersion(Integer updateVersion) {
+			this.updateVersion = updateVersion;
+		}
+	}
 	/** initial check/authenticate join request.
+	 * @param clientId The ID of the GameClient (from the request)
+	 * @param deviceId The (optional) ID of the device, for use as fallback default clientId
+	 * @param link The text of the request line (for request authentication)
+	 * @param auth The text of the request signature line (for request authentication)
+	 * @param clientInfo ClientInfo for create new anonymous client (optional); null if not to create
 	 * @return null if not permitted (response sent) 
-	 * @throws IOException */
-	public static JoinAuthInfo authenticate(GameJoinRequest gjreq, GameJoinResponse gjresp, boolean allowAnonymousClients, HttpServletResponse resp, String line, String auth) throws IOException {
+	 * @throws IOException 
+	 * @throws RequestException */
+	public static JoinAuthInfo authenticate(String clientId, String deviceId, ClientInfo clientInfo, boolean allowAnonymousClients, String line, String auth) throws IOException, JoinException, RequestException {
 		EntityManager em = EMF.get().createEntityManager();
 		EntityTransaction et = em.getTransaction();
 		et.begin();
@@ -67,38 +148,39 @@ public class JoinUtils implements Constants {
 			GameClient gc = null;
 			Account account = null;
 			boolean anonymous = false;
-			if (gjreq.getClientId()==null) {
+			if (clientId==null) {
 				// anonymous attempt
 				if (!allowAnonymousClients) {
-					sendError(resp, gjresp, GameJoinResponseStatus.ERROR_USER_AUTHENTICATION_REQUIRED, "This game does not allow anonymous players");
-					return null;
-				}
-				if (gjreq.getGameSlotId()!=null){
-					sendError(resp, gjresp, GameJoinResponseStatus.ERROR_CLIENT_AUTHENTICATION_REQUIRED, "Changing an existing game slot requires a client to be identified");
-					return null;
+					throw new JoinException(GameJoinResponseStatus.ERROR_USER_AUTHENTICATION_REQUIRED, "This game does not allow anonymous players");
 				}
 				// ensure possible createAnonymousClient will be atomic wrt to the next check...
 				et.rollback();
 				et.begin();
 				
 				// does default client already exist?
-				String clientId = gjreq.getDeviceId();
-				if (clientId!=null) {
+				if (deviceId!=null) {
+					clientId = deviceId;
 					Key clientKey = GameClient.idToKey(clientId);
 					gc = em.find(GameClient.class, clientKey);
-					if (gc.getAccountKey()!=null || gc.getSharedSecret()!=null) {
-						logger.warning("Client deviceId="+gjreq.getDeviceId()+" already exists, non-anonymous");
-						gc = null;
-						clientId = null;
+					if (gc!=null) {
+						if (gc.getAccountKey()!=null || gc.getSharedSecret()!=null) {
+							logger.warning("Client deviceId="+deviceId+" already exists, non-anonymous");
+							throw new JoinException(GameJoinResponseStatus.ERROR_CLIENT_AUTHENTICATION_REQUIRED, "This deviceId is already in use as an authenticated client");
+						}
+						else {
+							logger.info("Using default anonymous client with deviceId="+deviceId);
+						}
 					}
-					else
-						logger.info("Using default anonymous client with deviceId="+gjreq.getDeviceId());
 				}
 
 				if (gc==null) {
 
+					if (clientInfo==null)
+						// implies do not create
+						throw new JoinException(GameJoinResponseStatus.ERROR_CLIENT_AUTHENTICATION_REQUIRED, "Anonymous client does not exist");
+						
 					// create is done in our transaction
-					gc = createAnonymousClient(em, gjreq, clientId);
+					gc = createAnonymousClient(em, clientId, clientInfo);
 				}
 
 				// COMMIT!
@@ -108,12 +190,10 @@ public class JoinUtils implements Constants {
 			}
 			else {
 				// identified client 
-				String clientId = gjreq.getClientId();
 				Key clientKey = GameClient.idToKey(clientId);
 				gc = em.find(GameClient.class, clientKey);
 				if (gc==null) {
-					sendError(resp, gjresp, GameJoinResponseStatus.ERROR_AUTHENTICATION_FAILED, "GameClient "+clientId+" unknown");
-					return null;
+					throw new JoinException(GameJoinResponseStatus.ERROR_AUTHENTICATION_FAILED, "GameClient "+clientId+" unknown");
 				}
 				et.rollback();
 				et.begin();
@@ -122,24 +202,20 @@ public class JoinUtils implements Constants {
 					account = em.find(Account.class, gc.getAccountKey());
 					if (account==null) {
 						logger.warning("GameClient "+clientId+" found but Account missing: "+gc);
-						sendError(resp, gjresp, GameJoinResponseStatus.ERROR_AUTHENTICATION_FAILED, "This clientId is not usable");
-						return null;						
+						throw new JoinException(GameJoinResponseStatus.ERROR_AUTHENTICATION_FAILED, "This clientId is not usable");
 					}
 				}
 				else {
 					if (!allowAnonymousClients) {
-						sendError(resp, gjresp, GameJoinResponseStatus.ERROR_USER_AUTHENTICATION_REQUIRED, "This game does not allow anonymous players");
-						return null;
+						throw new JoinException(GameJoinResponseStatus.ERROR_USER_AUTHENTICATION_REQUIRED, "This game does not allow anonymous players");
 					}
 					anonymous = true;
 				}
 				// authenticate
 				if (!authenticateRequest(line, gc, account, auth)) {
-					resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Authentication failed");
-					return null;					
+					throw new RequestException(HttpServletResponse.SC_FORBIDDEN, "Authentication failed");
 				}
 			}
-			gjresp.setClientId(gc.getId());
 
 			JoinAuthInfo jai = new JoinAuthInfo();
 			jai.account = account;
@@ -147,6 +223,8 @@ public class JoinUtils implements Constants {
 			jai.gc = gc;
 			return jai;
 		}
+		// throws JoinException
+		// throws RequestException
 		finally {
 			if (et.isActive())
 				et.rollback();
@@ -162,12 +240,12 @@ public class JoinUtils implements Constants {
 	}
 
 	/** send 'error' in our GameJoinResponse (i.e. not HTTP error) */
-	public static void sendError(HttpServletResponse resp, GameJoinResponse gjresp, GameJoinResponseStatus errorStatus) throws IOException {
+	private static void sendError(HttpServletResponse resp, GameJoinResponse gjresp, GameJoinResponseStatus errorStatus) throws IOException {
 		// TODO user friendly
 		sendError(resp, gjresp, errorStatus, errorStatus.name());
 	}
 	/** send 'error' in our GameJoinResponse (i.e. not HTTP error) */
-	public static void sendError(HttpServletResponse resp, GameJoinResponse gjresp, GameJoinResponseStatus errorStatus, String message) throws IOException {
+	private static void sendError(HttpServletResponse resp, GameJoinResponse gjresp, GameJoinResponseStatus errorStatus, String message) throws IOException {
 		gjresp.setStatus(errorStatus);
 		gjresp.setMessage(message);
 		logger.warning("Sending error response: "+gjresp);
@@ -223,20 +301,21 @@ public class JoinUtils implements Constants {
 		return true;
 	}
 
-	public static GameClient createAnonymousClient(EntityManager em, GameJoinRequest gjreq, String clientId) {
+	/** create and persist a new anonymous GameClient within calling transaction (for consistency) */
+	private static GameClient createAnonymousClient(EntityManager em, String clientId, ClientInfo clientInfo) {
 		GameClient gc = new GameClient();
 		if (clientId==null)
 			clientId = GUIDFactory.newGUID();
 		gc.setId(clientId);
 		//gc.setKey(GameClient.idToKey(null, clientId));
-		if (gjreq.getClientType()!=null)
-			gc.setClientType(gjreq.getClientType());
-		if (gjreq.getMajorVersion()!=null)
-			gc.setMajorVersion(gjreq.getMajorVersion());
-		if (gjreq.getMinorVersion()!=null)
-			gc.setMinorVersion(gjreq.getMinorVersion());
-		if (gjreq.getUpdateVersion()!=null)
-			gc.setUpdateVersion(gjreq.getUpdateVersion());
+		if (clientInfo.getClientType()!=null)
+			gc.setClientType(clientInfo.getClientType());
+		if (clientInfo.getMajorVersion()!=null)
+			gc.setMajorVersion(clientInfo.getMajorVersion());
+		if (clientInfo.getMinorVersion()!=null)
+			gc.setMinorVersion(clientInfo.getMinorVersion());
+		if (clientInfo.getUpdateVersion()!=null)
+			gc.setUpdateVersion(clientInfo.getUpdateVersion());
 		// nickname only for slot, not client
 		//EntityTransaction et = em.getTransaction();
 		em.persist(gc);

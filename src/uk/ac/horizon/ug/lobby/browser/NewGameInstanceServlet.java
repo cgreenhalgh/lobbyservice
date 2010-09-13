@@ -112,19 +112,17 @@ public class NewGameInstanceServlet extends HttpServlet implements Constants {
 	public void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException {
 
-		ServerConfiguration sc = ConfigurationUtils.getServerConfiguration();
-		GameIndex gindex = sc.getGameIndex();
-
-		EntityManager em = EMF.get().createEntityManager();
-		EntityTransaction et = em.getTransaction();
-		et.begin();
+		// parse request
+		String line = null;
+		String auth = null;
+		GameJoinRequest gjreq = null;
 		try {
 			BufferedReader br = req.getReader();
-			String line = br.readLine();
+			line = br.readLine();
 			JSONObject json = new JSONObject(line);
-			GameJoinRequest gjreq = JSONUtils.parseGameJoinRequest(json);
+			gjreq = JSONUtils.parseGameJoinRequest(json);
 			// second line is digital signature (if given)
-			String auth = br.readLine();
+			auth = br.readLine();
 			
 			logger.info("GameJoinRequest "+gjreq);
 			// check type supported...
@@ -132,6 +130,17 @@ public class NewGameInstanceServlet extends HttpServlet implements Constants {
 				resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Request type must be NEW_INSTANCE ("+gjreq.getType()+")");
 				return;
 			}
+		}
+		catch (JSONException e) {
+			logger.warning(e.toString());
+			resp.sendError(HttpServletResponse.SC_BAD_REQUEST, e.toString());
+			return;			
+		}
+		ServerConfiguration sc = ConfigurationUtils.getServerConfiguration();
+		EntityManager em = EMF.get().createEntityManager();
+		EntityTransaction et = em.getTransaction();
+		et.begin();
+		try {
 			GameInstanceFactory gif = getGameInstanceFactory(req, em);
 			
 			GameJoinResponse gjresp = new GameJoinResponse();
@@ -141,11 +150,8 @@ public class NewGameInstanceServlet extends HttpServlet implements Constants {
 			gjresp.setType(gjreq.getType());
 			
 			// authenticate client
-			// TODO: check isCreateForAnonymousClients later
-			JoinUtils.JoinAuthInfo jai = JoinUtils.authenticate(gjreq, gjresp, gif.isAllowAnonymousClients(), resp, line, auth);
-			if (jai==null)
-				// dealt with
-				return;
+			JoinUtils.ClientInfo clientInfo = new JoinUtils.ClientInfo(gjreq.getClientType(), gjreq.getMajorVersion(), gjreq.getMinorVersion(), gjreq.getUpdateVersion());
+			JoinUtils.JoinAuthInfo jai = JoinUtils.authenticate(gjreq.getClientId(), gjreq.getDeviceId(), clientInfo, gif.isAllowAnonymousClients(), line, auth);
 			GameClient gc = jai.gc;
 			Account account = jai.account;
 			boolean anonymous = jai.anonymous;
@@ -155,25 +161,20 @@ public class NewGameInstanceServlet extends HttpServlet implements Constants {
 			// we know it is a NEW_INSTANCE request...
 			
 			if (gif.getType()!=GameInstanceFactoryType.ON_DEMAND) {
-				JoinUtils.sendError(resp, gjresp, GameJoinResponseStatus.ERROR_SCHEDULED_ONLY, "This game does not support on-request instances");
-				return;
+				throw new JoinException(GameJoinResponseStatus.ERROR_SCHEDULED_ONLY, "This game does not support on-request instances");
 			}
 			if (gif.getStatus()!=GameInstanceFactoryStatus.ACTIVE) {
-				JoinUtils.sendError(resp, gjresp, GameJoinResponseStatus.ERROR_NOT_PERMITTED, "This game factory is not active");
-				return;
+				throw new JoinException(GameJoinResponseStatus.ERROR_NOT_PERMITTED, "This game factory is not active");
 			}
 			if (gif.getStartTimeOptionsJson()==null) {
-				JoinUtils.sendError(resp, gjresp, GameJoinResponseStatus.ERROR_START_TIME_INVALID, "This game factory has no available start time(s)");
-				return;				
+				throw new JoinException(GameJoinResponseStatus.ERROR_START_TIME_INVALID, "This game factory has no available start time(s)");
 			}
 			if (gjreq.getNewInstanceStartTime()==null) {
-				resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "NEW_INSTANCE request must have newInstanceStartTime");
-				return;
+				throw new RequestException(HttpServletResponse.SC_BAD_REQUEST, "NEW_INSTANCE request must have newInstanceStartTime");
 			}
 			long newInstanceStartTime = gjreq.getNewInstanceStartTime();
 			if (newInstanceStartTime<gif.getMinTime() || newInstanceStartTime>gif.getMaxTime()) {
-				JoinUtils.sendError(resp, gjresp, GameJoinResponseStatus.ERROR_START_TIME_INVALID, "NewInstanceStartTime out of range for this game factory");
-				return;						
+				throw new JoinException(GameJoinResponseStatus.ERROR_START_TIME_INVALID, "NewInstanceStartTime out of range for this game factory");
 			}
 			// lee-way in timing expressed (1 minute?!)
 			long START_TIME_RANGE_MS = 60000;
@@ -182,8 +183,7 @@ public class NewGameInstanceServlet extends HttpServlet implements Constants {
 			if (gif.getServerCreateTimeOffsetMs()<0)
 				earliest = earliest - gif.getServerCreateTimeOffsetMs();
 			if (newInstanceStartTime+START_TIME_RANGE_MS < earliest) {
-				JoinUtils.sendError(resp, gjresp, GameJoinResponseStatus.ERROR_START_TIME_TOO_SOON, "NewInstanceStartTime too soon (in "+(newInstanceStartTime-System.currentTimeMillis())+"ms)");
-				return;										
+				throw new JoinException(GameJoinResponseStatus.ERROR_START_TIME_TOO_SOON, "NewInstanceStartTime too soon (in "+(newInstanceStartTime-System.currentTimeMillis())+"ms)");
 			} else if (newInstanceStartTime < earliest)
 				// leave enough time...
 				newInstanceStartTime = earliest;
@@ -193,20 +193,17 @@ public class NewGameInstanceServlet extends HttpServlet implements Constants {
 				newInstanceStartTime = FactoryUtils.getNextCronTime(gif.getStartTimeCron(), timeOptions, newInstanceStartTime, gif.getMaxTime());
 			} catch (CronExpressionException e) {
 				logger.warning("Checking nextStartTime: "+e);
-				JoinUtils.sendError(resp, gjresp, GameJoinResponseStatus.ERROR_START_TIME_INVALID, "Problem with checking nextStartTime");
-				return;				
+				throw new JoinException(GameJoinResponseStatus.ERROR_START_TIME_INVALID, "Problem with checking nextStartTime");
 			}
 			if (newInstanceStartTime!=0 && newInstanceStartTime>gjreq.getNewInstanceStartTime()+START_TIME_RANGE_MS) {
 				if (gjreq.getNewInstanceStartTime() < earliest)
-					JoinUtils.sendError(resp, gjresp, GameJoinResponseStatus.ERROR_START_TIME_TOO_SOON, "NewInstanceStartTime too soon (in "+(newInstanceStartTime-System.currentTimeMillis())+"ms)");
+					throw new JoinException(GameJoinResponseStatus.ERROR_START_TIME_TOO_SOON, "NewInstanceStartTime too soon (in "+(newInstanceStartTime-System.currentTimeMillis())+"ms)");
 				else
 					// rounded up 'too' far to find a valid start time
-					JoinUtils.sendError(resp, gjresp, GameJoinResponseStatus.ERROR_START_TIME_INVALID, "Proposed startTime is not (close to) a valid startTime");
-				return;				
+					throw new JoinException(GameJoinResponseStatus.ERROR_START_TIME_INVALID, "Proposed startTime is not (close to) a valid startTime");
 			}
 			if (newInstanceStartTime==0 || newInstanceStartTime>gif.getMaxTime()) {
-				JoinUtils.sendError(resp, gjresp, GameJoinResponseStatus.ERROR_START_TIME_INVALID, "NewInstanceStartTime out of range for this game factory once correctly for allowed starts ("+newInstanceStartTime+")");
-				return;									
+				throw new JoinException(GameJoinResponseStatus.ERROR_START_TIME_INVALID, "NewInstanceStartTime out of range for this game factory once correctly for allowed starts ("+newInstanceStartTime+")");
 			}
 
 			// does this instance exist already? 
@@ -230,8 +227,7 @@ public class NewGameInstanceServlet extends HttpServlet implements Constants {
 				
 				// create new instance?!
 				if (anonymous && !gif.isCreateForAnonymousClient()) {
-					JoinUtils.sendError(resp, gjresp, GameJoinResponseStatus.ERROR_USER_AUTHENTICATION_REQUIRED, "This game factory will not create for anonymous players");
-					return;
+					throw new JoinException(GameJoinResponseStatus.ERROR_USER_AUTHENTICATION_REQUIRED, "This game factory will not create for anonymous players");
 				}
 				// update quota... (doesn't do anything else for non-scheduled factories)
 				FactoryTasks.checkGameInstanceFactory(sc, gif);
@@ -241,8 +237,7 @@ public class NewGameInstanceServlet extends HttpServlet implements Constants {
 				GameInstanceFactory ngif = em.find(GameInstanceFactory.class, gif.getKey());
 				int tokenCache = ngif.getNewInstanceTokens();
 				if (tokenCache<=0) {
-					JoinUtils.sendError(resp, gjresp, GameJoinResponseStatus.ERROR_SYSTEM_QUOTA_EXCEEDED, "This game factory cannot create any more instances at present");
-					return;					
+					throw new JoinException(GameJoinResponseStatus.ERROR_SYSTEM_QUOTA_EXCEEDED, "This game factory cannot create any more instances at present");
 				}
 				et.rollback();
 				// create!
@@ -258,10 +253,22 @@ public class NewGameInstanceServlet extends HttpServlet implements Constants {
 			gjreq.setType(GameJoinRequestType.RESERVE);
 
 			et.begin();
-			JoinGameInstanceServlet.handleJoinRequestInternal(req, resp, sc, em, et, gjreq, gjresp, jai, gi);
+			JoinGameInstanceServlet.handleJoinRequestInternal(sc, em, et, gjreq, gjresp, jai, gi);
+
+			// write final response
+			JSONUtils.sendGameJoinResponse(resp, gjresp);
 			
 		} catch (RequestException e) {
 			resp.sendError(e.getErrorCode(), e.getMessage());
+			return;
+		} catch (JoinException e) {
+			GameJoinResponse gjresp = new GameJoinResponse();
+			gjresp.setTime(System.currentTimeMillis());
+			gjresp.setType(gjreq.getType());
+			gjresp.setStatus(e.getStatus());
+			gjresp.setMessage(e.getMessage());
+			logger.warning(e.toString());
+			JSONUtils.sendGameJoinResponse(resp, gjresp);
 			return;
 		} catch (JSONException e) {
 			logger.warning(e.toString());

@@ -1,7 +1,12 @@
-Lobby Service Mobile Client - Prototype using Titanium Developer
+(Abandoned) Lobby Service Mobile Client - Prototype using Titanium Developer
 
 Chris Greenhalgh, University of Nottingham, 2010-08-24
 
+Note: as of 2010-09-13 this client is not being developed or supported, so the
+chances are that it is no longer compatible with the lobby service. The 
+'standard' mobile client development is shifting to standard HTML/JS browser-
+based, as the additional features of Titanium/native app are not required at
+this stage and it allows more code-sharing with desktop client(s).
 
 ----------------------------------
 Stuff our legal folk make us say:
