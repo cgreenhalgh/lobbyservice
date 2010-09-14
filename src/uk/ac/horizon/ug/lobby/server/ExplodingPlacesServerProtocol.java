@@ -63,7 +63,7 @@ import uk.ac.horizon.ug.lobby.browser.JoinUtils;
 import uk.ac.horizon.ug.lobby.model.Account;
 import uk.ac.horizon.ug.lobby.model.EMF;
 import uk.ac.horizon.ug.lobby.model.GameClient;
-import uk.ac.horizon.ug.lobby.model.GameClientType;
+import uk.ac.horizon.ug.lobby.model.GameClientKnownType;
 import uk.ac.horizon.ug.lobby.model.GameInstance;
 import uk.ac.horizon.ug.lobby.model.GameInstanceFactory;
 import uk.ac.horizon.ug.lobby.model.GameInstanceSlot;
@@ -175,7 +175,7 @@ public class ExplodingPlacesServerProtocol implements ServerProtocol {
 			addElement(doc, "conversationId", gs.getClientSharedSecret());
 			gjresp.getPlayData().put("conversationId", gs.getClientSharedSecret());
 			
-			if (gc.getClientType()!=GameClientType.ANDROID) {
+			if (!GameClientKnownType.Android.toString().equals(gc.getClientType())) {
 				logger.warning("ExplodingPlaces only supports ANDROID clientType");
 				gjresp.setStatus(GameJoinResponseStatus.ERROR_UNSUPPORTED_CLIENT);
 				gjresp.setMessage("Sorry - this game only supports Android client(s)");

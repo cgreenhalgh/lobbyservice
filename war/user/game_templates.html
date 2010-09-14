@@ -46,10 +46,7 @@
     	var client_row = '<tr class="client_template"><td><input type="button" value="Remove" name="remove" onclick="remove_client_row(this)"/></td>'+
     	'<td><table>'+
     	'<tr><td>Title</td><td><input type="text" name="client_title"/></td></tr>'+
-    	'<tr><td>Type</td><td><select name="clientType">'+
-    	//<input type="text" name="clientType"/>    	
-    	'<option label="Android" value="ANDROID">Android</option>'+
-    	'</select></td></tr>'+
+    	'<tr><td>Type</td><td><input type="text" name="clientType"/></td></tr>'+
     	'<tr><td>Location-specific</td><td><input type="checkbox" name="locationSpecific"/></td></tr>'+
     	'<tr><td>Min major version</td><td><input type="text" name="minMajorVersion"/></td></tr>'+
     	'<tr><td>Min minor version</td><td><input type="text" name="minMinorVersion"/></td></tr>'+
@@ -114,7 +111,7 @@
             	var gct = {};
             	gt.clientTemplates.push(gct);
             	add_field(el, gct, 'title', 'client_title');
-            	add_select_field(el, gct, 'clientType');
+            	add_field(el, gct, 'clientType');
             	add_boolean_field(el, gct, 'locationSpecific');
             	add_field(el, gct, 'applicationLaunchId');
             	add_field(el, gct, 'applicationMarketId');
@@ -166,7 +163,7 @@
 						item = data.clientTemplates[item];
 					var row = $(client_row);
 	            	set_input_from_field(row,item,'title','client_title');
-	            	set_select_from_field(row,item,'clientType');
+	            	set_input_from_field(row,item,'clientType');
 	            	set_checkbox_from_field(row,item,'locationSpecific');
 	            	set_input_from_field(row,item,'minMajorVersion');
 	            	set_input_from_field(row,item,'minMinorVersion');

@@ -23,6 +23,6 @@ package uk.ac.horizon.ug.lobby.model;
  * @author cmg
  *
  */
-public enum GameClientType {
-	ANDROID
+public enum GameClientKnownType {
+	Android
 }

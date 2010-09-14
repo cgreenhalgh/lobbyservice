@@ -1,0 +1,284 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!-- The HTML 4.01 Transitional DOCTYPE declaration-->
+<!-- above set at the top of the file will set     -->
+<!-- the browser's rendering engine into           -->
+<!-- "Quirks Mode". Replacing this declaration     -->
+<!-- with a "Standards Mode" doctype is supported, -->
+<!-- but may lead to some differences in layout.   -->
+
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <title>Lobby Browser</title>
+    <script type = "text/javascript" src="../resources/jquery-1.4.2.min.js"></script>
+    <script type = "text/javascript" src="../resources/jquery.json-2.2.min.js"></script>
+    <script type = "text/javascript" src="../resources/common_utils.js"></script>
+    <script type = "text/javascript">
+		$.ajaxSetup({cache:false});
+		var index = null;
+		var index2 = null;
+		var item = null;
+		var item2 = null;
+		
+		function select_game(i) {
+			item = index.items[i];
+			//alert('select game '+i+': '+item);
+			$('#item').empty();
+			$('#item').append('<table><h3><a href="'+item.link+'">'+item.title+'</a></h3>'+
+			'<p>'+item.description+'</p></table>');
+		}
+
+		function join_game(i) {
+			item2 = index2.items[i];
+			//alert('select game '+i+': '+item);
+			$('#item2').empty();
+			$('#item2').append('<table><h3><a href="'+item.link+'">'+item.title+'</a></h3>'+
+					(item.newInstanceUrl!=undefined ? '<p>(Factory)</p>' : '<p>(Specific Game)<p>')+
+					'<h2>'+item.subtitle+'</h2>'+
+					'<p>'+item.description+'</p></table>');
+			if (item2.newInstanceUrl!=undefined) {
+				$('#join_json').attr('value', 
+						'{"version":1,"type":"NEW_INSTANCE","newInstanceStartTime":'+item2.firstStartTime+',"clientType":"ANDROID","majorVersion":1,"minorVersion":6,"updateVersion":0}');
+			} else {
+				$('#join_json').attr('value', 
+						'{"version":1,"type":"PLAY","clientType":"ANDROID","majorVersion":1,"minorVersion":6,"updateVersion":0}');
+			}
+		}
+
+		function rebuild_index(index, table) {
+   			$('tr',table).remove();
+   			var image = '';
+   			if (index.imageUrl!=undefined) {
+				image = '<img src="'+index.imageUrl+'" alt="image"/>';
+   			}
+			table.append('<tr><td>'+image+'</td><td>'+
+					'<h2><a href="'+index.link+'">'+index.title+'</a></h2>'+
+					'<p>'+index.description+'</p>'+
+					'</td></tr>');
+			for (var i=0; i<index.items.length; i++) {
+				var item = index.items[i];
+    			var image = '';
+    			if (item.imageUrl!=undefined) {
+					image = '<img src="'+item.imageUrl+'" alt="image"/>';
+    			}
+    			var subtitle = '';
+    			if (item.subtitle!=undefined) 
+        			subtitle = '<h4>'+item.subtitle+'<h4>';
+    			var times = '';
+    			if (item.startTime!=undefined) {
+        			times = '<tr><td>'+timeToString(item.startTime)+'-'+timeToString(item.endTime)+'</td></tr>';
+    			}
+    			if (item.radiusMetres!=undefined && item.radiusMetres!=0) {
+        			times = times+'<tr><td>At '+item.latitudeE6+','+item.longitudeE6+'</td></tr>';
+    			}
+    			if (item.startTimeCron!=undefined) {
+        			times = times+'<tr><td>Every: '+item.startTimeCron+'</td></tr>';
+        			times = times+'<tr><td>'+timeToString(item.minTime)+'-'+timeToString(item.maxTime)+'</td></tr>';
+    			}
+    			if (item.firstStartTime!=undefined) {
+        			times = times+'<tr><td>Next: '+timeToString(item.firstStartTime)+'</td></tr>';
+    			}
+				var clients = '';
+				for (var ci=0; ci<item.clientTemplates.length; ci++) {
+					var ct = item.clientTemplates[ci];
+					clients = clients+'<td>'+ct.title+
+					'<br>('+ct.clientType+' '+ct.minMajorVersion+'.'+ct.minMinorVersion+'.'+ct.minUpdateVersion+')';
+					if (ct.locationSpecific)
+						clients = clients+'<br>Located!';
+					clients = clients+'</td>';
+				}
+				var button = '';
+				if (item.queryUrl!=undefined)
+					button = '<input type="button" value="Go!" onclick="select_game('+i+')"/>';
+				if (item.joinUrl!=undefined) 
+					button = button+'<input type="button" value="Join!" onclick="join_game('+i+')"/>';
+				if (item.newInstanceUrl!=undefined) 
+					button = button+'<input type="button" value="Create!" onclick="join_game('+i+')"/>';
+				table.append('<tr><td>'+image+'</td><td>'+
+						'<h3><a href="'+item.link+'">'+item.title+'</a></h3>'+subtitle+
+						'<p>'+item.description+'</p>'+
+						'<p><table border="1">'+times+'<tr>'+
+						clients+
+						'</tr></table></p>'+
+						'</td><td>'+button+
+						'</td></tr>');							
+			}
+		}
+		function load_index() {
+			var table = $('#index');
+			$('tr',table).remove();
+			table.append('<tr><td>Loading...</td></tr>');
+    		$.getJSON('GetGameIndex', function(json) { index=json; rebuild_index(json,table) });
+		}
+		//$(document).ready(...);
+	
+		function do_query(form) {
+			if (item==null) {
+				alert('No game selected');
+				return false;
+			}
+			var data = $('#query_json',form).attr('value');
+			try {
+				$.ajax({url: item.queryUrl, 
+		    		type: 'POST',
+		    		contentType: 'application/json',
+		    		processData: false,
+		    		data: data,
+		    		dataType: 'json',
+		    		success: function success(data, status) {
+						var table = $('#index2');
+		    			//data = $.parseJSON(data);
+		    			//alert('Updated config ('+status+'): data='+data+' ('+$.toJSON(data)+')');
+	    				$('#query_resp',form).attr('value',$.toJSON(data));
+	    				index2 = data;
+	    				rebuild_index(data,table);
+					},
+					error: function error(req, status) {
+		    			alert('Error doing query ('+req.status+': '+req.statusText+')');
+					}
+				});
+			} catch (err) {
+				alert('Error attempting query on '+item.queryUrl+': '+err);
+			}
+			return false;
+		}
+
+		function do_join(form) {
+			if (item2==null) {
+				alert('No game instance selected');
+				return false;
+			}
+			var data = $('#join_json',form).attr('value');
+			var req = $.parseJSON(data);
+			var type = req.type;
+			if (type=='NEW_INSTANCE') {
+				// factory op
+				try {
+					$.ajax({url: item2.newInstanceUrl, 
+			    		type: 'POST',
+			    		contentType: 'application/json',
+			    		processData: false,
+			    		data: data,
+			    		dataType: 'json',
+			    		success: function success(data, status) {
+			    			//data = $.parseJSON(data);
+			    			//alert('Updated config ('+status+'): data='+data+' ('+$.toJSON(data)+')');
+		    				$('#join_resp',form).attr('value',$.toJSON(data));
+						},
+						error: function error(req, status) {
+			    			alert('Error doing newInstance ('+req.status+': '+req.statusText+')');
+						}
+					});
+				} catch (err) {
+					alert('Error attempting newInstance on '+item.newInstanceUrl+': '+err);
+				}
+			}
+			else {
+				// instance op
+				try {
+					$.ajax({url: item2.joinUrl, 
+			    		type: 'POST',
+			    		contentType: 'application/json',
+			    		processData: false,
+			    		data: data,
+			    		dataType: 'json',
+			    		success: function success(data, status) {
+			    			//data = $.parseJSON(data);
+			    			//alert('Updated config ('+status+'): data='+data+' ('+$.toJSON(data)+')');
+		    				$('#join_resp',form).attr('value',$.toJSON(data));
+						},
+						error: function error(req, status) {
+			    			alert('Error doing join ('+req.status+': '+req.statusText+')');
+						}
+					});
+				} catch (err) {
+					alert('Error attempting join on '+item.joinUrl+': '+err);
+				}
+			}
+			return false;
+		}
+		
+    </script>
+  </head>
+
+  <body>
+    <h1>Lobby Browser</h1>
+    <p><a href="GetGameIndex">GetGameIndex (JSON)</a></p>
+    <h2>Game Template Index</h2>
+    <table border="1" id="index">
+    </table>
+    <p><input type="button" value="Load" onclick="load_index()"/></p>
+    <h2>Chosen Game Template</h2>
+    <div id="item"></div>
+<!--     <p>Time:
+    	<input type="text" value=""/>
+    </p> -->
+    <form action="dummy" onsubmit="do_query(this);return false">
+    	<ul>
+    		<li>{</li>
+    		<li>"version":1</li>
+    		<li>"clientType":"ANDROID"</li>
+    		<li>"clientTitle":"..."</li>
+    		<li>"majorVersion":1</li>
+    		<li>"minorVersion":1</li>
+    		<li>"updateVersion":1</li>
+    		<li>"latitudeE6":1</li>
+    		<li>"longitudeE6":1</li>
+    		<li>"locationConstraint":{</li>
+    		<ul>
+    			<li>"type":"CIRCLE"</li>
+	    		<li>"latitudeE6":1</li>
+    			<li>"longitudeE6":1</li>
+        		<li>"radiusMetres":1</li>
+    		</ul>
+    		<li>}</li>
+    		<li>"timeConstraint":{</li>
+    		<ul>
+    			<li>"minTime":1234567890000</li>
+    			<li>"maxTime":1234567890000</li>
+    			<li>"minDurationMs":1000</li>
+    			<li>"maxDurationMs":1000</li>
+    			<li>"includeStarted":true</li>
+    			<li>"limitEndTime":true</li>
+    		</ul>
+    		<li>}</li>
+    		<li>"includeFullGames":true</li>
+    		<li>}</li>
+    	</ul>
+		<p><textarea cols="40" rows="5" id="query_json">{"version":1}</textarea></p>
+		<p><input type="submit" value="Do query"/></p>
+		<p><textarea cols="40" rows="5" id="query_resp"></textarea></p>
+    </form>
+    <h2>Game Instance Index</h2>
+    <table border="1" id="index2">
+    </table>
+    <h2>Chosen Game Instance</h2>
+    <div id="item2"></div>
+<!--     <p>Time:
+    	<input type="text" value=""/>
+    </p> -->
+    <form action="dummy" onsubmit="do_join(this);return false">
+    	<ul>
+    		<li>{</li>
+    		<li>"version":1</li>
+    		<li>"clientId":"..." (for secure ops)</li>
+    		<li>"deviceId":"..." (for insecure ops - unauthenticated)</li>
+    		<li>"gameSlotId":"..." (for update ops)</li>
+    		<li>"startTime":... (for instance factory join)</li>
+    		<li>"nickname":"..."</li>
+    		<li>"type":"RESERVE" (or "RELEASE" or "PLAY" or "NEW_INSTANCE")</li>
+    		<li>"clientType":"ANDROID"</li>
+    		<li>"clientTitle":"..."</li>
+    		<li>"majorVersion":1</li>
+    		<li>"minorVersion":1</li>
+    		<li>"updateVersion":1</li>
+    		<li>"latitudeE6":1</li>
+    		<li>"longitudeE6":1</li>
+    		<li>}</li>
+    	</ul>
+		<p><textarea cols="40" rows="5" id="join_json">{"version":1,"type":"PLAY","clientType":"ANDROID","majorVersion":1,"minorVersion":6,"updateVersion":0}</textarea></p>
+		<p><input type="submit" value="Do join"/></p>
+		<p><textarea cols="40" rows="5" id="join_resp"></textarea></p>
+    </form>
+  </body>
+</html>

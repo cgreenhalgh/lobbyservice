@@ -42,7 +42,6 @@ import com.google.appengine.api.datastore.KeyFactory;
 import uk.ac.horizon.ug.lobby.Constants;
 import uk.ac.horizon.ug.lobby.model.Account;
 import uk.ac.horizon.ug.lobby.model.GameClientTemplate;
-import uk.ac.horizon.ug.lobby.model.GameClientType;
 import uk.ac.horizon.ug.lobby.model.GameIndex;
 import uk.ac.horizon.ug.lobby.model.GameInstance;
 import uk.ac.horizon.ug.lobby.model.GameInstanceFactory;
@@ -299,7 +298,7 @@ public class JSONUtils implements Constants {
 			if (key.equals(TITLE))
 				gct.setTitle(json.getString(TITLE));
 			else if (key.equals(CLIENT_TYPE))
-				gct.setClientType(GameClientType.valueOf(json.getString(CLIENT_TYPE)));
+				gct.setClientType(json.getString(CLIENT_TYPE));
 			else if (key.equals(MIN_MAJOR_VERSION))
 				gct.setMinMajorVersion(json.getInt(MIN_MAJOR_VERSION));
 			else if (key.equals(MIN_MINOR_VERSION))
@@ -940,7 +939,7 @@ public class JSONUtils implements Constants {
 			if (key.equals(CLIENT_TITLE))
 				o.setClientTitle(json.getString(key));
 			else if (key.equals(CLIENT_TYPE))
-				o.setClientType(GameClientType.valueOf(json.getString(key)));
+				o.setClientType(json.getString(key));
 			else if (key.equals(GAME_TEMPLATE_ID))
 				o.setGameTemplateId(json.getString(key));
 			else if (key.equals(LATITUDE_E6))
@@ -978,7 +977,7 @@ public class JSONUtils implements Constants {
 			else if (key.equals(CLIENT_ID))
 				o.setClientId(json.getString(key));
 			else if (key.equals(CLIENT_TYPE))
-				o.setClientType(GameClientType.valueOf(json.getString(key)));
+				o.setClientType(json.getString(key));
 			else if (key.equals(DEVICE_ID))
 				o.setDeviceId(json.getString(key));
 			else if (key.equals(GAME_SLOT_ID))

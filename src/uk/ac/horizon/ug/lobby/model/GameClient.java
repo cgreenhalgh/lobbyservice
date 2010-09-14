@@ -46,7 +46,7 @@ public class GameClient {
     /** shared secret */
     private String sharedSecret;
     /** client type, e.g. "Android" */
-    private GameClientType clientType;
+    private String clientType;
     /** min major version */
     private Integer majorVersion;
     /** min minor version (or 0) */
@@ -125,13 +125,13 @@ public class GameClient {
 	/**
 	 * @return the clientType
 	 */
-	public GameClientType getClientType() {
+	public String getClientType() {
 		return clientType;
 	}
 	/**
 	 * @param clientType the clientType to set
 	 */
-	public void setClientType(GameClientType clientType) {
+	public void setClientType(String clientType) {
 		this.clientType = clientType;
 	}
 	/**

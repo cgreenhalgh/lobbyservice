@@ -19,7 +19,6 @@
  */
 package uk.ac.horizon.ug.lobby.protocol;
 
-import uk.ac.horizon.ug.lobby.model.GameClientType;
 import uk.ac.horizon.ug.lobby.model.GameTemplateVisibility;
 
 /** Query from client to server, looking for a specific game.
@@ -47,7 +46,7 @@ public class GameJoinRequest {
 	/** current version */
 	public static final int CURRENT_VERSION = 1;
 	/** client type - required */
-	private GameClientType clientType;
+	private String clientType;
 	/** preferred/required client (template) name - optional */
 	private String clientTitle;
 	/** client version - required (default 0) */
@@ -142,13 +141,13 @@ public class GameJoinRequest {
 	/**
 	 * @return the clientType
 	 */
-	public GameClientType getClientType() {
+	public String getClientType() {
 		return clientType;
 	}
 	/**
 	 * @param clientType the clientType to set
 	 */
-	public void setClientType(GameClientType clientType) {
+	public void setClientType(String clientType) {
 		this.clientType = clientType;
 	}
 	/**

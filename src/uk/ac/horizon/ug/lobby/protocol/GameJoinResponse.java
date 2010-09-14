@@ -21,8 +21,6 @@ package uk.ac.horizon.ug.lobby.protocol;
 
 import java.util.Map;
 
-import uk.ac.horizon.ug.lobby.model.GameClientType;
-
 /** Query from client to server, looking for a specific game.
  * 
  * @author cmg

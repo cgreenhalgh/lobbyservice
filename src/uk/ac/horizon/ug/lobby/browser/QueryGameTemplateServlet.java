@@ -53,7 +53,6 @@ import uk.ac.horizon.ug.lobby.RequestException;
 import uk.ac.horizon.ug.lobby.model.Account;
 import uk.ac.horizon.ug.lobby.model.EMF;
 import uk.ac.horizon.ug.lobby.model.GameClientTemplate;
-import uk.ac.horizon.ug.lobby.model.GameClientType;
 import uk.ac.horizon.ug.lobby.model.GameIndex;
 import uk.ac.horizon.ug.lobby.model.GameInstance;
 import uk.ac.horizon.ug.lobby.model.GameInstanceFactory;
@@ -169,7 +168,11 @@ public class QueryGameTemplateServlet extends HttpServlet implements Constants {
 			maxResults = gq.getMaxResults();
 		if (maxResults<=0)
 			return gindex;
-		
+
+		// matching combinations
+		List<GameTemplateInfo> gtis = new LinkedList<GameTemplateInfo>();
+		gindex.setItems(gtis);
+
 		// Check GameClientTemplate for clientType, clientTitle, locationSpecific and version
 		List<GameClientTemplate> posgcts = getGameClientTemplates(gq, gt.getId());
 		logger.info("Game "+gt.getId()+" has "+posgcts.size()+" possible clients");
@@ -191,13 +194,11 @@ public class QueryGameTemplateServlet extends HttpServlet implements Constants {
 		if (gcts.size()==0) {
 			logger.info("Game "+gt.getId()+" does not support any client(s) specified");
 			// no matching client - so can't play
+			// TODO more detail? alternative?
+			gtis.add(getGameIndexMessage("Client not supported", "This game does not support you client", null));
 			return gindex;
 		}
 		logger.info("Found "+gcts.size()+" possible client templates, of which "+noloc_gcts.size()+" location-independent");
-
-		// matching combinations
-		List<GameTemplateInfo> gtis = new LinkedList<GameTemplateInfo>();
-		gindex.setItems(gtis);
 
 		// ensure GameInstanceFactorys get a chance to create relevant GameInstances...
 		EntityManager em = EMF.get().createEntityManager();
@@ -468,6 +469,11 @@ public class QueryGameTemplateServlet extends HttpServlet implements Constants {
 				gtis.add(gti);
 				
 			}
+			
+			if (gtis.size()==0) {
+				// TODO more detail, suggestions.
+				gtis.add(getGameIndexMessage("No games found", "There were no games that matched your query", null));
+			}
 			return gindex;
 		}
 		finally {	
@@ -520,7 +526,7 @@ public class QueryGameTemplateServlet extends HttpServlet implements Constants {
 	private static List<GameClientTemplate> getGameClientTemplates(GameQuery gq, String gameTemplateId) {
 		return getGameClientTemplates(gq.getClientTitle(), gq.getClientType(), gameTemplateId, gq.getMajorVersion(), gq.getMinorVersion(), gq.getUpdateVersion());
 	}
-	static List<GameClientTemplate> getGameClientTemplates(String clientTitle, GameClientType clientType,
+	static List<GameClientTemplate> getGameClientTemplates(String clientTitle, String clientType,
 			String gameTemplateId, Integer majorVersion, Integer minorVersion,
 			Integer updateVersion) {
 		EntityManager em = EMF.get().createEntityManager();
@@ -574,6 +580,17 @@ public class QueryGameTemplateServlet extends HttpServlet implements Constants {
 		finally {
 			em.close();
 		}
+	}
+	/** make a 'GameTemplateInfo' just to convey a problem or alternative, not a game */
+	private static GameTemplateInfo getGameIndexMessage(String message, String detail, String imageUrl) {
+		GameTemplate gt = new GameTemplate();
+		gt.setTitle(message);
+		gt.setDescription(detail);
+		if (imageUrl!=null)
+			gt.setImageUrl(imageUrl);
+		GameTemplateInfo gti = new GameTemplateInfo();
+		gti.setGameTemplate(gt);
+		return gti;
 	}
 	private static final String JOIN_PATH = "browser/JoinGameInstance/";
 	static String makeJoinUrl(ServerConfiguration sc, GameInstance gi) {

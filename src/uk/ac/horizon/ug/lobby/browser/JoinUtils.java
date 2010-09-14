@@ -28,7 +28,6 @@ import java.util.logging.Logger;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
-import javax.persistence.Query;
 import javax.servlet.http.HttpServletResponse;
 
 import com.google.appengine.api.datastore.Key;
@@ -40,7 +39,6 @@ import uk.ac.horizon.ug.lobby.model.EMF;
 import uk.ac.horizon.ug.lobby.model.GUIDFactory;
 import uk.ac.horizon.ug.lobby.model.GameClient;
 import uk.ac.horizon.ug.lobby.model.GameClientTemplate;
-import uk.ac.horizon.ug.lobby.model.GameClientType;
 import uk.ac.horizon.ug.lobby.protocol.GameJoinRequest;
 import uk.ac.horizon.ug.lobby.protocol.GameJoinResponse;
 import uk.ac.horizon.ug.lobby.protocol.GameJoinResponseStatus;
@@ -60,7 +58,7 @@ public class JoinUtils implements Constants {
 	}
 	/** client info - for create anon */
 	public static class ClientInfo {
-		public GameClientType clientType;
+		public String clientType;
 		public Integer majorVersion;
 		public Integer minorVersion;
 		public Integer updateVersion;
@@ -68,15 +66,15 @@ public class JoinUtils implements Constants {
 		public ClientInfo() {}
 		
 		/**
-		 * @param clientType
+		 * @param string
 		 * @param majorVersion
 		 * @param minorVersion
 		 * @param updateVersion
 		 */
-		public ClientInfo(GameClientType clientType, Integer majorVersion,
+		public ClientInfo(String string, Integer majorVersion,
 				Integer minorVersion, Integer updateVersion) {
 			super();
-			this.clientType = clientType;
+			this.clientType = string;
 			this.majorVersion = majorVersion;
 			this.minorVersion = minorVersion;
 			this.updateVersion = updateVersion;
@@ -85,13 +83,13 @@ public class JoinUtils implements Constants {
 		/**
 		 * @return the clientType
 		 */
-		public GameClientType getClientType() {
+		public String getClientType() {
 			return clientType;
 		}
 		/**
 		 * @param clientType the clientType to set
 		 */
-		public void setClientType(GameClientType clientType) {
+		public void setClientType(String clientType) {
 			this.clientType = clientType;
 		}
 		/**
