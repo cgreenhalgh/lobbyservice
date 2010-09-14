@@ -91,23 +91,25 @@ import uk.me.jstott.jcoord.LatLng;
 public class JoinGameInstanceServlet extends HttpServlet implements Constants {
 	static Logger logger = Logger.getLogger(JoinGameInstanceServlet.class.getName());
 
-	private GameInstance getGameInstance(HttpServletRequest req, EntityManager em) throws RequestException {
+	private GameInstance getGameInstance(HttpServletRequest req) throws RequestException {
 		String id = HttpUtils.getIdFromPath(req);
-		
-		Key key = KeyFactory.stringToKey(id);
-		GameInstance gt = em.find(GameInstance.class, key);
-        if (gt==null)
-        	throw new RequestException(HttpServletResponse.SC_NOT_FOUND, "GameInstance "+id+" not found");
-        
-        return gt;
+		EntityManager em = EMF.get().createEntityManager();
+		try {
+			Key key = KeyFactory.stringToKey(id);
+			GameInstance gt = em.find(GameInstance.class, key);
+	        if (gt==null)
+	        	throw new RequestException(HttpServletResponse.SC_NOT_FOUND, "GameInstance "+id+" not found");
+	        
+	        return gt;
+		}
+		finally {
+			em.close();
+		}
 	}
 
 	@Override
 	public void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException {
-
-		ServerConfiguration sc = ConfigurationUtils.getServerConfiguration();
-		GameIndex gindex = sc.getGameIndex();
 
 		// parse request
 		String line = null;
@@ -133,31 +135,23 @@ public class JoinGameInstanceServlet extends HttpServlet implements Constants {
 			resp.sendError(HttpServletResponse.SC_BAD_REQUEST, e.toString());
 			return;			
 		}
-		EntityManager em = EMF.get().createEntityManager();
-		EntityTransaction et = em.getTransaction();
 		try {
-			et.begin();
-			GameInstance gi = getGameInstance(req, em);
-			et.rollback();
-			et.begin();
-			
+			GameInstance gi = getGameInstance(req);
+
 			GameJoinResponse gjresp = new GameJoinResponse();
 			gjresp.setTime(System.currentTimeMillis());
 			
 			gjresp.setType(gjreq.getType());
 			
 			// authenticate client
-			et.rollback();
 			// own em/etc.
 			JoinUtils.ClientInfo clientInfo = new JoinUtils.ClientInfo(gjreq.getClientType(), gjreq.getMajorVersion(), gjreq.getMinorVersion(), gjreq.getUpdateVersion());
 			JoinUtils.JoinAuthInfo jai = JoinUtils.authenticate(gjreq.getClientId(), gjreq.getDeviceId(), clientInfo, gi.isAllowAnonymousClients(), line, auth);
 			if (jai.anonymous && gjreq.getGameSlotId()!=null){
 				throw new JoinException(GameJoinResponseStatus.ERROR_CLIENT_AUTHENTICATION_REQUIRED, "Changing an existing game slot requires a client to be identified");
 			}
-			gjresp.setClientId(jai.gc.getId());
-			et.begin();
 			
-			handleJoinRequestInternal(sc, em, et, gjreq, gjresp, jai, gi);
+			handleJoinRequestInternal(gjreq, gjresp, jai, gi);
 
 			// write final response
 			JSONUtils.sendGameJoinResponse(resp, gjresp);
@@ -175,55 +169,54 @@ public class JoinGameInstanceServlet extends HttpServlet implements Constants {
 			JSONUtils.sendGameJoinResponse(resp, gjresp);
 			return;
 		}
-		finally {	
-			if(et.isActive())
-				et.rollback();
-			em.close();
-		}
 	}
 	/** common code for Join (above) and NEW_INSTANCE 
 	 * @throws JoinException 
 	 * @throws RequestException */
-	static void handleJoinRequestInternal(ServerConfiguration sc, EntityManager em,
-			EntityTransaction et, GameJoinRequest gjreq,
+	static void handleJoinRequestInternal(GameJoinRequest gjreq,
 			GameJoinResponse gjresp, JoinAuthInfo jai, GameInstance gi) throws IOException, JoinException, RequestException {
-		// TODO Auto-generated method stub
 		GameClient gc = jai.gc;
 		Account account = jai.account;
-		boolean anonymous = jai.anonymous;
+		//boolean anonymous = jai.anonymous;
 
 		gjresp.setClientId(gc.getId());
-		// existing game slot?
+
 		GameInstanceSlot gs = null;
-		if (gjreq.getGameSlotId()!=null) {
-			if (gc==null) {
-				// should already be checked
-				throw new JoinException(GameJoinResponseStatus.ERROR_CLIENT_AUTHENTICATION_REQUIRED, "Changing an existing game slot requires a client to be identified");
+		EntityManager em = EMF.get().createEntityManager();
+		try {
+			// existing game slot?
+			if (gjreq.getGameSlotId()!=null) {
+				if (gc==null) {
+					// should already be checked
+					throw new JoinException(GameJoinResponseStatus.ERROR_CLIENT_AUTHENTICATION_REQUIRED, "Changing an existing game slot requires a client to be identified");
+				}
+				Key gskey = GameInstanceSlot.idToKey(gi.getKey(), gjreq.getGameSlotId());
+				gs = em.find(GameInstanceSlot.class, gskey);
+				if (gs==null) {
+					throw new JoinException(GameJoinResponseStatus.ERROR_UNKNOWN_SLOT, "GameSlot "+gjreq.getGameSlotId()+" not found");
+				}
+				// correct client?
+				if (!gs.getGameClientKey().equals(gc.getKey())) {
+					// TODO another client of the same account?!
+					throw new JoinException(GameJoinResponseStatus.ERROR_NOT_PERMITTED, "Game slot "+gjreq.getGameSlotId()+" is not owned by client "+gjreq.getClientId());
+				}
 			}
-			Key gskey = GameInstanceSlot.idToKey(gi.getKey(), gjreq.getGameSlotId());
-			gs = em.find(GameInstanceSlot.class, gskey);
-			if (gs==null) {
-				throw new JoinException(GameJoinResponseStatus.ERROR_UNKNOWN_SLOT, "GameSlot "+gjreq.getGameSlotId()+" not found");
-			}
-			// correct client?
-			if (!gs.getGameClientKey().equals(gc.getKey())) {
-				// TODO another client of the same account?!
-				throw new JoinException(GameJoinResponseStatus.ERROR_NOT_PERMITTED, "Game slot "+gjreq.getGameSlotId()+" is not owned by client "+gjreq.getClientId());
+			else {
+				// already got a slot for this client?
+				Query q;
+				q = em.createQuery("SELECT x FROM "+GameInstanceSlot.class.getSimpleName()+" x WHERE x."+GAME_INSTANCE_KEY+" = :"+GAME_INSTANCE_KEY+" AND x."+GAME_CLIENT_KEY+" = :"+GAME_CLIENT_KEY);
+				q.setParameter(GAME_INSTANCE_KEY, gi.getKey());
+				q.setParameter(GAME_CLIENT_KEY, gc.getKey());
+				List<GameInstanceSlot> gss = (List<GameInstanceSlot>)q.getResultList();
+				if (gss.size()>0) {
+					gs = gss.get(0);
+					logger.warning("Found existing Game slot "+gs.getKey().getName()+" for client "+gc.getId());
+				}			
 			}
 		}
-		else {
-			// already got a slot for this client?
-			Query q;
-			q = em.createQuery("SELECT x FROM "+GameInstanceSlot.class.getSimpleName()+" x WHERE x."+GAME_INSTANCE_KEY+" = :"+GAME_INSTANCE_KEY+" AND x."+GAME_CLIENT_KEY+" = :"+GAME_CLIENT_KEY);
-			q.setParameter(GAME_INSTANCE_KEY, gi.getKey());
-			q.setParameter(GAME_CLIENT_KEY, gc.getKey());
-			List<GameInstanceSlot> gss = (List<GameInstanceSlot>)q.getResultList();
-			if (gss.size()>0) {
-				gs = gss.get(0);
-				logger.warning("Found existing Game slot "+gs.getKey().getName()+" for client "+gc.getId());
-			}			
+		finally {
+			em.close();
 		}
-		
 		// create new game slot 
 		if (gs==null) {
 			// new slot
@@ -233,32 +226,15 @@ public class JoinGameInstanceServlet extends HttpServlet implements Constants {
 			// new Game Slot...
 			
 			// check if full
-			// TODO re-work as this isn't really consistent anyway
-			Query q;
-			q = em.createQuery("SELECT x FROM "+GameInstanceSlot.class.getSimpleName()+" x WHERE x."+GAME_INSTANCE_KEY+" = :"+GAME_INSTANCE_KEY);
-			q.setParameter(GAME_INSTANCE_KEY, gi.getKey());
-			List<GameInstanceSlot> gss = (List<GameInstanceSlot>)q.getResultList();
-			if (gss.size()!=gi.getNumSlotsAllocated()) {
-				logger.warning("NumSlotsAllocated was wrong ("+gi.getNumSlotsAllocated()+" vs "+gss.size()+")");
-				gi.setNumSlotsAllocated(gss.size());
-			}
-			boolean full = gss.size() >= gi.getMaxNumSlots();
-			if (full != gi.isFull()) {
-				logger.warning("Full was wrong ("+gi.isFull()+" vs "+full+")");
-				gi.setFull(full);
-			}
+			boolean full = gi.getNumSlotsAllocated() >= gi.getMaxNumSlots();
 			if (full) {
-				// num/full might have changed
-				et.commit();
 				throw new JoinException(GameJoinResponseStatus.ERROR_FULL, "This game is full");
 			}
 			
 			// check that a valid client type exists
-			List<GameClientTemplate> gcts = JoinUtils.getGameClientTemplates(em, gjreq, gi.getGameTemplateId());
+			List<GameClientTemplate> gcts = JoinUtils.getGameClientTemplates(gjreq, gi.getGameTemplateId());
 
 			if (gcts.size()==0) {
-				// num/full might have changed
-				et.commit();
 				throw new JoinException(GameJoinResponseStatus.ERROR_UNSUPPORTED_CLIENT, "This game does not support your client");
 			}
 			
@@ -270,12 +246,30 @@ public class JoinGameInstanceServlet extends HttpServlet implements Constants {
 			gct = gcts.get(0);
 
 			logger.info(gjreq.getType()+" using client "+gct);
-			gi.setNumSlotsAllocated(gi.getNumSlotsAllocated()+1);
-			if (gi.getNumSlotsAllocated() >= gi.getMaxNumSlots()) {
-				logger.info("Game now full: "+gi);
-				gi.setFull(full);
+			// transaction
+			em = EMF.get().createEntityManager();
+			EntityTransaction et = em.getTransaction();
+			try {
+				et.begin();
+				// conservative in the sense that if we might fail to actually make the slot, 
+				// so at least we can't make too many...
+				GameInstance ngi = em.find(GameInstance.class, gi.getKey());
+				ngi.setNumSlotsAllocated(ngi.getNumSlotsAllocated()+1);
+				if (ngi.getNumSlotsAllocated() >= ngi.getMaxNumSlots()) {
+					logger.info("Game now full: "+ngi);
+					ngi.setFull(full);
+				}
+				else
+					ngi.setFull(false);
+				et.commit();
+			}
+			finally {
+				if (et.isActive())
+					et.rollback();
+				em.close();
 			}
 
+			// new game slot
 			gs = new GameInstanceSlot();				
 			gs.setKey(GameInstanceSlot.idToKey(gi.getKey(), GUIDFactory.newGUID()));
 			if (account!=null)
@@ -293,14 +287,32 @@ public class JoinGameInstanceServlet extends HttpServlet implements Constants {
 				gs.setNickname(account.getNickname());
 			else
 				gs.setNickname("Anonymous");
-			em.persist(gs);
+			em = EMF.get().createEntityManager();
+			try {
+				em.persist(gs);
+			}
+			finally {
+				em.close();
+			}
 		} else if (gjreq.getNickname()!=null && !gjreq.getNickname().equals(gs.getNickname())){
-			logger.info("Change GameSlot nickname "+gs.getNickname()+" -> "+gjreq.getNickname());
-			gs.setNickname(gjreq.getNickname());
-			em.merge(gs);
+			// transaction
+			em = EMF.get().createEntityManager();
+			EntityTransaction et = em.getTransaction();
+			try {
+				et.begin();
+				GameInstanceSlot ngs = em.find(GameInstanceSlot.class, gs.getKey());
+
+				logger.info("Change GameSlot nickname "+gs.getNickname()+" -> "+gjreq.getNickname());
+				ngs.setNickname(gjreq.getNickname());
+				//em.merge(gs);
+				et.commit();
+			}
+			finally {
+				if (et.isActive())
+					et.rollback();
+				em.close();
+			}
 		}
-		et.commit();
-		et.begin();
 		
 		gjresp.setGameSlotId(gs.getKey().getName());
 		gjresp.setNickname(gs.getNickname());
@@ -311,18 +323,31 @@ public class JoinGameInstanceServlet extends HttpServlet implements Constants {
 		switch (gjreq.getType()) {
 		case PLAY:
 			// attempt to (re)register with server				
-			handleClientPlayRequest(gjreq, gi, gs, gjresp, gc, account, em);
+			handleClientPlayRequest(gjreq, gi, gs, gjresp, gc, account);
 			break;
-		case RELEASE:
+		case RELEASE: {
 			// update gi
-			gi.setNumSlotsAllocated(gi.getNumSlotsAllocated()-1);
-			gi.setFull(gi.getNumSlotsAllocated() >= gi.getMaxNumSlots());
-			em.merge(gi);
-			em.remove(gs);
-			logger.info("Released "+gs);
-			gjresp.setStatus(GameJoinResponseStatus.OK);	
-			gjresp.setMessage("Release game slot");
+			em = EMF.get().createEntityManager();
+			EntityTransaction et = em.getTransaction();
+			et.begin();
+			try {
+				GameInstance ngi = em.find(GameInstance.class, gi.getKey());
+				ngi.setNumSlotsAllocated(ngi.getNumSlotsAllocated()-1);
+				ngi.setFull(ngi.getNumSlotsAllocated() >= ngi.getMaxNumSlots());
+				//em.merge(ngi);
+				em.remove(gs);
+				et.commit();
+				logger.info("Released "+gs);
+				gjresp.setStatus(GameJoinResponseStatus.OK);	
+				gjresp.setMessage("Release game slot");
+			}
+			finally {
+				if (et.isActive())
+					et.rollback();
+				em.close();
+			}
 			break;
+		}
 		case RESERVE:
 			// no-op (if we have got this far)
 			gjresp.setStatus(GameJoinResponseStatus.OK);
@@ -330,13 +355,12 @@ public class JoinGameInstanceServlet extends HttpServlet implements Constants {
 			gjresp.setMessage("Game slot is reserved");
 			break;
 		}
-		et.commit();
 	}
 
 	/** client request to play (authenticated, etc.).
 	 * @return true if handled ok; false if error send */
 	private static void handleClientPlayRequest(GameJoinRequest gjreq,
-			GameInstance gi, GameInstanceSlot gs, GameJoinResponse gjresp, GameClient gc, Account account, EntityManager em) {
+			GameInstance gi, GameInstanceSlot gs, GameJoinResponse gjresp, GameClient gc, Account account) {
 
 		long now = System.currentTimeMillis();
 		// is game instance nominally available?
@@ -376,19 +400,25 @@ public class JoinGameInstanceServlet extends HttpServlet implements Constants {
 			logger.warning("Game server not configured for "+gi);
 			JoinUtils.setTryLater(gjresp);
 		}
-		GameServer server = em.find(GameServer.class, gi.getGameServerId());
-		if (server==null) {
-			logger.warning("Could not find GameServer "+gi.getGameServerId()+" for "+gi);
-			JoinUtils.setTryLater(gjresp);
-			return;
+		GameServer server = null;
+		EntityManager em = EMF.get().createEntityManager();
+		try {
+			server = em.find(GameServer.class, gi.getGameServerId());
+			if (server==null) {
+				logger.warning("Could not find GameServer "+gi.getGameServerId()+" for "+gi);
+				JoinUtils.setTryLater(gjresp);
+				return;
+			}
+			if (server.getTargetStatus()!=GameServerStatus.UP) {
+				logger.warning("GameServer "+server.getTitle()+" is not intended to be up ("+server.getTargetStatus()+" for "+gi);
+				JoinUtils.setTryLater(gjresp);			
+			}
 		}
-		if (server.getTargetStatus()!=GameServerStatus.UP) {
-			logger.warning("GameServer "+server.getTitle()+" is not intended to be up ("+server.getTargetStatus()+" for "+gi);
-			JoinUtils.setTryLater(gjresp);			
+		finally {
+			em.close();
 		}
-		
 		ServerProtocol serverProtocol = server.getType().serverProtocol();
-		serverProtocol.handlePlayRequest(gjreq, gjresp, gi, gs, server, gc, account, em);
+		serverProtocol.handlePlayRequest(gjreq, gjresp, gi, gs, server, gc, account);
 		return;			
 	}
 }

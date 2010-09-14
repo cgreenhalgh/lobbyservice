@@ -53,6 +53,7 @@ import uk.ac.horizon.ug.lobby.ConfigurationUtils;
 import uk.ac.horizon.ug.lobby.Constants;
 import uk.ac.horizon.ug.lobby.HttpUtils;
 import uk.ac.horizon.ug.lobby.RequestException;
+import uk.ac.horizon.ug.lobby.browser.JoinUtils.JoinAuthInfo;
 import uk.ac.horizon.ug.lobby.model.Account;
 import uk.ac.horizon.ug.lobby.model.EMF;
 import uk.ac.horizon.ug.lobby.model.GUIDFactory;
@@ -97,15 +98,20 @@ import uk.me.jstott.jcoord.LatLng;
 public class NewGameInstanceServlet extends HttpServlet implements Constants {
 	static Logger logger = Logger.getLogger(NewGameInstanceServlet.class.getName());
 
-	private GameInstanceFactory getGameInstanceFactory(HttpServletRequest req, EntityManager em) throws RequestException {
+	private GameInstanceFactory getGameInstanceFactory(HttpServletRequest req) throws RequestException {
 		String id = HttpUtils.getIdFromPath(req);
-		
-		Key key = KeyFactory.stringToKey(id);
-		GameInstanceFactory gt = em.find(GameInstanceFactory.class, key);
-        if (gt==null)
-        	throw new RequestException(HttpServletResponse.SC_NOT_FOUND, "GameInstanceFactory "+id+" not found");
-        
-        return gt;
+		EntityManager em = EMF.get().createEntityManager();
+		try {
+			Key key = KeyFactory.stringToKey(id);
+			GameInstanceFactory gt = em.find(GameInstanceFactory.class, key);
+			if (gt==null)
+				throw new RequestException(HttpServletResponse.SC_NOT_FOUND, "GameInstanceFactory "+id+" not found");
+
+			return gt;
+		}
+		finally {
+			em.close();
+		}
 	}
 
 	@Override
@@ -136,12 +142,9 @@ public class NewGameInstanceServlet extends HttpServlet implements Constants {
 			resp.sendError(HttpServletResponse.SC_BAD_REQUEST, e.toString());
 			return;			
 		}
-		ServerConfiguration sc = ConfigurationUtils.getServerConfiguration();
-		EntityManager em = EMF.get().createEntityManager();
-		EntityTransaction et = em.getTransaction();
-		et.begin();
+		//ServerConfiguration sc = ConfigurationUtils.getServerConfiguration();
 		try {
-			GameInstanceFactory gif = getGameInstanceFactory(req, em);
+			GameInstanceFactory gif = getGameInstanceFactory(req);
 			
 			GameJoinResponse gjresp = new GameJoinResponse();
 			gjresp.setTime(System.currentTimeMillis());
@@ -158,104 +161,8 @@ public class NewGameInstanceServlet extends HttpServlet implements Constants {
 			
 			gjresp.setClientId(gc.getId());
 
-			// we know it is a NEW_INSTANCE request...
+			handleNewInstanceRequest(gjreq, gjresp, jai, gif, req.getRemoteAddr());
 			
-			if (gif.getType()!=GameInstanceFactoryType.ON_DEMAND) {
-				throw new JoinException(GameJoinResponseStatus.ERROR_SCHEDULED_ONLY, "This game does not support on-request instances");
-			}
-			if (gif.getStatus()!=GameInstanceFactoryStatus.ACTIVE) {
-				throw new JoinException(GameJoinResponseStatus.ERROR_NOT_PERMITTED, "This game factory is not active");
-			}
-			if (gif.getStartTimeOptionsJson()==null) {
-				throw new JoinException(GameJoinResponseStatus.ERROR_START_TIME_INVALID, "This game factory has no available start time(s)");
-			}
-			if (gjreq.getNewInstanceStartTime()==null) {
-				throw new RequestException(HttpServletResponse.SC_BAD_REQUEST, "NEW_INSTANCE request must have newInstanceStartTime");
-			}
-			long newInstanceStartTime = gjreq.getNewInstanceStartTime();
-			if (newInstanceStartTime<gif.getMinTime() || newInstanceStartTime>gif.getMaxTime()) {
-				throw new JoinException(GameJoinResponseStatus.ERROR_START_TIME_INVALID, "NewInstanceStartTime out of range for this game factory");
-			}
-			// lee-way in timing expressed (1 minute?!)
-			long START_TIME_RANGE_MS = 60000;
-			// allow start-up time on server
-			long earliest = System.currentTimeMillis();
-			if (gif.getServerCreateTimeOffsetMs()<0)
-				earliest = earliest - gif.getServerCreateTimeOffsetMs();
-			if (newInstanceStartTime+START_TIME_RANGE_MS < earliest) {
-				throw new JoinException(GameJoinResponseStatus.ERROR_START_TIME_TOO_SOON, "NewInstanceStartTime too soon (in "+(newInstanceStartTime-System.currentTimeMillis())+"ms)");
-			} else if (newInstanceStartTime < earliest)
-				// leave enough time...
-				newInstanceStartTime = earliest;
-			// round up to allowed times
-			try {
-				TreeSet timeOptions[] = FactoryUtils.parseTimeOptionsJson(gif.getStartTimeOptionsJson());
-				newInstanceStartTime = FactoryUtils.getNextCronTime(gif.getStartTimeCron(), timeOptions, newInstanceStartTime, gif.getMaxTime());
-			} catch (CronExpressionException e) {
-				logger.warning("Checking nextStartTime: "+e);
-				throw new JoinException(GameJoinResponseStatus.ERROR_START_TIME_INVALID, "Problem with checking nextStartTime");
-			}
-			if (newInstanceStartTime!=0 && newInstanceStartTime>gjreq.getNewInstanceStartTime()+START_TIME_RANGE_MS) {
-				if (gjreq.getNewInstanceStartTime() < earliest)
-					throw new JoinException(GameJoinResponseStatus.ERROR_START_TIME_TOO_SOON, "NewInstanceStartTime too soon (in "+(newInstanceStartTime-System.currentTimeMillis())+"ms)");
-				else
-					// rounded up 'too' far to find a valid start time
-					throw new JoinException(GameJoinResponseStatus.ERROR_START_TIME_INVALID, "Proposed startTime is not (close to) a valid startTime");
-			}
-			if (newInstanceStartTime==0 || newInstanceStartTime>gif.getMaxTime()) {
-				throw new JoinException(GameJoinResponseStatus.ERROR_START_TIME_INVALID, "NewInstanceStartTime out of range for this game factory once correctly for allowed starts ("+newInstanceStartTime+")");
-			}
-
-			// does this instance exist already? 
-			// TODO: if number of concurrent instances is constrained then HIDDEN and FULL instances should also be considered!
-			Query q = em.createQuery("SELECT x FROM GameInstance x WHERE x."+GAME_INSTANCE_FACTORY_KEY+" = :"+GAME_INSTANCE_FACTORY_KEY+" AND x."+VISIBILITY+" = '"+GameTemplateVisibility.PUBLIC.toString()+"' AND x."+FULL+" = FALSE");
-			q.setMaxResults(1);
-			List<GameInstance> gis = (List<GameInstance>)q.getResultList();
-			GameInstance gi = null;
-			if (gis.size()>0) {
-				// essentially we now treat this as a JOIN ?!
-				gi = gis.get(0);
-				et.rollback();
-			}
-			else {
-				// doesn't exist - perhaps we'll make it
-				et.rollback();
-				et.begin();
-				
-				// is it far enough in advance?
-				
-				
-				// create new instance?!
-				if (anonymous && !gif.isCreateForAnonymousClient()) {
-					throw new JoinException(GameJoinResponseStatus.ERROR_USER_AUTHENTICATION_REQUIRED, "This game factory will not create for anonymous players");
-				}
-				// update quota... (doesn't do anything else for non-scheduled factories)
-				FactoryTasks.checkGameInstanceFactory(sc, gif);
-				// check quota...
-				et.rollback();
-				et.begin();
-				GameInstanceFactory ngif = em.find(GameInstanceFactory.class, gif.getKey());
-				int tokenCache = ngif.getNewInstanceTokens();
-				if (tokenCache<=0) {
-					throw new JoinException(GameJoinResponseStatus.ERROR_SYSTEM_QUOTA_EXCEEDED, "This game factory cannot create any more instances at present");
-				}
-				et.rollback();
-				// create!
-				gi = FactoryTasks.createGameInstanceFactoryInstance(ngif, newInstanceStartTime, account, req.getRemoteAddr(), null);
-				
-			}
-			
-			//et.commit();
-			// follow-on info
-			gjresp.setJoinUrl(QueryGameTemplateServlet.makeJoinUrl(sc, gi));
-
-			// now attempt a RESERVE on the identified game instance
-			gjreq.setType(GameJoinRequestType.RESERVE);
-
-			et.begin();
-			JoinGameInstanceServlet.handleJoinRequestInternal(sc, em, et, gjreq, gjresp, jai, gi);
-
-			// write final response
 			JSONUtils.sendGameJoinResponse(resp, gjresp);
 			
 		} catch (RequestException e) {
@@ -275,10 +182,128 @@ public class NewGameInstanceServlet extends HttpServlet implements Constants {
 			resp.sendError(HttpServletResponse.SC_BAD_REQUEST, e.toString());
 			return;
 		}
-		finally {	
-			if(et.isActive())
-				et.rollback();
-			em.close();
+	}
+	private void handleNewInstanceRequest(GameJoinRequest gjreq,
+			GameJoinResponse gjresp, JoinAuthInfo jai, GameInstanceFactory gif, String clientAddr) throws JoinException, RequestException, JSONException, IOException {
+		GameClient gc = jai.gc;
+		Account account = jai.account;
+		boolean anonymous = jai.anonymous;
+
+		// we know it is a NEW_INSTANCE request...
+
+		if (gif.getType()!=GameInstanceFactoryType.ON_DEMAND) {
+			throw new JoinException(GameJoinResponseStatus.ERROR_SCHEDULED_ONLY, "This game does not support on-request instances");
 		}
+		if (gif.getStatus()!=GameInstanceFactoryStatus.ACTIVE) {
+			throw new JoinException(GameJoinResponseStatus.ERROR_NOT_PERMITTED, "This game factory is not active");
+		}
+		if (gif.getStartTimeOptionsJson()==null) {
+			throw new JoinException(GameJoinResponseStatus.ERROR_START_TIME_INVALID, "This game factory has no available start time(s)");
+		}
+		if (gjreq.getNewInstanceStartTime()==null) {
+			throw new RequestException(HttpServletResponse.SC_BAD_REQUEST, "NEW_INSTANCE request must have newInstanceStartTime");
+		}
+		long newInstanceStartTime = gjreq.getNewInstanceStartTime();
+		if (newInstanceStartTime<gif.getMinTime() || newInstanceStartTime>gif.getMaxTime()) {
+			throw new JoinException(GameJoinResponseStatus.ERROR_START_TIME_INVALID, "NewInstanceStartTime out of range for this game factory");
+		}
+		// lee-way in timing expressed (1 minute?!)
+		long START_TIME_RANGE_MS = 60000;
+		// allow start-up time on server
+		long earliest = System.currentTimeMillis();
+		if (gif.getServerCreateTimeOffsetMs()<0)
+			earliest = earliest - gif.getServerCreateTimeOffsetMs();
+		if (newInstanceStartTime+START_TIME_RANGE_MS < earliest) {
+			throw new JoinException(GameJoinResponseStatus.ERROR_START_TIME_TOO_SOON, "NewInstanceStartTime too soon (in "+(newInstanceStartTime-System.currentTimeMillis())+"ms)");
+		} else if (newInstanceStartTime < earliest)
+			// leave enough time...
+			newInstanceStartTime = earliest;
+		// round up to allowed times
+		try {
+			TreeSet timeOptions[] = FactoryUtils.parseTimeOptionsJson(gif.getStartTimeOptionsJson());
+			newInstanceStartTime = FactoryUtils.getNextCronTime(gif.getStartTimeCron(), timeOptions, newInstanceStartTime, gif.getMaxTime());
+		} catch (CronExpressionException e) {
+			logger.warning("Checking nextStartTime: "+e);
+			throw new JoinException(GameJoinResponseStatus.ERROR_START_TIME_INVALID, "Problem with checking nextStartTime");
+		}
+		if (newInstanceStartTime!=0 && newInstanceStartTime>gjreq.getNewInstanceStartTime()+START_TIME_RANGE_MS) {
+			if (gjreq.getNewInstanceStartTime() < earliest)
+				throw new JoinException(GameJoinResponseStatus.ERROR_START_TIME_TOO_SOON, "NewInstanceStartTime too soon (in "+(newInstanceStartTime-System.currentTimeMillis())+"ms)");
+			else
+				// rounded up 'too' far to find a valid start time
+				throw new JoinException(GameJoinResponseStatus.ERROR_START_TIME_INVALID, "Proposed startTime is not (close to) a valid startTime");
+		}
+		if (newInstanceStartTime==0 || newInstanceStartTime>gif.getMaxTime()) {
+			throw new JoinException(GameJoinResponseStatus.ERROR_START_TIME_INVALID, "NewInstanceStartTime out of range for this game factory once correctly for allowed starts ("+newInstanceStartTime+")");
+		}
+		GameInstance gi = null;
+		
+		if (gjreq.getNewInstanceVisibility()!=null && gjreq.getNewInstanceVisibility()!=gif.getInstanceVisibility() && gjreq.getNewInstanceVisibility()==GameTemplateVisibility.HIDDEN)
+			// can't 
+			throw new JoinException(GameJoinResponseStatus.ERROR_NOT_PERMITTED, "Cannot create a hidden (private) instance of this game");
+
+		if (gjreq.getNewInstanceVisibility()!=GameTemplateVisibility.HIDDEN) {
+			// check if it already exists...
+			EntityManager em = EMF.get().createEntityManager();
+			try {
+				// does this instance exist already? 
+				// TODO: if number of concurrent instances is constrained then HIDDEN and FULL instances should also be considered!
+				Query q = em.createQuery("SELECT x FROM GameInstance x WHERE x."+GAME_INSTANCE_FACTORY_KEY+" = :"+GAME_INSTANCE_FACTORY_KEY+" AND x."+VISIBILITY+" = '"+GameTemplateVisibility.PUBLIC.toString()+"' AND x."+FULL+" = FALSE");
+				q.setMaxResults(1);
+				List<GameInstance> gis = (List<GameInstance>)q.getResultList();
+				if (gis.size()>0) {
+					// essentially we now treat this as a JOIN ?!
+					gi = gis.get(0);
+					//et.rollback();
+				}
+			}
+			finally {
+				em.close();
+			}
+		}
+		// needed in a minute
+		ServerConfiguration sc = ConfigurationUtils.getServerConfiguration();
+
+		if (gi==null) {
+			// doesn't exist - perhaps we'll make it
+
+			// is it far enough in advance?
+			// TODO
+
+			// create new instance?!
+			if (anonymous && !gif.isCreateForAnonymousClient()) {
+				throw new JoinException(GameJoinResponseStatus.ERROR_USER_AUTHENTICATION_REQUIRED, "This game factory will not create for anonymous players");
+			}
+			// update quota... (doesn't do anything else for non-scheduled factories)
+			FactoryTasks.checkGameInstanceFactory(sc, gif);
+			// check quota...
+			EntityManager em = EMF.get().createEntityManager();
+			EntityTransaction et = em.getTransaction();
+			// transaction
+			et.begin();
+			GameInstanceFactory ngif = null;
+			try {
+				ngif = em.find(GameInstanceFactory.class, gif.getKey());
+				int tokenCache = ngif.getNewInstanceTokens();
+				if (tokenCache<=0) {
+					throw new JoinException(GameJoinResponseStatus.ERROR_SYSTEM_QUOTA_EXCEEDED, "This game factory cannot create any more instances at present");
+				}
+			}
+			finally {
+				et.rollback();
+				em.close();
+			}
+			// create! (over-ride visibility)
+			gi = FactoryTasks.createGameInstanceFactoryInstance(ngif, gjreq.getNewInstanceVisibility(), newInstanceStartTime, account, clientAddr, null);
+		}
+
+		// new or existing?!
+		// follow-on info
+		gjresp.setJoinUrl(QueryGameTemplateServlet.makeJoinUrl(sc, gi));
+
+		// now attempt a RESERVE on the identified game instance
+		gjreq.setType(GameJoinRequestType.RESERVE);
+
+		JoinGameInstanceServlet.handleJoinRequestInternal(gjreq, gjresp, jai, gi);
 	}
 }

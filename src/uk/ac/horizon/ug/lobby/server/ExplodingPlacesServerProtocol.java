@@ -61,6 +61,7 @@ import org.xml.sax.SAXException;
 import uk.ac.horizon.ug.lobby.browser.JoinGameInstanceServlet;
 import uk.ac.horizon.ug.lobby.browser.JoinUtils;
 import uk.ac.horizon.ug.lobby.model.Account;
+import uk.ac.horizon.ug.lobby.model.EMF;
 import uk.ac.horizon.ug.lobby.model.GameClient;
 import uk.ac.horizon.ug.lobby.model.GameClientType;
 import uk.ac.horizon.ug.lobby.model.GameInstance;
@@ -146,7 +147,7 @@ public class ExplodingPlacesServerProtocol implements ServerProtocol {
 	@Override
 	public void handlePlayRequest(GameJoinRequest gjreq,
 			GameJoinResponse gjresp, GameInstance gi, GameInstanceSlot gs,
-			GameServer server, GameClient gc, Account account, EntityManager em) {
+			GameServer server, GameClient gc, Account account) {
 		// Register client with the server.
 		// Post 
 		//  <login>
@@ -240,7 +241,7 @@ public class ExplodingPlacesServerProtocol implements ServerProtocol {
 	 */
 	@Override
 	public void handleGameInstanceActiveFromReady(GameInstance gi,
-			GameInstanceFactory factory, GameServer server, EntityManager em) throws ConfigurationException, IOException {
+			GameInstanceFactory factory, GameServer server) throws ConfigurationException, IOException {
 		// TODO audit
 		doPost(server.getBaseUrl()+"/orchestration/play.html?gameID="+getGameId(gi), null, false);
 	}
@@ -249,7 +250,7 @@ public class ExplodingPlacesServerProtocol implements ServerProtocol {
 	 */
 	@Override
 	public void handleGameInstanceEnd(GameInstance gi,
-			GameInstanceFactory factory, GameServer server, EntityManager em) throws ConfigurationException, IOException {
+			GameInstanceFactory factory, GameServer server) throws ConfigurationException, IOException {
 		// TODO audit
 		doPost(server.getBaseUrl()+"/orchestration/stop.html?gameID="+getGameId(gi), null, false);
 	}
@@ -258,7 +259,7 @@ public class ExplodingPlacesServerProtocol implements ServerProtocol {
 	 */
 	@Override
 	public void handleGameInstanceEndingFromActive(GameInstance gi,
-			GameInstanceFactory factory, GameServer server, EntityManager em) throws ConfigurationException, IOException {
+			GameInstanceFactory factory, GameServer server) throws ConfigurationException, IOException {
 		// TODO audit
 		doPost(server.getBaseUrl()+"/orchestration/finish.html?gameID="+getGameId(gi), null, false);
 	}
@@ -299,7 +300,7 @@ public class ExplodingPlacesServerProtocol implements ServerProtocol {
 	 */
 	@Override
 	public void handleGameInstancePreparingFromPlanned(GameInstance gi,
-			GameInstanceFactory factory, GameServer server, EntityManager em) throws ConfigurationException, IOException {
+			GameInstanceFactory factory, GameServer server) throws ConfigurationException, IOException {
 		// identify appropriate ContentGroup
 
 		// serverConfigJson must include 'contentGroup':{...}
@@ -390,8 +391,8 @@ public class ExplodingPlacesServerProtocol implements ServerProtocol {
 			throw new IOException("No ID in return from lobby_create");
 
 		// store generated Game ID
+		EntityManager em = EMF.get().createEntityManager();
 		EntityTransaction et = em.getTransaction();
-		et.rollback();
 		et.begin();
 		try {
 			JSONObject config = new JSONObject();
@@ -401,15 +402,17 @@ public class ExplodingPlacesServerProtocol implements ServerProtocol {
 			ngi.setServerConfigJson(config.toString());
 			em.merge(ngi);
 			et.commit();
-			et.begin();
 			
 			// fiddle the cached value too
 			gi.setServerConfigJson(ngi.getServerConfigJson());
 			
 		} catch (Exception e) {
-			et.rollback();
-			et.begin();
 			throw new IOException("Problem saving gameId ("+gameId+"): "+e);
+		}
+		finally {
+			if (et.isActive())
+				et.rollback();
+			em.close();
 		}
 	}
 	public static final String GAME_ID = "gameId";
@@ -443,7 +446,7 @@ public class ExplodingPlacesServerProtocol implements ServerProtocol {
 	 */
 	@Override
 	public void handleGameInstanceReadyFromPreparing(GameInstance gi,
-			GameInstanceFactory factory, GameServer server, EntityManager em) {
+			GameInstanceFactory factory, GameServer server) {
 		// no-op
 	}
 

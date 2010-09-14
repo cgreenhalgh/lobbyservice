@@ -323,8 +323,7 @@ public class JoinUtils implements Constants {
 		return gc;
 	}
 
-	public static List<GameClientTemplate> getGameClientTemplates(EntityManager em,
-			GameJoinRequest gjreq, String gameTemplateId) {
-		return QueryGameTemplateServlet.getGameClientTemplates(em, gjreq.getClientTitle(), gjreq.getClientType(), gameTemplateId, gjreq.getMajorVersion(), gjreq.getMinorVersion(), gjreq.getUpdateVersion());
+	public static List<GameClientTemplate> getGameClientTemplates(GameJoinRequest gjreq, String gameTemplateId) {
+		return QueryGameTemplateServlet.getGameClientTemplates(gjreq.getClientTitle(), gjreq.getClientType(), gameTemplateId, gjreq.getMajorVersion(), gjreq.getMinorVersion(), gjreq.getUpdateVersion());
 	}
 }

@@ -233,7 +233,7 @@ public class FactoryTasks implements Constants {
 			et.rollback();
 			// if you reach here you need to create it...
 			int rtokens[] = new int[1];
-			createGameInstanceFactoryInstance(gif, startTime, null, null, rtokens);
+			createGameInstanceFactoryInstance(gif, null, startTime, null, null, rtokens);
 			return rtokens[0];
 		}
 		finally {
@@ -248,7 +248,7 @@ public class FactoryTasks implements Constants {
 	 * @return new value of newInstanceTokens; returns -1 to signal could not create
 	 */
 	public static GameInstance createGameInstanceFactoryInstance(
-			GameInstanceFactory gif, long startTime, Account account, String clientIp, int rtokens[]) {
+			GameInstanceFactory gif, GameTemplateVisibility visibility, long startTime, Account account, String clientIp, int rtokens[]) {
 		EntityManager em = EMF.get().createEntityManager();
 		EntityTransaction et = em.getTransaction();
 		et.begin();
@@ -281,7 +281,7 @@ public class FactoryTasks implements Constants {
 			//ngi.setStatus()
 			// TODO symbol subst? in title
 			ngi.setTitle(gif.getInstanceTitle());
-			ngi.setVisibility(gif.getInstanceVisibility());
+			ngi.setVisibility(visibility!=null ? visibility : gif.getInstanceVisibility());
 
 			// cache
 			ngi.setFull(ngi.getNumSlotsAllocated()>=ngi.getMaxNumSlots());
@@ -306,7 +306,8 @@ public class FactoryTasks implements Constants {
 			//return ngif.getNewInstanceTokens();
 			if (rtokens!=null)
 				rtokens[0] = ngif.getNewInstanceTokens();
-			logger.warning("GameInstanceFactory in token-debt ("+ngif.getNewInstanceTokens()+"): "+ngif);
+			if (ngif.getNewInstanceTokens()<0)
+				logger.warning("GameInstanceFactory in token-debt ("+ngif.getNewInstanceTokens()+"): "+ngif);
 			return ngi;
 		}
 		finally {

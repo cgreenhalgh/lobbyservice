@@ -82,40 +82,43 @@ public class JSONUtils implements Constants {
 	/** write GameTemplateInfo
 	 * @throws JSONException */
 	public static void writeGameTemplate(JSONWriter jw, GameTemplateInfo gameTemplateInfo) throws JSONException {
-		writeGameTemplate(jw, gameTemplateInfo.getGameTemplate(), gameTemplateInfo.getGameClientTemplates(), gameTemplateInfo.getQueryUrl(), gameTemplateInfo.getGameInstance(), gameTemplateInfo.getJoinUrl(), gameTemplateInfo.getGameInstanceFactory(), gameTemplateInfo.getFirstStartTime(), gameTemplateInfo.getGameTimeOptions(), gameTemplateInfo.getNewInstanceUrl());
+		writeGameTemplate(jw, gameTemplateInfo.getGameTemplate(), gameTemplateInfo.getGameClientTemplates(), gameTemplateInfo.getQueryUrl(), gameTemplateInfo.getGameInstance(), gameTemplateInfo.getJoinUrl(), gameTemplateInfo.getGameInstanceFactory(), gameTemplateInfo.getFirstStartTime(), gameTemplateInfo.getGameTimeOptions(), gameTemplateInfo.getNewInstanceUrl(), false);
 	}
 	/** write GameTemplate summary 
 	 * @throws JSONException */
 	public static void writeGameTemplate(JSONWriter jw, GameTemplate gameTemplate) throws JSONException {
-		writeGameTemplate(jw, gameTemplate, null, null, null, null, null, null, null, null);
+		writeGameTemplate(jw, gameTemplate, null, null, null, null, null, null, null, null, true);
 	}
 	/** write GameTemplate summary 
 	 * @throws JSONException */
-	public static void writeGameTemplate(JSONWriter jw, GameTemplate gameTemplate, List<GameClientTemplate> gameClientTemplates, String queryUrl, GameInstance gameInstance, String joinUrl, GameInstanceFactory gameInstanceFactory, Long firstStartTime, GameTimeOptions gameTimeOptions, String newInstanceUrl) throws JSONException {
+	public static void writeGameTemplate(JSONWriter jw, GameTemplate gameTemplate, List<GameClientTemplate> gameClientTemplates, String queryUrl, GameInstance gameInstance, String joinUrl, GameInstanceFactory gameInstanceFactory, Long firstStartTime, GameTimeOptions gameTimeOptions, String newInstanceUrl, boolean selfContained) throws JSONException {
 		jw.object();
-		if (gameTemplate.getId()!=null) {
-			jw.key(ID);
-			jw.value(gameTemplate.getId());
-		}
-		if (gameTemplate.getTitle()!=null) {
-			jw.key(TITLE);
-			jw.value(gameTemplate.getTitle());
-		}
-		if (gameTemplate.getDescription()!=null) {
-			jw.key(DESCRIPTION);
-			jw.value(gameTemplate.getDescription());
-		}
-		if (gameTemplate.getLanguage()!=null) {
-			jw.key(LANGUAGE);
-			jw.value(gameTemplate.getLanguage());
-		}
-		if (gameTemplate.getLink()!=null) {
-			jw.key(LINK);
-			jw.value(gameTemplate.getLink());
-		}
-		if (gameTemplate.getImageUrl()!=null) {
-			jw.key(IMAGE_URL);
-			jw.value(gameTemplate.getImageUrl());
+		// game template stuff if selfContained
+		if (selfContained) {
+			if (gameTemplate.getId()!=null) {
+				jw.key(ID);
+				jw.value(gameTemplate.getId());
+			}
+			if (gameTemplate.getTitle()!=null) {
+				jw.key(TITLE);
+				jw.value(gameTemplate.getTitle());
+			}
+			if (gameTemplate.getDescription()!=null) {
+				jw.key(DESCRIPTION);
+				jw.value(gameTemplate.getDescription());
+			}
+			if (gameTemplate.getLanguage()!=null) {
+				jw.key(LANGUAGE);
+				jw.value(gameTemplate.getLanguage());
+			}
+			if (gameTemplate.getLink()!=null) {
+				jw.key(LINK);
+				jw.value(gameTemplate.getLink());
+			}
+			if (gameTemplate.getImageUrl()!=null) {
+				jw.key(IMAGE_URL);
+				jw.value(gameTemplate.getImageUrl());
+			}
 		}
 		// game instance visibility over-rides us if given
 		if (gameTemplate.getVisibility()!=null && (gameInstance==null || gameInstance.getVisibility()==null) && (gameInstanceFactory==null || gameInstanceFactory.getVisibility()==null)) {
@@ -164,10 +167,10 @@ public class JSONUtils implements Constants {
 			jw.value(newInstanceUrl);
 		}
 		if (gameInstance!=null) {
-			writeGameInstancePublicFields(jw, gameInstance, true);
+			writeGameInstancePublicFields(jw, gameInstance, selfContained);
 		}
 		else if (gameInstanceFactory!=null) {
-			writeGameInstanceFactoryPublicFields(jw, gameInstanceFactory, true);
+			writeGameInstanceFactoryPublicFields(jw, gameInstanceFactory, selfContained);
 			if (firstStartTime!=null) {
 				jw.key(FIRST_START_TIME);
 				jw.value(firstStartTime.longValue());
