@@ -77,6 +77,11 @@
     	margin-top: 1px;
     	margin-bottom: 1px;
     }
+    .listTable td {
+    	color: #ffffff;
+    	font-size: 14px;
+    	font-family: sans-serif;
+    }
     </style>
     
     <script type = "text/javascript" src="../resources/jquery-1.4.2.min.js"></script>
@@ -390,6 +395,7 @@
    					error: function error(req, status) {
     		    		searching = false;
     		        	update_search_disabled();
+    		        	var table = $('#list');
     		        	table.empty();
     		        	table.append('<tr><td>Error doing search ('+req.status+': '+req.statusText+')</td></tr>');
    		    			alert('Sorry - there was a problem searching');
@@ -398,6 +404,7 @@
    			} catch (err) {
 	    		searching = false;
 	        	update_search_disabled();
+	        	var table = $('#list');
 	        	table.empty();
 	        	table.append('<tr><td>Error doing search ('+err+')</td></tr>');
     			alert('Sorry - there was a problem searching');
