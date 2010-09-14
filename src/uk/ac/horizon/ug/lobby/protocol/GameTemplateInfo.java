@@ -49,6 +49,8 @@ public class GameTemplateInfo {
 	private String newInstanceUrl;
 	/** game (instance)-specific URL for lobby client interaction - reserve/join (Instance) */
 	private String joinUrl;
+	/** include 'private' fields */
+	private boolean includePrivateFields;
 	/** cons */
 	public GameTemplateInfo() {		
 	}
@@ -159,6 +161,18 @@ public class GameTemplateInfo {
 	 */
 	public void setNewInstanceUrl(String newInstanceUrl) {
 		this.newInstanceUrl = newInstanceUrl;
+	}
+	/**
+	 * @return the includePrivateFields
+	 */
+	public boolean isIncludePrivateFields() {
+		return includePrivateFields;
+	}
+	/**
+	 * @param includePrivateFields the includePrivateFields to set
+	 */
+	public void setIncludePrivateFields(boolean includePrivateFields) {
+		this.includePrivateFields = includePrivateFields;
 	}
 	
 }

@@ -143,7 +143,8 @@ public class QueryGameTemplateServlet extends HttpServlet implements Constants {
 	public GameIndex testHandleGameQuery(GameQuery gq, GameTemplate gt) throws RequestException, JSONException {
 		return handleGameQuery(gq, gt);
 	}
-	private GameIndex handleGameQuery(GameQuery gq, GameTemplate gt) throws RequestException, JSONException {
+	public static final int DEFAULT_MAX_RESULTS = 30;
+	static GameIndex handleGameQuery(GameQuery gq, GameTemplate gt) throws RequestException, JSONException {
 
 		// get some of the general server info
 		ServerConfiguration sc = ConfigurationUtils.getServerConfiguration();
@@ -161,6 +162,13 @@ public class QueryGameTemplateServlet extends HttpServlet implements Constants {
 		gindex.setLanguage(gt.getLanguage());
 		gindex.setImageUrl(gt.getImageUrl());
 		gindex.setLink(gt.getLink());
+		
+		// for now actual instances but not factories will count against max
+		int maxResults = DEFAULT_MAX_RESULTS;
+		if (gq.getMaxResults()!=null)
+			maxResults = gq.getMaxResults();
+		if (maxResults<=0)
+			return gindex;
 		
 		// Check GameClientTemplate for clientType, clientTitle, locationSpecific and version
 		List<GameClientTemplate> posgcts = getGameClientTemplates(gq, gt.getId());
@@ -310,6 +318,9 @@ public class QueryGameTemplateServlet extends HttpServlet implements Constants {
 					else 
 						gti.setGameClientTemplates(noloc_gcts);
 					gtis.add(gti);
+					if (gtis.size()>=maxResults)
+						// no more instances...
+						break;
 				}
 			}
 		}
@@ -470,7 +481,7 @@ public class QueryGameTemplateServlet extends HttpServlet implements Constants {
 	 * @param radiusMetres
 	 * @return
 	 */
-	private boolean checkLocationConstraint(LocationConstraint lc,
+	private static boolean checkLocationConstraint(LocationConstraint lc,
 			int latitudeE6, int longitudeE6, double radiusMetres) throws RequestException {
 		if (lc.getType()!=null) {
 			switch(lc.getType()) {
@@ -506,7 +517,7 @@ public class QueryGameTemplateServlet extends HttpServlet implements Constants {
 		return true;
 	}
 
-	private List<GameClientTemplate> getGameClientTemplates(GameQuery gq, String gameTemplateId) {
+	private static List<GameClientTemplate> getGameClientTemplates(GameQuery gq, String gameTemplateId) {
 		return getGameClientTemplates(gq.getClientTitle(), gq.getClientType(), gameTemplateId, gq.getMajorVersion(), gq.getMinorVersion(), gq.getUpdateVersion());
 	}
 	static List<GameClientTemplate> getGameClientTemplates(String clientTitle, GameClientType clientType,
@@ -581,7 +592,7 @@ public class QueryGameTemplateServlet extends HttpServlet implements Constants {
 		return sb.toString();
 	}
 	private static final String NEW_INSTANCE_PATH = "browser/NewGameInstance/";
-	private String makeNewInstanceUrl(ServerConfiguration sc, GameInstanceFactory gi) {
+	private static String makeNewInstanceUrl(ServerConfiguration sc, GameInstanceFactory gi) {
 		StringBuilder sb = new StringBuilder();
 		if (sc.getBaseUrl()==null) {
 			logger.warning("Server BaseURL not configured");

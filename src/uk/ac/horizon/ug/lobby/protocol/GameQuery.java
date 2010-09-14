@@ -53,6 +53,8 @@ public class GameQuery {
 	private TimeConstraint timeConstraint;
 	/** include 'full' games */
 	private Boolean includeFullGames;
+	/** max results to return - optional */
+	private Integer maxResults;
 	/** cons */
 	public GameQuery() {			
 	}
@@ -199,6 +201,19 @@ public class GameQuery {
 	 */
 	public void setIncludeFullGames(Boolean includeFullGames) {
 		this.includeFullGames = includeFullGames;
+	}
+	
+	/**
+	 * @return the maxResults
+	 */
+	public Integer getMaxResults() {
+		return maxResults;
+	}
+	/**
+	 * @param maxResults the maxResults to set
+	 */
+	public void setMaxResults(Integer maxResults) {
+		this.maxResults = maxResults;
 	}
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()

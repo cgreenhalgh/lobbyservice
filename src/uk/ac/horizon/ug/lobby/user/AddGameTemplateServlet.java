@@ -49,8 +49,10 @@ import uk.ac.horizon.ug.lobby.model.EMF;
 import uk.ac.horizon.ug.lobby.model.GUIDFactory;
 import uk.ac.horizon.ug.lobby.model.GameClientTemplate;
 import uk.ac.horizon.ug.lobby.model.GameTemplate;
+import uk.ac.horizon.ug.lobby.model.GameTemplateUrlName;
 import uk.ac.horizon.ug.lobby.protocol.GameTemplateInfo;
 import uk.ac.horizon.ug.lobby.protocol.JSONUtils;
+import uk.ac.horizon.ug.lobby.server.UrlNameUtils;
 
 /** 
  * Get all Accounts (admin view).
@@ -84,6 +86,7 @@ public class AddGameTemplateServlet extends HttpServlet implements Constants {
 			Account account = AccountUtils.getAccount(req);
 			handleAddGameTemplate(gameTemplateInfo, account);
 
+			gameTemplateInfo.setIncludePrivateFields(true);
 			// echo
 			JSONUtils.sendGameTemplate(resp, gameTemplateInfo);
 		}catch (RequestException re) {
@@ -153,5 +156,6 @@ public class AddGameTemplateServlet extends HttpServlet implements Constants {
 				et.rollback();
 			em.close();
 		}
+		UrlNameUtils.updateGameTemplateUrlName(gameTemplateInfo.getGameTemplate());
 	}
 }

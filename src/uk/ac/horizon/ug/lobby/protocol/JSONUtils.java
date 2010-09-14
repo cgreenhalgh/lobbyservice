@@ -82,42 +82,27 @@ public class JSONUtils implements Constants {
 	/** write GameTemplateInfo
 	 * @throws JSONException */
 	public static void writeGameTemplate(JSONWriter jw, GameTemplateInfo gameTemplateInfo) throws JSONException {
-		writeGameTemplate(jw, gameTemplateInfo.getGameTemplate(), gameTemplateInfo.getGameClientTemplates(), gameTemplateInfo.getQueryUrl(), gameTemplateInfo.getGameInstance(), gameTemplateInfo.getJoinUrl(), gameTemplateInfo.getGameInstanceFactory(), gameTemplateInfo.getFirstStartTime(), gameTemplateInfo.getGameTimeOptions(), gameTemplateInfo.getNewInstanceUrl(), false);
+		boolean selfContained = gameTemplateInfo.getGameInstance()==null && gameTemplateInfo.getGameInstanceFactory()==null;
+		writeGameTemplate(jw, gameTemplateInfo.getGameTemplate(), gameTemplateInfo.getGameClientTemplates(), gameTemplateInfo.getQueryUrl(), gameTemplateInfo.getGameInstance(), gameTemplateInfo.getJoinUrl(), gameTemplateInfo.getGameInstanceFactory(), gameTemplateInfo.getFirstStartTime(), gameTemplateInfo.getGameTimeOptions(), gameTemplateInfo.getNewInstanceUrl(), selfContained, gameTemplateInfo.isIncludePrivateFields());
 	}
 	/** write GameTemplate summary 
 	 * @throws JSONException */
 	public static void writeGameTemplate(JSONWriter jw, GameTemplate gameTemplate) throws JSONException {
-		writeGameTemplate(jw, gameTemplate, null, null, null, null, null, null, null, null, true);
+		writeGameTemplate(jw, gameTemplate, null, null, null, null, null, null, null, null, true, false);
 	}
 	/** write GameTemplate summary 
 	 * @throws JSONException */
-	public static void writeGameTemplate(JSONWriter jw, GameTemplate gameTemplate, List<GameClientTemplate> gameClientTemplates, String queryUrl, GameInstance gameInstance, String joinUrl, GameInstanceFactory gameInstanceFactory, Long firstStartTime, GameTimeOptions gameTimeOptions, String newInstanceUrl, boolean selfContained) throws JSONException {
+	public static void writeGameTemplate(JSONWriter jw, GameTemplate gameTemplate, List<GameClientTemplate> gameClientTemplates, String queryUrl, GameInstance gameInstance, String joinUrl, GameInstanceFactory gameInstanceFactory, Long firstStartTime, GameTimeOptions gameTimeOptions, String newInstanceUrl, boolean selfContained, boolean includePrivateFields) throws JSONException {
 		jw.object();
 		// game template stuff if selfContained
 		if (selfContained) {
-			if (gameTemplate.getId()!=null) {
-				jw.key(ID);
-				jw.value(gameTemplate.getId());
-			}
-			if (gameTemplate.getTitle()!=null) {
-				jw.key(TITLE);
-				jw.value(gameTemplate.getTitle());
-			}
-			if (gameTemplate.getDescription()!=null) {
-				jw.key(DESCRIPTION);
-				jw.value(gameTemplate.getDescription());
-			}
-			if (gameTemplate.getLanguage()!=null) {
-				jw.key(LANGUAGE);
-				jw.value(gameTemplate.getLanguage());
-			}
-			if (gameTemplate.getLink()!=null) {
-				jw.key(LINK);
-				jw.value(gameTemplate.getLink());
-			}
-			if (gameTemplate.getImageUrl()!=null) {
-				jw.key(IMAGE_URL);
-				jw.value(gameTemplate.getImageUrl());
+			writeGameTemplatePublicFields(jw, gameTemplate);			
+		}
+		if (includePrivateFields) {
+			// ?
+			if (gameTemplate.getUrlName()!=null) {
+				jw.key(URL_NAME);
+				jw.value(gameTemplate.getUrlName());
 			}
 		}
 		// game instance visibility over-rides us if given
@@ -186,6 +171,33 @@ public class JSONUtils implements Constants {
 			jw.value(joinUrl);
 		}
 		jw.endObject();
+	}
+	private static void writeGameTemplatePublicFields(JSONWriter jw,
+			GameTemplate gameTemplate) throws JSONException {
+		if (gameTemplate.getId()!=null) {
+			jw.key(ID);
+			jw.value(gameTemplate.getId());
+		}
+		if (gameTemplate.getTitle()!=null) {
+			jw.key(TITLE);
+			jw.value(gameTemplate.getTitle());
+		}
+		if (gameTemplate.getDescription()!=null) {
+			jw.key(DESCRIPTION);
+			jw.value(gameTemplate.getDescription());
+		}
+		if (gameTemplate.getLanguage()!=null) {
+			jw.key(LANGUAGE);
+			jw.value(gameTemplate.getLanguage());
+		}
+		if (gameTemplate.getLink()!=null) {
+			jw.key(LINK);
+			jw.value(gameTemplate.getLink());
+		}
+		if (gameTemplate.getImageUrl()!=null) {
+			jw.key(IMAGE_URL);
+			jw.value(gameTemplate.getImageUrl());
+		}
 	}
 	/** write GameTemplate summary 
 	 * @throws JSONException */
@@ -258,6 +270,8 @@ public class JSONUtils implements Constants {
 				gt.setImageUrl(json.getString(IMAGE_URL));
 			else if (key.equals(ID))
 				gt.setId(json.getString(ID));
+			else if (key.equals(URL_NAME))
+				gt.setUrlName(json.getString(key));
 			else if (key.equals(VISIBILITY))
 				gt.setVisibility(GameTemplateVisibility.valueOf(json.getString(VISIBILITY)));
 			else if (key.equals(CLIENT_TEMPLATES)) {
@@ -937,6 +951,8 @@ public class JSONUtils implements Constants {
 				o.setLongitudeE6(json.getInt(key));
 			else if (key.equals(MAJOR_VERSION))
 				o.setMajorVersion(json.getInt(key));
+			else if (key.equals(MAX_RESULTS))
+				o.setMaxResults(json.getInt(key));
 			else if (key.equals(MINOR_VERSION))
 				o.setMinorVersion(json.getInt(key));
 			else if (key.equals(TIME_CONSTRAINT))

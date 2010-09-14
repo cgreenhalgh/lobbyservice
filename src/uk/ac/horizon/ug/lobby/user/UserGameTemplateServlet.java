@@ -51,6 +51,7 @@ import uk.ac.horizon.ug.lobby.model.GameClientTemplate;
 import uk.ac.horizon.ug.lobby.model.GameTemplate;
 import uk.ac.horizon.ug.lobby.protocol.GameTemplateInfo;
 import uk.ac.horizon.ug.lobby.protocol.JSONUtils;
+import uk.ac.horizon.ug.lobby.server.UrlNameUtils;
 
 /** 
  * Get all Accounts (admin view).
@@ -93,6 +94,7 @@ public class UserGameTemplateServlet extends HttpServlet implements Constants {
 			GameTemplateInfo gti = new GameTemplateInfo();
 			gti.setGameTemplate(gt);
 			gti.setGameClientTemplates(gameClientTemplates);
+			gti.setIncludePrivateFields(true);
 			JSONUtils.sendGameTemplate(resp, gti);
 		} catch (RequestException e) {
 			resp.sendError(e.getErrorCode(), e.getMessage());
@@ -128,6 +130,7 @@ public class UserGameTemplateServlet extends HttpServlet implements Constants {
 				throw new RequestException(HttpServletResponse.SC_BAD_REQUEST, "GameTemplate id in URL ("+gt.getId()+") does not match id in data ("+ngt.getId()+")");
 			if (ngt.getId()==null)
 				ngt.setId(id);
+			// owner checked in getGameTemplate
 			ngt.setOwnerId(account.getKey());
 			Key key = ngt.getKey();
 
@@ -156,6 +159,7 @@ public class UserGameTemplateServlet extends HttpServlet implements Constants {
 				}
 			}
 			et.commit();
+			UrlNameUtils.updateGameTemplateUrlName(ngt);
 		} catch (RequestException e) {
 			resp.sendError(e.getErrorCode(), e.getMessage());
 			return;
@@ -171,6 +175,7 @@ public class UserGameTemplateServlet extends HttpServlet implements Constants {
 			}
 			em.close();
 		}
+		gti.setIncludePrivateFields(true);
 		JSONUtils.sendGameTemplate(resp, gti);
 	}
 }

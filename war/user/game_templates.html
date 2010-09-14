@@ -99,6 +99,7 @@
     	function add_game_template(form) {
         	var gt = {};
         	add_field(form, gt, 'title');
+        	add_field(form, gt, 'urlName');
         	add_field(form, gt, 'description');
         	add_field(form, gt, 'language');
         	add_field(form, gt, 'link');
@@ -152,6 +153,7 @@
             	$('#json').attr('value',$.toJSON(data));
             	current_game_template = data;
             	set_input_from_field(document,data,'title');
+            	set_input_from_field(document,data,'urlName');
             	set_input_from_field(document,data,'description');
             	set_input_from_field(document,data,'language');
             	set_input_from_field(document,data,'link');
@@ -205,6 +207,7 @@
 	<form action="dummy" onsubmit="return add_game_template(this)">
 		<table border="1">
 			<tr><td>id</td><td><input type="text" name="id" readonly="readonly"/></td></tr>
+			<tr><td>url name</td><td><input type="text" name="urlName"/></td></tr>
 			<tr><td>title</td><td><input type="text" name="title"/></td></tr>
 			<tr><td>visibility</td><td>
 				<select name="visibility">

@@ -33,6 +33,7 @@ public interface Constants {
 	public static final String GAME_SERVER = "gameServer";
 	public static final String GAME_SLOT_ID = "gameSlotId";
 	public static final String GAME_TEMPLATE_ID = "gameTemplateId";
+	public static final String GAME_TEMPLATE_KEY = "gameTemplateKey";
 	public static final String GAME_TEMPLATE = "gameTemplate";
 	public static final String GAME_TEMPLATE_QUOTA = "gameTemplateQuota";
 	public static final String GAMES = "games";
@@ -73,6 +74,7 @@ public interface Constants {
 	public static final String MAX_NEW_INSTANCE_TOKENS_MAX = "maxNewInstanceTokensMax";
 	public static final String MAX_NEW_INSTANCE_TOKENS_PER_HOUR = "maxNewInstanceTokensPerHour";
 	public static final String MAX_NUM_SLOTS = "maxNumSlots";
+	public static final String MAX_RESULTS = "maxResults";
 	public static final String MAX_TIME = "maxTime";
 	public static final String MESSAGE = "message";
 	public static final String MINUTE = "minute";
@@ -120,6 +122,7 @@ public interface Constants {
 	public static final String TTL_MINUTES = "ttlMinutes";
 	public static final String TYPE = "type";
 	public static final String UPDATE_VERSION = "updateVersion";
+	public static final String URL_NAME = "urlName";
 	public static final String USER_ID = "userId";
 	public static final String VERSION = "version";
 	public static final String VISIBILITY = "visibility";

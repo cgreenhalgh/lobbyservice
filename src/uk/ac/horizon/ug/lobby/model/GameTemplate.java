@@ -36,6 +36,8 @@ public class GameTemplate {
 	private Key key;
 	/** title  (cf. RSS2.0 item, required unless description present)*/
 	private String title;
+	/** web url path component - optional; should be unique */
+	private String urlName;
 	/** description (cf. RSS2.0 item, required unless title present) */
 	private String description;
 	/** link (URL) - to human-readable information about the game  (cf. RSS2.0 item, required) */
@@ -170,6 +172,18 @@ public class GameTemplate {
 	 */
 	public void setImageUrl(String imageUrl) {
 		this.imageUrl = imageUrl;
+	}
+	/**
+	 * @return the urlName
+	 */
+	public String getUrlName() {
+		return urlName;
+	}
+	/**
+	 * @param urlName the urlName to set
+	 */
+	public void setUrlName(String urlName) {
+		this.urlName = urlName;
 	}
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()

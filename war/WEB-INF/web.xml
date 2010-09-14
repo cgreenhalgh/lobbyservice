@@ -81,6 +81,10 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
 		<servlet-class>uk.ac.horizon.ug.lobby.browser.QueryGameTemplateServlet</servlet-class>
 	</servlet>
 	<servlet>
+		<servlet-name>QueryGameTemplateByName</servlet-name>
+		<servlet-class>uk.ac.horizon.ug.lobby.browser.QueryGameTemplateByNameServlet</servlet-class>
+	</servlet>
+	<servlet>
 		<servlet-name>JoinGameInstance</servlet-name>
 		<servlet-class>uk.ac.horizon.ug.lobby.browser.JoinGameInstanceServlet</servlet-class>
 	</servlet>
@@ -171,6 +175,10 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
 	<servlet-mapping>
 		<servlet-name>QueryGameTemplate</servlet-name>
 		<url-pattern>/browser/QueryGameTemplate/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>QueryGameTemplateByName</servlet-name>
+		<url-pattern>/browser/QueryGameTemplateByName/*</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>JoinGameInstance</servlet-name>
