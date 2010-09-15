@@ -550,6 +550,16 @@ function do_query() {
 }
 
 var instanceItem = null;
+// check client for current instanceItem
+//function check_client() {
+//	if (instanceItem!=null && instanceItem!=undefined) {
+//		if (instanceItem.clientTemplates!=undefined && instanceItem.clientTemplates.length>0 && instanceItem.clientTemplates[0].applicationLaunchId!=undefined) {
+//			var app = instanceItem.clientTemplates[0].applicationMarketId;
+//			// won't work on android
+//			window.open(app,'client_check','');
+//		}
+//	}
+//}
 // join specific game
 function join_game(ix) {
 	instanceItem = instanceIndex.items[ix];
@@ -557,7 +567,15 @@ function join_game(ix) {
 		var table = $('#join');
 		$('tr',table).remove();
 		append_instance_table_item(table, instanceItem);
-		table.append('<tr><td><input class="queryOption" type="button" name="do_join" value="Join Game" onclick="do_join()"/></td></tr>');
+		var disableCheckClient = true;
+		var clientUrl = undefined;
+		if (instanceItem.clientTemplates!=undefined && instanceItem.clientTemplates.length>0 && instanceItem.clientTemplates[0].applicationLaunchId!=undefined) {
+			disableCheckClient = false;
+			clientUrl = instanceItem.clientTemplates[0].applicationMarketId;
+		}		
+		table.append('<tr><td><input class="queryOption" type="button" name="do_join" value="Join Game" onclick="do_join()"/>'+
+				(disableCheckClient ? '' : '<a href="'+clientUrl+'" target="client_check">Check Client</a>')+
+				'</td></tr>');
 		show_join();
 	}
 }
@@ -641,6 +659,31 @@ function do_create() {
 //confirm create
 function do_join() {
 	$('input[name=do_join]').attr('disabled', true);
-	var table = $('#create');
+	var table = $('#join');
 	table.append('<tr><td>Requesting join game request...</td></tr>');
+	var request = get_game_join_request('PLAY');
+	try {
+		$.ajax({url: instanceItem.joinUrl, 
+    		type: 'POST',
+    		contentType: 'application/json',
+    		processData: false,
+    		data: $.toJSON(request),
+    		dataType: 'json',
+    		success: function success(data, status) {
+				table.append('<tr><td>Status: '+data.status+'</td></tr>');
+				table.append('<tr><td>playUrl: '+data.playUrl+'</td></tr>');
+				table.append('<tr><td>full response: '+$.toJSON(data)+'</td></tr>');
+				// TODO ...
+			},
+			error: function error(req, status) {
+				var msg = 'Sorry - there was a problem ('+req.status+': '+status+')';
+				table.append('<tr><td>'+msg+'</td></tr>');
+				alert(msg);
+			}
+		});
+	} catch (err) {
+		var msg = 'Sorry - there was a problem ('+e.name+': '+e.message+')';
+		table.append('<tr><td>'+msg+'</td></tr>');
+		alert(msg);
+	}
 }
