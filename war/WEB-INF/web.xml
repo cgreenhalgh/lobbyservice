@@ -97,6 +97,10 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
 		<servlet-class>uk.ac.horizon.ug.lobby.browser.ClientRequestServlet</servlet-class>
 	</servlet>
 	<servlet>
+		<servlet-name>ClientLaunchHelper</servlet-name>
+		<servlet-class>uk.ac.horizon.ug.lobby.browser.ClientLaunchHelperServlet</servlet-class>
+	</servlet>
+	<servlet>
 		<servlet-name>RunBackgroundTasks</servlet-name>
 		<servlet-class>uk.ac.horizon.ug.lobby.server.RunBackgroundTasksServlet</servlet-class>
 	</servlet>
@@ -191,6 +195,10 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
 	<servlet-mapping>
 		<servlet-name>ClientRequest</servlet-name>
 		<url-pattern>/browser/ClientRequest</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>ClientLaunchHelper</servlet-name>
+		<url-pattern>/browser/ClientLaunchHelper</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>RunBackgroundTasks</servlet-name>
