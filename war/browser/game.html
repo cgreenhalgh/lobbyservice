@@ -12,405 +12,13 @@
 	<meta name="viewport" content="width=device-width"/>
 	<!-- <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/> -->
     <title>Lobby Browser</title>
-    <style type="text/css">
-    body {
-    	background-color: #000000;
-    }
-    .queryLabel {
-    	color: #cccccc;
-    	font-size: 14px;
-    	font-family: sans-serif;
-    }
-    .queryOption {
-    	color: #ffffff;
-    	font-size: 16px;
-    	font-family: sans-serif;
-    	background-color: #222222;
-    }
-    .queryOption[disabled] {
-    	color: #808080;
-    	font-size: 16px;
-    	font-family: sans-serif;
-    	background-color: #222222;
-    }
-    /* the game template table */
-    .titleTable {
-    	width: 100%;
-    	border: 1;
-    	border-color: #ff0000;
-    }
-    .titleTable h2, a {
-    	color: #ffffff;
-    	font-size: 16px;
-    	font-family: sans-serif;
-    	margin-bottom: 1px;
-    }
-    .titleTable a {
-    	text-decoration: underline;
-    }
-    .titleTable td {
-    	color: #ffffff;
-    	font-size: 14px;
-    	font-family: sans-serif;
-    }
-    .titleTable p {
-    	color: #cccccc;
-    	font-size: 12px;
-    	font-family: sans-serif;
-    }
-    /* the game instance table */
-    .listTable {
-    	width: 100%;
-    	border: 1;
-    	border-color: #ff0000;
-    }
-    .listTable h3 {
-    	color: #ffffff;
-    	font-size: 14px;
-    	font-family: sans-serif;
-    	margin-bottom: 1px;
-    }
-    .listTable p {
-    	color: #cccccc;
-    	font-size: 12px;
-    	font-family: sans-serif;
-    	margin-top: 1px;
-    	margin-bottom: 1px;
-    }
-    .listTable td {
-    	color: #ffffff;
-    	font-size: 14px;
-    	font-family: sans-serif;
-    }
-    </style>
+    <link rel="stylesheet" type="text/css" href="game.css" />
     
     <script type = "text/javascript" src="../resources/jquery-1.4.2.min.js"></script>
     <script type = "text/javascript" src="../resources/jquery.json-2.2.min.js"></script>
     <script type = "text/javascript" src="../resources/common_utils.js"></script>
+    <script type = "text/javascript" src="game.js"></script>
     <script type = "text/javascript">
-    	var queryUrl = null;
-		var gameIndex = null;
-		
-		//http://www.netlobo.com/url_query_string_javascript.html
-		function gup( name ) {  
-			name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");  
-			var regexS = "[\\?&]"+name+"=([^&#]*)";  
-			var regex = new RegExp( regexS ); 
-			var results = regex.exec( window.location.href ); 
-			if( results == null )   
-				 return "";  
-			else    
-				 return results[1];
-		}
-		function update_game_index(index) {
-			var table = $('#game');
-			gameIndex = index;
-   			$('tr',table).remove();
-   			var image = '';
-   			if (index.imageUrl!=undefined) {
-				image = '<img src="'+index.imageUrl+'" alt="image"/>';
-   			}
-			table.append('<tr><td width="64px">'+image+'</td><td>'+
-					'<h2><a href="'+index.link+'">'+index.title+'</a></h2>'+
-					'<p>'+index.description+'</p>'+
-					'</td></tr>');
-		}
-
-		function error_game_index(msg) {
-			gameIndex = null;
-			var table = $('#game');
-   			$('tr',table).remove();
-   			table.append('<tr><td><input class="queryOption" type="button" value="Try again" onclick="load_game_index()"/></td></tr>');
-   			alert('Sorry, there was a problem getting game information ('+msg+')');
-		}
-		
-		function load_game_index() {
-			var table = $('#game');
-   			$('tr',table).remove();
-			table.append('<tr><td>Loading...</td></tr>');
-			var data = {version:1,maxResults:0};
-			try {
-				$.ajax({url: queryUrl, 
-		    		type: 'POST',
-		    		contentType: 'application/json',
-		    		processData: false,
-		    		data: $.toJSON(data),
-		    		dataType: 'json',
-		    		success: function success(data, status) {
-	    				update_game_index(data);
-					},
-					error: function error(req, status) {
-						error_game_index(req.status);
-//		    			alert('Error doing query ('+req.status+': '+req.statusText+')');
-					}
-				});
-			} catch (err) {
-				error_game_index(err);
-//				alert('Error attempting query on '+item.queryUrl+': '+err);
-			}
-		}
-		var instanceIndex = null;
-		function update_instance_index(index) {
-			//alert('got: '+$.toJSON(index));
-			var table = $('#list');
-			instanceIndex = index;
-   			$('tr',table).remove();
-   			// items only
-   			if (index.items!=undefined && index.items!=null) {
-				for (var i=0; i<index.items.length; i++) {
-					var item = index.items[i];
-	    			var image = '';
-	    			if (item.imageUrl!=undefined) {
-						image = '<img src="'+item.imageUrl+'" alt="image"/>';
-	    			}
-					var title = '<h3>'+item.title+'</h3>';
-	    			var subtitle = '';
-	    			if (item.subtitle!=undefined) 
-	        			subtitle = '<h4>'+item.subtitle+'<h4>';
-	    			var times = '';
-	    			if (item.startTime!=undefined) {
-	        			times = '<p>'+timeToString(item.startTime)+'-'+timeToString(item.endTime)+'</p>';
-	    			}
-	    			if (item.locationName!=undefined) {
-	        			times = times+'<p>At '+item.locationName+'</p>';	    			
-	    			} else if (item.radiusMetres!=undefined && item.radiusMetres!=0) {
-	        			times = times+'<p>At '+item.latitudeE6+','+item.longitudeE6+'</p>';
-	    			}
-	    			if (item.firstStartTime!=undefined) {
-	        			times = times+'<p>Next: '+timeToString(item.firstStartTime)+'</p>';
-	    			}
-	    			if (item.startTimeCron!=undefined) {
-	        			times = times+'<p>Every: '+item.startTimeCron+'<br>'+
-							timeToString(item.minTime)+'-'+timeToString(item.maxTime)+'</p>';
-	    			}
-					var clients = '';
-					for (var ci=0; item.clientTemplates!=undefined && ci<item.clientTemplates.length; ci++) {
-						var ct = item.clientTemplates[ci];
-						clients = clients+'<p>'+ct.title;
-						//+'<br>('+ct.clientType+' '+ct.minMajorVersion+'.'+ct.minMinorVersion+'.'+ct.minUpdateVersion+')';
-						if (ct.locationSpecific)
-							clients = clients+' (Located!)';
-						clients = clients+'</p>';
-					}
-					table.append('<tr><td>'+
-							title+subtitle+
-							times+
-							clients+
-							'</td></tr>');							
-				}
-			}
-		}
-
-    	var coords = null;
-    	var os = null;
-    	var searching = false;
-
-		function update_search_disabled() {
-			// should search be disabled?
-			var disabled = true;
-			if (queryUrl!=null && os!=null && !searching) {
-				// location
-				if (coords!=null)
-					disabled = false;
-				else if ($('select[name=rangeOption]').attr('value')=='7')
-					// NB the select value is updated on android before change, but the 
-					// selected on the option is not
-					disabled = false;
-			}
-			$('input[name=search]').attr('disabled',disabled);
-		}
-    	
-		function get_location() {
-			var tr = $('#locationStatus');
-			tr.html('checking location API...');
-			// Try W3C Geolocation  
-			if(navigator.geolocation) {  
-				tr.html('checking location (W3C geolocation)...');
-				navigator.geolocation.getCurrentPosition(function(position) {  
-					// success  
-					tr.html('Latitude: ' + position.coords.latitude + '<br/>Longitude: ' + position.coords.longitude);  
-					coords = position.coords;
-					update_search_disabled();
-				}, function(position_error) {  
-					// failure  
-					tr.html('Sorry - there was a problem ('+position_error+')');
-			    }, {  
-					// options  
-					enableHighAccuracy: true 
-				});  
-			} else {  
-					tr.html('Sorry - no location API');
-			}  		
-		}
-
-		function check_os_name(prefix) {
-			var all = new RegExp( prefix+'[^;\\)]*' );
-			var res = all.exec( navigator.appVersion );
-			if (res!=null) {
-				var v2 = new RegExp('(([ ]*[^ 0-9][^ ]*)*)[ ]*(\\d+)[.](\\d+)(.*)').exec(res[0]);
-				if (v2!=null)
-					return [v2[1],v2[3],v2[4],v2[5]];
-				var v1 = new RegExp('(([ ]*[^ 0-9][^ ]*)*)[ ]*(\\d+)(.*)').exec(res[0]);
-				if (v1!=null)
-					return [v1[1],v2[3],v2[4],''];
-				return [res[0],'','',''];
-			}
-			return null;
-		}
-		function get_os_name() {
-			// e.g. ....; Windows NT 5.1; ...
-			// e.g. ...; Android 2.1; ...
-			// Win Mac X11 Linux apparently are good substrings
-			var os;
-			os = check_os_name('Android');
-			if (os==null)
-				os = check_os_name('Win');
-			if (os==null)
-				os = check_os_name('Mac');
-			// make sure Linux is checked after Android!
-			if (os==null)
-				os = check_os_name('Linux');
-			if (os==null)
-				os = check_os_name('X11');
-			return os;
-		}
-    	
-    	function show_list() {
-        	$('#query_div').hide('fast');
-        	$('#list_div').show('fast');
-    	}
-    	function show_query() {
-        	$('#list_div').hide('fast');
-        	$('#query_div').show('fast');
-    	}
-        	
-    	
-    	// on load
-    	$(document).ready(function() {
-
-			show_query();
-    		
-			//alert('width='+$('body').innerWidth()+',height='+$('body').innerHeight());
-        	//var width = $('body').innerWidth();
-        	//if (width > 
-			queryUrl = decodeURIComponent(gup('queryUrl'));
-			if (queryUrl==null || queryUrl=='') {
-	        	$('#query_div').hide('fast');
-				alert('Sorry - no queryUrl');
-				return;
-			}
-			
-			load_game_index();
-
-			// can we get location?
-			get_location();
-
-			// check client?
-			var client = $('#client');
-			os = get_os_name();
-			if (os==null)
-				client.html('Unknown operating system');
-			else
-				client.html('Client: '+os[0]+' '+os[1]+' '+os[2]+' '+os[3]);			
-		});
-
-    	// Query options
-    	function get_time_constraint() {
-	    	//var timeOptions = ['Now','Today','Tomorrow','Within a week', 'Any Time'];
-        	var timeConstraint = {};
-        	var includeStarted = $('#includeStarted').attr('checked');
-        	timeConstraint.includeStarted = includeStarted!=null && includeStarted!='';
-
-        	var now = new Date().getTime();
-        	var timeOptions = ['Now','Today','Tomorrow','Within a week','Any Time'];
-        	// stop at 2am? Local time
-        	var midnight = new Date(now);
-        	midnight.setHours(0); midnight.setMinutes(0); midnight.setSeconds(0); midnight.setMilliseconds(0);
-        	var timeOfDay = now-midnight;
-        	var timeOptionMin = [now, now, now-timeOfDay+24*60*60*1000, now, now];
-        	var timeOptionMax = [now+5*60*1000, now-timeOfDay+24*60*60*1000, now-timeOfDay+2*24*60*60*1000, 
-        	                     now-timeOfDay+7*24*60*60*1000, 0];
-			var timeOptionIx = Number($('select[name=timeOption] > option[selected]').attr('value'));
-			timeConstraint.minTime = timeOptionMin[timeOptionIx];
-			if (timeOptionMax[timeOptionIx]!=0) {
-				timeConstraint.maxTime = timeOptionMax[timeOptionIx];
-			}				        	
-        	return timeConstraint;
-    	}
-    	function get_location_constraint() {	
-	    	var rangeOptions = ['Here!', 'Up to 1.5 km', 'Up to 5 km', 'Up to 15 km', 'Up to 50 km', 'Up to 150 km', 'Up to 500 km', 'Anywhere'];
-	    	var rangeOptionMetres = [0, 1500, 5000, 15000, 50000, 150000, 500000, -1];
-			var rangeOptionIx = Number($('select[name=rangeOption] > option[selected]').attr('value'));
-	    	var locationConstraint = {};
-	    	if (rangeOptionIx<7 && coords!=null) {
-		    	// not anywhere
-	    		locationConstraint = {
-	    				type:'CIRCLE',
-	    				radiusMetres:rangeOptionMetres[rangeOptionIx]
-	    		};
-	    		locationConstraint.latitudeE6 = Math.round(coords.latitude*1000000);
-	    		locationConstraint.longitudeE6 = Math.round(coords.longitude*1000000);	    		    	
-	    	}
-			return locationConstraint;	    	
-    	}
-
-    	// do search 
-    	function do_query() {
-        	var query = {version:1};
-        	if (os!=null) {
-               	query.clientType = os[0];
-            	if (os[1].length>0)
-                	query.majorVersion = Number(os[1]);
-            	if (os[2].length>0)
-                	query.minorVersion = Number(os[2]);
-        	} 
-        	if (coords!=null) {
-            	query.latitudeE6 = Math.round(coords.latitude*1000000);
-        		query.longitudeE6 = Math.round(coords.longitude*1000000);
-        	}
-        	query.timeConstraint = get_time_constraint();
-        	query.locationConstraint = get_location_constraint();
-        	// TODO
-
-        	var table = $('#list');
-        	table.empty();
-        	table.append('<tr><td>Searching...</td></tr>');
-        	searching = true;
-        	show_list();
-        	update_search_disabled();
-
-			var data = $.toJSON(query);
-	 		try {
-    			$.ajax({url: queryUrl, 
-    		    	type: 'POST',
-    		    	contentType: 'application/json',
-    		    	processData: false,
-    		    	data: data,
-    		    	dataType: 'json',
-    		    	success: function success(data, status) {
-    		    		searching = false;
-    		        	update_search_disabled();
-    		    		update_instance_index(data);
-   					},
-   					error: function error(req, status) {
-    		    		searching = false;
-    		        	update_search_disabled();
-    		        	var table = $('#list');
-    		        	table.empty();
-    		        	table.append('<tr><td>Error doing search ('+req.status+': '+req.statusText+')</td></tr>');
-   		    			alert('Sorry - there was a problem searching');
-   					}
-   				});
-   			} catch (err) {
-	    		searching = false;
-	        	update_search_disabled();
-	        	var table = $('#list');
-	        	table.empty();
-	        	table.append('<tr><td>Error doing search ('+err+')</td></tr>');
-    			alert('Sorry - there was a problem searching');
-   			}
-   		}
-    			
     </script>
   </head>
 
@@ -432,7 +40,7 @@
 						<option value="4" >Any time</option>
 					</select>
 				</td></tr>
-				<tr><td class="queryLabel">Include started<input type="checkbox"  name="includeStarted" checked="true"/></td></tr>
+				<tr><td class="queryLabel"><input type="checkbox"  name="includeStarted" checked="true"/>Include started</td></tr>
 				<tr><td class="queryLabel">Where?</td></tr>
 				<tr><td>
 					<!-- cf var timeOptions -->
@@ -448,7 +56,8 @@
 					</select>
 				</td></tr>
 				<tr><td id="locationStatus" class="queryLabel"></td></tr>
-				<tr><td id="client" class="queryLabel"></td></tr>
+				<tr><td class="queryLabel"><input type="checkbox"  name="includeClient" checked="true"/><span id="client" class="queryLabel"></span></td></tr>
+				<tr><td id="clientId" class="queryLabel"></td></tr>
 				<tr><td><input class="queryOption" type="button" name="search" value="Search for games..." disabled="true" onclick="do_query()"/></td></tr>
 			</table>
 		</form>
@@ -456,6 +65,16 @@
   	<div id="list_div">
   		<input class="queryOption" type="button" value="Search again" onclick="show_query()"/><br/>
     	<table id="list" class="listTable"></table>
+	</div>
+  	<div id="create_div">
+  		<input class="queryOption" type="button" value="Search again" onclick="show_query()"/>
+  		<input class="queryOption" type="button" value="Back to list" onclick="show_list()"/><br/>
+    	<table id="create" class="listTable"></table>
+	</div>
+  	<div id="join_div">
+  		<input class="queryOption" type="button" value="Search again" onclick="show_query()"/>
+  		<input class="queryOption" type="button" value="Back to list" onclick="show_list()"/><br/>
+    	<table id="join" class="listTable"></table>
 	</div>
   </body>
 </html>

@@ -96,6 +96,40 @@ function prettyTimeToString(time) {
 		//date.toUTCString();
 	return str;
 }
+//date to (relatively) pretty text format; local time zone
+function prettyTimeToLocalString(time) {
+	if (time==0)
+		return "Unspecified";
+	var date = new Date(time);
+	var now = new Date();
+	var str = '';
+	if (date.getFullYear()==now.getFullYear() && date.getMonth()==now.getMonth() && date.getDate()==now.getDate())
+		str =str + 'Today';
+	else
+		str = str + format(date.getFullYear(),4)+'-'+format(date.getMonth()+1,2)+'-'+format(date.getDate(),2);
+	str = str +' '+format(date.getHours(),2)+':'+format(date.getMinutes(),2)+':'+format(date.getSeconds(),2);
+	if (date.getTimezoneOffset()!=0) {
+		var tzo = -date.getTimezoneOffset();
+		str = str+' (UTC';
+		if (tzo<0) {
+			tzo = -tzo;
+			str = str+'-';
+		}
+		else {
+			str = str+'+';
+		}
+		var hours = Math.floor(tzo/60);
+		str = str+hours;
+		var minutes = tzo-60*hours;
+		if (minutes!=0) {
+			str = str+':'+format(minutes, 2);
+		}
+		str = str+')';
+	}
+	else 
+		str = str +' (UTC)';
+	return str;
+}
 // date to short text format
 function timeToString(time) {
 	var date = new Date(time);

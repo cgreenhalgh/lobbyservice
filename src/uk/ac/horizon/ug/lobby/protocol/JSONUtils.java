@@ -936,10 +936,14 @@ public class JSONUtils implements Constants {
 		Iterator keys = json.keys();
 		while(keys.hasNext()) {
 			String key = (String)keys.next();
-			if (key.equals(CLIENT_TITLE))
+			if (key.equals(CLIENT_ID))
+				o.setClientId(json.getString(key));
+			else if (key.equals(CLIENT_TITLE))
 				o.setClientTitle(json.getString(key));
 			else if (key.equals(CLIENT_TYPE))
 				o.setClientType(json.getString(key));
+			else if (key.equals(DEVICE_ID))
+				o.setDeviceId(json.getString(key));
 			else if (key.equals(GAME_TEMPLATE_ID))
 				o.setGameTemplateId(json.getString(key));
 			else if (key.equals(LATITUDE_E6))

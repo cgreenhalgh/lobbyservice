@@ -242,25 +242,40 @@ public class NewGameInstanceServlet extends HttpServlet implements Constants {
 			// can't 
 			throw new JoinException(GameJoinResponseStatus.ERROR_NOT_PERMITTED, "Cannot create a hidden (private) instance of this game");
 
-		if (gjreq.getNewInstanceVisibility()!=GameTemplateVisibility.HIDDEN) {
+		if (gjreq.getNewInstanceVisibility()==null || gjreq.getNewInstanceVisibility()!=GameTemplateVisibility.HIDDEN) {
 			// check if it already exists...
 			EntityManager em = EMF.get().createEntityManager();
 			try {
 				// does this instance exist already? 
-				// TODO: if number of concurrent instances is constrained then HIDDEN and FULL instances should also be considered!
-				Query q = em.createQuery("SELECT x FROM GameInstance x WHERE x."+GAME_INSTANCE_FACTORY_KEY+" = :"+GAME_INSTANCE_FACTORY_KEY+" AND x."+VISIBILITY+" = '"+GameTemplateVisibility.PUBLIC.toString()+"' AND x."+FULL+" = FALSE");
+				Query q = em.createQuery("SELECT x FROM GameInstance x WHERE x."+GAME_INSTANCE_FACTORY_KEY+" = :"+GAME_INSTANCE_FACTORY_KEY+" AND x."+START_TIME+" = :"+START_TIME+" AND x."+VISIBILITY+" = '"+GameTemplateVisibility.PUBLIC.toString()+"' AND x."+FULL+" = FALSE");
+				q.setParameter(GAME_INSTANCE_FACTORY_KEY, gif.getKey());
+				q.setParameter(START_TIME, newInstanceStartTime);
 				q.setMaxResults(1);
 				List<GameInstance> gis = (List<GameInstance>)q.getResultList();
 				if (gis.size()>0) {
 					// essentially we now treat this as a JOIN ?!
 					gi = gis.get(0);
 					//et.rollback();
+					logger.info("NewGameInstance request satisfied by existing instance "+gi);
+				}
+				else {
+					// debug...
+					logger.info("No existing GameInstance matches (startTime="+newInstanceStartTime+")");
+//					q = em.createQuery("SELECT x FROM GameInstance x WHERE x."+GAME_INSTANCE_FACTORY_KEY);
+//					q.setParameter(GAME_INSTANCE_FACTORY_KEY, gif.getKey());
+//					//q.setParameter(START_TIME, newInstanceStartTime);
+//					gis = (List<GameInstance>)q.getResultList();
+//					logger.info("  "+gis.size()+" GIs match factory:");
+//					for (GameInstance gi2 : gis)
+//						logger.info("  "+gi2.getKey()+" startTime="+gi2.getStartTime()+", visibility="+gi2.getVisibility()+", full="+gi2.isFull());
 				}
 			}
 			finally {
 				em.close();
 			}
 		}
+		else
+			logger.info("NewGameInstance request cannot use existing: newInstanceVisibility="+gjreq.getNewInstanceVisibility());
 		// needed in a minute
 		ServerConfiguration sc = ConfigurationUtils.getServerConfiguration();
 

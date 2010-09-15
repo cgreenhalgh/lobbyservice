@@ -29,6 +29,10 @@ public class GameQuery {
 	private int version;
 	/** current version */
 	public static final int CURRENT_VERSION = 1;
+	/** client Id - required for interaction with previous join or secure ops */
+	private String clientId;
+	/** device Id - optional and unauthenticated - used as default clientId for anonymous use to avoid 'leaking' of slots on retry */
+	private String deviceId;
 	/** game template id (may be implicit in the way the query is sent) */
 	private String gameTemplateId;
 	/** client type - optional */
@@ -212,6 +216,30 @@ public class GameQuery {
 	 */
 	public void setMaxResults(Integer maxResults) {
 		this.maxResults = maxResults;
+	}
+	/**
+	 * @return the clientId
+	 */
+	public String getClientId() {
+		return clientId;
+	}
+	/**
+	 * @param clientId the clientId to set
+	 */
+	public void setClientId(String clientId) {
+		this.clientId = clientId;
+	}
+	/**
+	 * @return the deviceId
+	 */
+	public String getDeviceId() {
+		return deviceId;
+	}
+	/**
+	 * @param deviceId the deviceId to set
+	 */
+	public void setDeviceId(String deviceId) {
+		this.deviceId = deviceId;
 	}
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()

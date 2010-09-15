@@ -18,7 +18,7 @@
     	// editing a game template?
     	var current_game_template = null;
     	// start here...
-    	$.ajaxSetup({cache:false});
+    	$.ajaxSetup({cache:false,async:true,timeout:30000});
     	function get_templates() {
         	// loading...
        	    $('#templates_status').remove();
