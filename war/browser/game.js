@@ -1,8 +1,76 @@
 // NB requires jQuery & jQuery-json
 // also requires ../resources/common.js (timeToString)
 
+// run-time context dependencies - for web/browser-based vs lobby client vs app client deployment:
+//
+// - for browser-based usage, URL parameter queryUrl must be specified; 
+//   used to load GameTemplate information (header) and subsequent game instance/factory queries.
+//   Browser-based usage on Android CANNOT open the marketplace client (via URL),
+//   this can only be done via an Intent. Also CANNOT check if a particular client is installed 
+//   (requires native code), or directly open a client application (requires an Intent). 
+//   Possible fallback is to open a URL with a custom MIME type which the client is registered
+//   to handle from the Browser. But error handling is then not good.
+//   Custom URL scheme handling works on Android from browser without attempting to load URL.
+//   (If there the 'client' is pure HTML then opening it in a browser window is fine.)
+//   iOS seems to support iTunes http: and itms: URLs to at least get to the app store.
+//   iOS also supports custom URL schemes linked to apps; not sure about MIME types, yet.
+//
+//   So best bet for browser-based is to open a URL with a custom scheme registered to the 
+//   client App.
+//
+// - for lobby client usage, there should also be index view/interaction prior to this.
+//   A custom javascript bridge could give access to open the marketplace client,
+//   check for installed application(s), send custom intents to applications.
+//   Alternatively the custom WebView can intercept the openURL requests and handle them
+//   appropriately (I assume).
+//
+// - for app client (embedded) usage, the client is implicitly installed (although version
+//   could be checked via native helper).
+//   The game template info and icon could/should be a local asset.
+//   Query URL will still be remote, so will need to be separate from local info.
+//   Hmm. But the same native client (install) might support different games.
+//   Re-badge and separate distribution [yes for now]? or integrated game template lobby function?? [no]
+//   
+//   Does the lobby client just RESERVE a slot, and pass the /lobby/ information to the 
+//   game app which then requests to PLAY [no], or does the lobby PLAY and pass the /game/ information
+//   to the game app [yes]? [Could be either, but the latter keeps all lobby interaction in the generic
+//   lobby client code base.]
+//
+//   The lobby client can open a custom URL to signal game client handover the same as the 
+//   browser-only version.
+//
+// So... what we are looking for from the embedded browser context is:
+//   lobbyclient - defined in embedded context
+//     .game - defined in game-specific embedded context
+//         .indexJson - JSON-encoded GameIndex object for Game (typically from local resource)
+//                      [browser version gets from server queryUrl]
+//         .queryUrl - queryUrl to use for searching
+//                      [browser version gets from URL parameter]
+//         .clientName - optional (for client type query)
+//         .appId - for client type query/check
+//                      [browser version doesn't know]
+//         .appMajorVersion - for client type query/check
+//         .appMinorVersion - for client type query/check
+
 // start here...
 $.ajaxSetup({cache:false,async:true,timeout:30000});
+
+function get_lobbyclient() {
+	try {
+		return lobbyclient;
+	}
+	catch (err) {}
+	return undefined;
+}
+
+// get game if dedicated lobbyclient
+function get_game() {
+	if (get_lobbyclient()==undefined)
+		return undefined;
+	if (lobbyclient.getGame()==null || lobbyclient.getGame()==undefined)
+		return undefined;
+	return lobbyclient.getGame();
+}
 
 // <include>Math.uuid.js (v1.4)
 // http://www.broofa.com
@@ -121,64 +189,69 @@ function test_storage() {
 var persistent_cache = {};
 var persistence_type = undefined;
 var key_prefix = 'game.js.';
+var myLocalStorage;
+
+function init_persistence() {
+	if (window.localStorage!=undefined) {
+		// W3C WebStorage
+		myLocalStorage = window.localStorage;
+		persistence_type = 'WebStorage';
+	}
+	else if (get_lobbyclient()!=undefined) {
+		if (lobbyclient.getLocalStorage()!=undefined && lobbyclient.getLocalStorage()!=null) {
+			myLocalStorage = lobbyclient.getLocalStorage();
+			persistence_type = 'Lobbyclient';
+		}
+	}
+	else {
+		var cookies_ok = false;
+		try {
+			// 1 year
+			// TODO fix: illegal format for expires: Fri Sep 16 2011 10:29:03 GMT+0000 (GMT)
+			// -> Thu, 2 Aug 2001 20:47:11 UTC [~]
+			document.cookie = key_prefix+'test=ok; expires='+new Date(new Date().getTime()+1000*60*60*24*365)+'; path=/browser/';
+			cookies_ok = true;
+		} catch (err) {
+		}
+		if (cookies_ok) {
+			// try cookies
+			myLocalStorage = {};
+			myLocalStorage.getItem = function(key) {
+				var val = get_cookie_value(key_prefix+key);
+				if (val==null || val==undefined)
+					return val;
+				return decodeURIComponent(val);
+			}
+			myLocalStorage.setItem = function(key,value) {
+				// 1 year
+				// TODO fix: illegal format for expires: Fri Sep 16 2011 10:29:03 GMT+0000 (GMT)
+				// -> Thu, 2 Aug 2001 20:47:11 UTC [~]
+				document.cookie = key_prefix+key+'='+encodeURIComponent(value)+'; expires='+new Date(new Date().getTime()+1000*60*60*24*365)+'; path=/browser/';
+				return;
+			}
+			persistence_type = 'Cookies';
+		}
+		else {
+			// fallback to transient
+			myLocalStorage = {};
+			myLocalStorage.getItem = function(key) {
+				return persistent_cache[key];
+			}
+			myLocalStorage.setItem = function(key, value) {
+				persistent_cache[key] = value;
+			}
+		}
+	}
+}
+
 
 // get a persistent value 
 function set_persistent_string(key, value) {
-	// try W3C WebStorage...
-	try {
-		if (window.localStorage==undefined || window.localStorage==null)
-			;//alert('localStorage undefined');
-		else {
-			window.localStorage.setItem(key_prefix+key, value);
-			return;
-		}
-	}
-	catch (err) {
-		//alert('Error trying WebStorage: '+$.toJSON(err));
-	}
-	// try cookies
-	try {
-		// 1 year
-		document.cookie = key_prefix+key+'='+encodeURIComponent(value)+'; expires='+new Date(new Date().getTime()+1000*60*60*24*365)+'; path=/browser/';
-		return;
-	}
-	catch (err) {
-		// ...
-	}
-	// fallback to local
-	return persistent_cache[key];
-	
+	myLocalStorage.setItem(key, value);
 }
 
 function get_persistent_string(key) {
-	// try W3C WebStorage...
-	try {
-		if (window.localStorage==undefined || window.localStorage==null)
-			;//alert('localStorage undefined');
-		else {
-			persistence_type = 'WebStorage';
-			return window.localStorage.getItem(key_prefix+key);
-		}
-	}
-	catch (err) {
-		persistence_type = undefined;
-		//alert('Error trying WebStorage: '+$.toJSON(err));
-	}
-	// try cookies
-	try {
-		persistence_type = 'Cookies';
-		var val = get_cookie_value(key_prefix+key);
-		if (val==null || val==undefined)
-			return val;
-		return decodeURIComponent(val);
-	}
-	catch (err) {
-		persistence_type = undefined;
-		// ...
-	}
-	// fallback to local
-	persistence_type = 'None (transient)';
-	return persistent_cache[key];
+	return myLocalStorage.getItem(key);
 }
 
 // get client ID - hopefully persistent; make if unknown.
@@ -208,6 +281,10 @@ function update_game_index(index) {
 	var table = $('#game');
 	gameIndex = index;
 	$('tr',table).remove();
+	if (index==null) {
+		alert('Sorry - Index is null');
+		return;
+	}
 	var image = '';
 	if (index.imageUrl!=undefined) {
 		image = '<img src="'+index.imageUrl+'" alt="image"/>';
@@ -227,6 +304,20 @@ function error_game_index(msg) {
 }
 
 function load_game_index() {
+	// embedded game-specific version?
+	if (get_game()!=undefined) {
+		try {
+			// the Java string doesn't work with parseJSON ?! :-(
+			var index = $.parseJSON(String(get_game().getIndexJson()));
+			//alert('index='+$.toJSON(index)+' from '+get_game().getIndexJson());
+			update_game_index(index);
+			return;
+		}
+		catch (err) {
+			error_game_index(err.message); //$.toJSON(err)+' with '+get_game().getIndexJson());
+			return;
+		}
+	}
 	var table = $('#game');
 	$('tr',table).remove();
 	table.append('<tr><td>Loading...</td></tr>');
@@ -247,7 +338,7 @@ function load_game_index() {
 		}
 		});
 	} catch (err) {
-		error_game_index(err);
+		error_game_index(err.message);//$.toJSON(err));
 //		alert('Error attempting query on '+item.queryUrl+': '+err);
 	}
 }
@@ -417,10 +508,17 @@ function show_join() {
 // on load
 $(document).ready(function() {
 
+	//var str = '{"test":"hello","foo":1}';
+	//var obj = $.parseJSON(str);
+	//alert('JSON: '+str+' -> '+obj+' -> '+$.toJSON(obj));
+	
 	show_query();
 
 	// test WebStorage...
+	init_persistence();
+	//alert('persistnce_type='+persistence_type+', localStorage='+localStorage+', myLocalStorage='+myLocalStorage+', game='+get_game());
 	//test_storage();
+
 	$('#clientId').html('Client ID: checking...');
 	$('#clientId').html('Client ID: '+get_client_id()+' ('+persistence_type+')');
 
@@ -428,7 +526,14 @@ $(document).ready(function() {
 	//alert('width='+$('body').innerWidth()+',height='+$('body').innerHeight());
 	//var width = $('body').innerWidth();
 	//if (width > 
-	queryUrl = decodeURIComponent(gup('queryUrl'));
+	// embedded game-specific version?
+	if (get_game()!=undefined) {
+		queryUrl = get_game().getQueryUrl();
+	}
+	else {
+		// browser-base
+		queryUrl = decodeURIComponent(gup('queryUrl'));
+	}
 	if (queryUrl==null || queryUrl=='') {
 		$('#query_div').hide('fast');
 		alert('Sorry - no queryUrl');

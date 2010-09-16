@@ -1,0 +1,48 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html; charset=ISO-8859-1" http-equiv="content-type">
+  <title>Lobby Client Notes</title>
+</head>
+<body>
+<h1>Lobby Client Notes</h1>
+Chris Greenhalgh, 2010-09-16<br>
+<h2>Notes</h2>
+<p>Difference deployment contexts:</p>
+<ul>
+  <li>browser-only lobby client</li>
+  <ul>
+    <li>cannot open market URLs on Android</li>
+    <li>cannot send intents on Android</li>
+    <li>cannot check app is installed</li>
+    <li>can loadUrl for URL (which may not exist) with custom scheme -
+starts already-installed app with suitable registration on Android or
+iOS</li>
+    <li>can loadUrl for URL (which does exist and is accessible) with custom MIME type - starts already installed app with suitable registration on Android after connecting to server to get ContentType (iOS unknown)</li>
+  </ul>
+  <li>game-specific embedded client</li>
+  <ul>
+    <li>index should be local asset</li>
+    <ul>
+      <li>lobbyclient.getGame().getIndexJson()</li>
+    </ul>
+    <li>queryUrl should be for server</li>
+    <ul>
+      <li>lobbyclient.getGame().getQueryUrl()</li>
+    </ul>
+    <li>URL interception can start real client</li>
+    <li>real client can pass version info to JS&nbsp;</li>
+    <ul>
+      <li>lobbyclient.getGame().getAppId(), appMajorVersion, appMinorVersion, clientName</li>
+    </ul>
+    <li>[needs localStorage (or equiv.) providing]</li>
+  </ul>
+  <li>generic lobby client [standalone or embedded within generic game client]</li>
+  <ul>
+    <li>requires index interaction</li>
+    <li>may push to market for app installation</li>
+    <li>requires native helper to check app installation [possible on Android at least]</li>
+  </ul>
+</ul>
+</body>
+</html>
