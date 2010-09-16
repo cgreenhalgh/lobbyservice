@@ -40,23 +40,19 @@ public class GameClientTemplate {
     private String gameTemplateId;
     /** client template title */
     private String title;
-    /** client type, e.g. "Android" */
+    /** OS type, e.g. "Android" */
     private String clientType;
-    /** min major version */
+    /** OS min major version */
     private int minMajorVersion;
-    /** min minor version (or 0) */
+    /** OS min minor version (or 0) */
     private int minMinorVersion;
-    /** min update (or 0) */
+    /** OS min update (or 0) */
     private int minUpdateVersion;
     /** TODO additional requirements? */
-    /** required application identifier; on Android this is an intent name to start the app (which 
-     * might well include version-specific element(s)).
-     */
-    private String applicationLaunchId;
-    /** on Android this is the packagename of the application, which can (hopefully) be found in
-     * the marketplace. See http://developer.android.com/guide/publishing/publishing.html
-     */
-    private String applicationMarketId;
+    /** Url to use to launch the application. */
+    private String appLaunchUrl;
+    /** Url to use to access market info about client */
+    private String appMarketUrl;
     /** is this client-type location-specific? */
     private boolean locationSpecific;
 	/**
@@ -150,30 +146,6 @@ public class GameClientTemplate {
 		this.minUpdateVersion = minUpdateVersion;
 	}
 	/**
-	 * @return the applicationLaunchId
-	 */
-	public String getApplicationLaunchId() {
-		return applicationLaunchId;
-	}
-	/**
-	 * @param applicationLaunchId the applicationLaunchId to set
-	 */
-	public void setApplicationLaunchId(String applicationLaunchId) {
-		this.applicationLaunchId = applicationLaunchId;
-	}
-	/**
-	 * @return the applicationMarketId
-	 */
-	public String getApplicationMarketId() {
-		return applicationMarketId;
-	}
-	/**
-	 * @param applicationMarketId the applicationMarketId to set
-	 */
-	public void setApplicationMarketId(String applicationMarketId) {
-		this.applicationMarketId = applicationMarketId;
-	}
-	/**
 	 * @return the locationSpecific
 	 */
 	public boolean isLocationSpecific() {
@@ -185,18 +157,41 @@ public class GameClientTemplate {
 	public void setLocationSpecific(boolean locationSpecific) {
 		this.locationSpecific = locationSpecific;
 	}
+	/**
+	 * @return the appLaunchUrl
+	 */
+	public String getAppLaunchUrl() {
+		return appLaunchUrl;
+	}
+	/**
+	 * @param appLaunchUrl the appLaunchUrl to set
+	 */
+	public void setAppLaunchUrl(String appLaunchUrl) {
+		this.appLaunchUrl = appLaunchUrl;
+	}
+	/**
+	 * @return the appMarketUrl
+	 */
+	public String getAppMarketUrl() {
+		return appMarketUrl;
+	}
+	/**
+	 * @param appMarketUrl the appMarketUrl to set
+	 */
+	public void setAppMarketUrl(String appMarketUrl) {
+		this.appMarketUrl = appMarketUrl;
+	}
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public String toString() {
-		return "GameClientTemplate [applicationLaunchId=" + applicationLaunchId
-				+ ", applicationMarketId=" + applicationMarketId
-				+ ", clientType=" + clientType + ", gameTemplateId="
-				+ gameTemplateId + ", key=" + key + ", locationSpecific="
-				+ locationSpecific + ", minMajorVersion=" + minMajorVersion
-				+ ", minMinorVersion=" + minMinorVersion
-				+ ", minUpdateVersion=" + minUpdateVersion + ", title=" + title
-				+ "]";
+		return "GameClientTemplate [appLaunchUrl=" + appLaunchUrl
+				+ ", appMarketUrl=" + appMarketUrl + ", clientType="
+				+ clientType + ", gameTemplateId=" + gameTemplateId + ", key="
+				+ key + ", locationSpecific=" + locationSpecific
+				+ ", minMajorVersion=" + minMajorVersion + ", minMinorVersion="
+				+ minMinorVersion + ", minUpdateVersion=" + minUpdateVersion
+				+ ", title=" + title + "]";
 	}
 }

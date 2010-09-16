@@ -130,13 +130,13 @@ public class JSONUtils implements Constants {
 				jw.value(gameClientTemplate.getMinUpdateVersion());
 				jw.key(LOCATION_SPECIFIC);
 				jw.value(gameClientTemplate.isLocationSpecific());
-				if (gameClientTemplate.getApplicationLaunchId()!=null) {
-					jw.key(APPLICATION_LAUNCH_ID);
-					jw.value(gameClientTemplate.getApplicationLaunchId());
+				if (gameClientTemplate.getAppLaunchUrl()!=null) {
+					jw.key(APP_LAUNCH_URL);
+					jw.value(gameClientTemplate.getAppLaunchUrl());
 				}
-				if (gameClientTemplate.getApplicationMarketId()!=null) {
-					jw.key(APPLICATION_MARKET_ID);
-					jw.value(gameClientTemplate.getApplicationMarketId());
+				if (gameClientTemplate.getAppMarketUrl()!=null) {
+					jw.key(APP_MARKET_URL);
+					jw.value(gameClientTemplate.getAppMarketUrl());
 				}
 				jw.endObject();
 			}	
@@ -305,13 +305,13 @@ public class JSONUtils implements Constants {
 				gct.setMinMinorVersion(json.getInt(MIN_MINOR_VERSION));
 			else if (key.equals(MIN_UPDATE_VERSION))
 				gct.setMinUpdateVersion(json.getInt(MIN_UPDATE_VERSION));
-			else if (key.equals(APPLICATION_LAUNCH_ID))
-				gct.setApplicationLaunchId(json.getString(APPLICATION_LAUNCH_ID));
+			else if (key.equals(APP_LAUNCH_URL))
+				gct.setAppLaunchUrl(json.getString(APP_LAUNCH_URL));
 			else if (key.equals(LOCATION_SPECIFIC))
 				gct.setLocationSpecific(json.getBoolean(LOCATION_SPECIFIC));
-			else if (key.equals(APPLICATION_MARKET_ID)) {
-				gct.setApplicationMarketId(json.getString(APPLICATION_MARKET_ID));
-				logger.info("ApplicationMarketId="+gct.getApplicationMarketId());
+			else if (key.equals(APP_MARKET_URL)) {
+				gct.setAppMarketUrl(json.getString(APP_MARKET_URL));
+				//logger.info("ApplicationMarketId="+gct.getApplicationMarketId());
 			}
 			else 
 				throw new JSONException("Unsupported key '"+key+"' in GameClientTemplate: "+json);

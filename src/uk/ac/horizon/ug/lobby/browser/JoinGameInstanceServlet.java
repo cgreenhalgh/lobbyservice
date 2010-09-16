@@ -304,7 +304,7 @@ public class JoinGameInstanceServlet extends HttpServlet implements Constants {
 
 				logger.info("Change GameSlot nickname "+gs.getNickname()+" -> "+gjreq.getNickname());
 				ngs.setNickname(gjreq.getNickname());
-				//em.merge(gs);
+				em.merge(gs);
 				et.commit();
 			}
 			finally {
@@ -334,7 +334,7 @@ public class JoinGameInstanceServlet extends HttpServlet implements Constants {
 				GameInstance ngi = em.find(GameInstance.class, gi.getKey());
 				ngi.setNumSlotsAllocated(ngi.getNumSlotsAllocated()-1);
 				ngi.setFull(ngi.getNumSlotsAllocated() >= ngi.getMaxNumSlots());
-				//em.merge(ngi);
+				em.merge(ngi);
 				em.remove(gs);
 				et.commit();
 				logger.info("Released "+gs);

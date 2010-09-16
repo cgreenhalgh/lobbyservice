@@ -407,11 +407,14 @@ public class QueryGameTemplateServlet extends HttpServlet implements Constants {
 				TimeConstraint tc = gq.getTimeConstraint();
 				// earliest possible start time that might be relevant...
 				long minTime = System.currentTimeMillis();
+				if (gif.getServerCreateTimeOffsetMs()<0)
+					minTime = minTime - gif.getServerCreateTimeOffsetMs(); // will make it bigger!
 				if (tc!=null && tc.getMinTime()!=null && tc.getMinTime()>minTime)
 					minTime = tc.getMinTime();
-				if (tc!=null && tc.isIncludeStarted()) 
-					// TODO long-running / variable length
-					minTime = minTime-gif.getDurationMs();
+				// Can't factory start retrospectively 
+				//if (tc!=null && tc.isIncludeStarted()) 
+				// TODO long-running / variable length
+				//minTime = minTime-gif.getDurationMs();
 				if (gif.getMinTime()>minTime)
 					minTime = gif.getMinTime();
 				long maxTime = Long.MAX_VALUE;
@@ -431,6 +434,10 @@ public class QueryGameTemplateServlet extends HttpServlet implements Constants {
 				}
 				if (firstStartTime==0) {
 					logger.warning("GameTemplateFactory has no startTime in range "+minTime+"-"+maxTime+": "+gif);
+					continue;
+				}
+				if (firstStartTime<minTime) {
+					logger.warning("FactoryUtils.getNextCronTime returned past startTime "+firstStartTime+" vs "+minTime);
 					continue;
 				}
 				// GameInstance code...

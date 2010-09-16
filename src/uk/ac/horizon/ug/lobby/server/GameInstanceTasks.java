@@ -352,7 +352,7 @@ public class GameInstanceTasks implements Constants {
 					(ngi.getStatus()==GameInstanceStatus.ENDED && targetStatus==GameInstanceStatus.CANCELLED)) {
 				// met target so presumably met nominal target
 				ngi.setNominalStatus(targetNominalStatus);
-				//em.merge(ngi);
+				em.merge(ngi);
 				et.commit();
 				logger.info("GameInstance reached targetStatus="+targetStatus+"; updating nominalStatus to "+targetNominalStatus);
 			}
@@ -362,7 +362,7 @@ public class GameInstanceTasks implements Constants {
 				if (targetNominalStatus==GameInstanceNominalStatus.AVAILABLE && ngi.getNominalStatus()==GameInstanceNominalStatus.AVAILABLE && (ngi.getStatus()!=GameInstanceStatus.READY && ngi.getStatus()!=GameInstanceStatus.ACTIVE && ngi.getStatus()!=GameInstanceStatus.ENDING)) {
 					logger.warning("Failed to reach AVAILABLE status: "+ngi.getStatus()+"; marking "+gi.getKey()+" as TEMPORARILY_UNAVAILABLE");
 					ngi.setNominalStatus(GameInstanceNominalStatus.TEMPORARILY_UNAVAILABLE);
-					//em.merge(ngi);
+					em.merge(ngi);
 					et.commit();
 				}
 				else
@@ -384,7 +384,7 @@ public class GameInstanceTasks implements Constants {
 			if (oldStatus!=null && ngi.getStatus()!=oldStatus) 
 				throw new RuntimeException("updateStatus found status "+ngi.getStatus()+" vs "+oldStatus+" - refused");
 			ngi.setStatus(newStatus);
-			//em.merge(ngi);
+			em.merge(ngi);
 			et.commit();
 		}
 		finally {

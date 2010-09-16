@@ -51,8 +51,8 @@
     	'<tr><td>Min major version</td><td><input type="text" name="minMajorVersion"/></td></tr>'+
     	'<tr><td>Min minor version</td><td><input type="text" name="minMinorVersion"/></td></tr>'+
     	'<tr><td>Min update version</td><td><input type="text" name="minUpdateVersion"/></td></tr>'+
-    	'<tr><td>App. lauch ID</td><td><input type="text" name="applicationLaunchId"/></td></tr>'+
-    	'<tr><td>App. market ID</td><td><input type="text" name="applicationMarketId"/></td></tr>'+
+    	'<tr><td>App. launch URL</td><td><input type="text" name="appLaunchUrl"/></td></tr>'+
+    	'<tr><td>App. market URL</td><td><input type="text" name="appMarketUrl"/></td></tr>'+
     	'</table></td></tr>';
     	function add_client_row() {
 			$('#client_more').before(client_row);
@@ -113,8 +113,8 @@
             	add_field(el, gct, 'title', 'client_title');
             	add_field(el, gct, 'clientType');
             	add_boolean_field(el, gct, 'locationSpecific');
-            	add_field(el, gct, 'applicationLaunchId');
-            	add_field(el, gct, 'applicationMarketId');
+            	add_field(el, gct, 'appLaunchUrl');
+            	add_field(el, gct, 'appMarketUrl');
             	add_int_field(el, gct, 'minMajorVersion');
             	add_int_field(el, gct, 'minMinorVersion');
             	add_int_field(el, gct, 'minUpdateVersion');
@@ -168,8 +168,8 @@
 	            	set_input_from_field(row,item,'minMajorVersion');
 	            	set_input_from_field(row,item,'minMinorVersion');
 	            	set_input_from_field(row,item,'minUpdateVersion');
-	            	set_input_from_field(row,item,'applicationLaunchId');
-	            	set_input_from_field(row,item,'applicationMarketId');
+	            	set_input_from_field(row,item,'appLaunchUrl');
+	            	set_input_from_field(row,item,'appMarketUrl');
 					$('#client_more').before(row);			
 				}
         	});
@@ -219,7 +219,7 @@
 		</table>
 		<p>Clients:</p>
 		<table border="1">
-			<!-- <tr><td></td><td>title</td><td>type</td><td>location specific</td><td>min major version</td><td>min minor version</td><td>min update version</td><td>application launch id</td><td>application market id</td></tr> -->
+			<!-- <tr><td></td><td>title</td><td>type</td><td>location specific</td><td>min major version</td><td>min minor version</td><td>min update version</td><td>app launch url</td><td>app market url</td></tr> -->
 			<tr id="client_more"><td><input type="button" value="More..." onclick="add_client_row()"/></td></tr>
 		</table>
 		<p><input type="submit" value="Add game template"/><input type="reset" value="Reset/New" onclick="reset_game_template(this)"/></p>
