@@ -403,8 +403,7 @@ public class ExplodingPlacesServerProtocol implements ServerProtocol {
 			em.merge(ngi);
 			et.commit();
 			
-			// fiddle the cached value too
-			gi.setServerConfigJson(ngi.getServerConfigJson());
+			// don't fiddle the cached value
 			
 		} catch (Exception e) {
 			throw new IOException("Problem saving gameId ("+gameId+"): "+e);

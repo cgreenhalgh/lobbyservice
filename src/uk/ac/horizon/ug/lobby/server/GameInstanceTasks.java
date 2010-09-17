@@ -205,10 +205,10 @@ public class GameInstanceTasks implements Constants {
 					break;
 				case ENDED:
 				case CANCELLED:
-					doEndFromPreparing(gi, factory, server);
+					gi = doEndFromPreparing(gi, factory, server);
 					break;
 				case ENDING:
-					doEndingFromActive(gi, factory, server);
+					gi = doEndingFromActive(gi, factory, server);
 					break;
 				default: // PLANNED, READY
 					// just leave it
@@ -244,7 +244,7 @@ public class GameInstanceTasks implements Constants {
 					break;
 				case ENDED:
 				case CANCELLED:
-					doEndFromPreparing(gi, factory, server);
+					gi = doEndFromPreparing(gi, factory, server);
 					break;
 				default: // ACTIVE, PLANNED, READY
 					// just leave it
@@ -261,22 +261,22 @@ public class GameInstanceTasks implements Constants {
 					break;
 				case ENDED:
 				case CANCELLED:
-					doCancelFromPlanned(gi, factory, server);
+					gi = doCancelFromPlanned(gi, factory, server);
 					break;
 				case READY:
-					doPreparingFromPlanned(gi, factory, server);
-					doReadyFromPreparing(gi, factory, server);
+					gi = doPreparingFromPlanned(gi, factory, server);
+					gi = doReadyFromPreparing(gi, factory, server);
 					break;
 				case ACTIVE:
-					doPreparingFromPlanned(gi, factory, server);
-					doReadyFromPreparing(gi, factory, server);
-					doActiveFromReady(gi, factory, server);
+					gi = doPreparingFromPlanned(gi, factory, server);
+					gi = doReadyFromPreparing(gi, factory, server);
+					gi = doActiveFromReady(gi, factory, server);
 					break;
 				case ENDING:
-					doPreparingFromPlanned(gi, factory, server);
-					doReadyFromPreparing(gi, factory, server);
-					doActiveFromReady(gi, factory, server);
-					doEndingFromActive(gi, factory, server);
+					gi = doPreparingFromPlanned(gi, factory, server);
+					gi = doReadyFromPreparing(gi, factory, server);
+					gi = doActiveFromReady(gi, factory, server);
+					gi = doEndingFromActive(gi, factory, server);
 					break;
 				default: // ? 
 						// just leave it
@@ -288,19 +288,19 @@ public class GameInstanceTasks implements Constants {
 				switch (targetStatus) {
 				case ENDED:
 				case CANCELLED:
-					doEndFromPreparing(gi, factory, server);
+					gi = doEndFromPreparing(gi, factory, server);
 					break;
 				case READY:
-					doReadyFromPreparing(gi, factory, server);
+					gi = doReadyFromPreparing(gi, factory, server);
 					break;
 				case ACTIVE:
-					doReadyFromPreparing(gi, factory, server);
-					doActiveFromReady(gi, factory, server);
+					gi = doReadyFromPreparing(gi, factory, server);
+					gi = doActiveFromReady(gi, factory, server);
 					break;
 				case ENDING:
-					doReadyFromPreparing(gi, factory, server);
-					doActiveFromReady(gi, factory, server);
-					doEndingFromActive(gi, factory, server);
+					gi = doReadyFromPreparing(gi, factory, server);
+					gi = doActiveFromReady(gi, factory, server);
+					gi = doEndingFromActive(gi, factory, server);
 					break;
 				default: // ? 
 						// just leave it
@@ -311,17 +311,17 @@ public class GameInstanceTasks implements Constants {
 				switch (targetStatus) {
 				case ENDED:
 				case CANCELLED:
-					doEndFromPreparing(gi, factory, server);
+					gi = doEndFromPreparing(gi, factory, server);
 					break;
 				case READY:
 					// no op
 					break;
 				case ACTIVE:
-					doActiveFromReady(gi, factory, server);
+					gi = doActiveFromReady(gi, factory, server);
 					break;
 				case ENDING:
-					doActiveFromReady(gi, factory, server);
-					doEndingFromActive(gi, factory, server);
+					gi = doActiveFromReady(gi, factory, server);
+					gi = doEndingFromActive(gi, factory, server);
 					break;
 				default: // ? 
 					// just leave it
@@ -350,11 +350,16 @@ public class GameInstanceTasks implements Constants {
 					// at the instance level ENDED and CANCELLED are essentially the same outcome (no more game)
 					(ngi.getStatus()==GameInstanceStatus.CANCELLED && targetStatus==GameInstanceStatus.ENDED) ||
 					(ngi.getStatus()==GameInstanceStatus.ENDED && targetStatus==GameInstanceStatus.CANCELLED)) {
-				// met target so presumably met nominal target
-				ngi.setNominalStatus(targetNominalStatus);
-				em.merge(ngi);
-				et.commit();
-				logger.info("GameInstance reached targetStatus="+targetStatus+"; updating nominalStatus to "+targetNominalStatus);
+				if (ngi.getNominalStatus()!=targetNominalStatus) {
+					// met target so presumably met nominal target
+					ngi.setNominalStatus(targetNominalStatus);
+					em.merge(ngi);
+					et.commit();
+					logger.info("GameInstance reached targetStatus="+targetStatus+"; updating nominalStatus to "+targetNominalStatus);
+				}
+				else
+					// no op
+					et.rollback();
 			}
 			else {
 				// didn't meet target, so...
@@ -375,7 +380,7 @@ public class GameInstanceTasks implements Constants {
 			em.close();			
 		}
 	}
-	private static void updateStatus(GameInstance gi, GameInstanceStatus oldStatus, GameInstanceStatus newStatus) {
+	private static GameInstance updateStatus(GameInstance gi, GameInstanceStatus oldStatus, GameInstanceStatus newStatus) {
 		EntityManager em = EMF.get().createEntityManager();
 		EntityTransaction et = em.getTransaction();
 		try {
@@ -386,14 +391,14 @@ public class GameInstanceTasks implements Constants {
 			ngi.setStatus(newStatus);
 			em.merge(ngi);
 			et.commit();
+			return ngi;
 		}
 		finally {
 			if (et.isActive())
 				et.rollback();
 			em.close();
 		}
-		// fiddle with cache too
-		gi.setStatus(newStatus);
+		// don't fiddle with cache 
 	}
 	private static ServerProtocol getServerProtocol(GameServer server) {
 		if (server.getTargetStatus()!=GameServerStatus.UP) 
@@ -401,39 +406,39 @@ public class GameInstanceTasks implements Constants {
 		ServerProtocol serverProtocol = server.getType().serverProtocol();
 		return serverProtocol;
 	}
-	private static void doCancelFromPlanned(GameInstance gi,
+	private static GameInstance doCancelFromPlanned(GameInstance gi,
 			GameInstanceFactory factory, GameServer server) {
-		updateStatus(gi, GameInstanceStatus.PLANNED, GameInstanceStatus.CANCELLED);
+		return updateStatus(gi, GameInstanceStatus.PLANNED, GameInstanceStatus.CANCELLED);
 	}
-	private static void doPreparingFromPlanned(GameInstance gi,
+	private static GameInstance doPreparingFromPlanned(GameInstance gi,
 			GameInstanceFactory factory, GameServer server) throws ConfigurationException, IOException {
 		getServerProtocol(server).handleGameInstancePreparingFromPlanned(gi, factory, server);
 		
-		updateStatus(gi, GameInstanceStatus.PLANNED, GameInstanceStatus.PREPARING);
+		return updateStatus(gi, GameInstanceStatus.PLANNED, GameInstanceStatus.PREPARING);
 	}
-	private static void doReadyFromPreparing(GameInstance gi,
+	private static GameInstance doReadyFromPreparing(GameInstance gi,
 			GameInstanceFactory factory, GameServer server) throws ConfigurationException, IOException {
 		getServerProtocol(server).handleGameInstanceReadyFromPreparing(gi, factory, server);
 
-		updateStatus(gi, GameInstanceStatus.PREPARING, GameInstanceStatus.READY);	
+		return updateStatus(gi, GameInstanceStatus.PREPARING, GameInstanceStatus.READY);	
 	}
-	private static void doActiveFromReady(GameInstance gi,
+	private static GameInstance doActiveFromReady(GameInstance gi,
 			GameInstanceFactory factory, GameServer server) throws ConfigurationException, IOException {
 		getServerProtocol(server).handleGameInstanceActiveFromReady(gi, factory, server);
 		
-		updateStatus(gi, GameInstanceStatus.READY, GameInstanceStatus.ACTIVE);
+		return updateStatus(gi, GameInstanceStatus.READY, GameInstanceStatus.ACTIVE);
 	}
-	private static void doEndingFromActive(GameInstance gi,
+	private static GameInstance doEndingFromActive(GameInstance gi,
 			GameInstanceFactory factory, GameServer server) throws ConfigurationException, IOException {
 		getServerProtocol(server).handleGameInstanceEndingFromActive(gi, factory, server);
 		
-		updateStatus(gi, GameInstanceStatus.ACTIVE, GameInstanceStatus.ENDING);
+		return updateStatus(gi, GameInstanceStatus.ACTIVE, GameInstanceStatus.ENDING);
 	}
-	private static void doEndFromPreparing(GameInstance gi,
+	private static GameInstance doEndFromPreparing(GameInstance gi,
 			GameInstanceFactory factory, GameServer server) throws ConfigurationException, IOException {
 		// Note: this can also be called from READY, ACTIVE and ENDING
 		getServerProtocol(server).handleGameInstanceEnd(gi, factory, server);
 		
-		updateStatus(gi, null, GameInstanceStatus.ENDED);
+		return updateStatus(gi, null, GameInstanceStatus.ENDED);
 	}
 }

@@ -39,13 +39,13 @@
     	function get_template_options() {
         	// loading...
        	    $('select[name=gameTemplateId] > option').remove();
-       	    $('select[name=gameTemplateId]').append('<option label="Loading..." selected="true"/>');
+       	    $('select[name=gameTemplateId]').append('<option selected="true">Loading...</option>');
         	$.getJSON('GetUserGameTemplates',function(json) {
            	    $('select[name=gameTemplateId] > option').remove();
            	    //alert('got '+json.length+' template options: '+json);
         	    for (var i=0; i<json.length; i++) {
             	    var item = json[i];
-               	    $('select[name=gameTemplateId]').append('<option label="'+item.title+'" value="'+item.id+'"/>'+item.title+'</option>');
+               	    $('select[name=gameTemplateId]').append('<option value="'+item.id+'">'+item.title+'</option>');
                	}
         	});
     	}
@@ -128,19 +128,13 @@
             	//alert('received '+$.toJSON(data));
             	current_game_template = data;
             	//$(':input[name=type]').attr('value',data.type);
-				$('select[name=type] > option[selected]').removeAttr('selected');
-				if (data.type!=null && data.type!='')
-					$('select[name=type] > option[value='+data.type+']').attr('selected','true');
+            	set_select_from_field(document,data,'type');
             	$(':input[name=title]').attr('value',data.title);
             	//$(':input[name=gameTemplateId]').attr('value',data.gameTemplateId);
-				$('select[name=gameTemplateId] > option[selected]').removeAttr('selected');
-				if (data.gameTemplateId!=null && data.gameTemplateId!='')
-					$('select[name=gameTemplateId] > option[value='+data.gameTemplateId+']').attr('selected','true');
+            	set_select_from_field(document,data,'gameTemplateId');
 				$(':input[name=baseUrl]').attr('value',data.baseUrl);
             	//$(':input[name=targetStatus]').attr('value',data.targetStatus);
-				$('select[name=targetStatus] > option[selected]').removeAttr('selected');
-				if (data.targetStatus!=null && data.targetStatus!='')
-					$('select[name=targetStatus] > option[value='+data.targetStatus+']').attr('selected','true');
+            	set_select_from_field(document,data,'targetStatus');
             	$(':input[name=lobbySharedSecret]').attr('value',data.lobbySharedSecret);
         	});
         	return false;
@@ -177,8 +171,8 @@
 			<tr><td>type</td><td>
 				<!-- <input type="text" name="type"/> -->
 				<select name="type">
-					<option label="Unspecified" value="" selected="true"></option>
-					<option label="EXPLODING_PLACES" value="EXPLODING_PLACES">EXPLODING_PLACES</option>
+					<option value="" selected="true">Unspecified</option>
+					<option value="EXPLODING_PLACES">EXPLODING_PLACES</option>
 					<!-- add more options here... -->
 				</select>
 			</td></tr>
@@ -192,9 +186,9 @@
 			<tr><td>target status</td><td>
 				<!-- <input type="text" name="targetStatus"/> -->
 				<select name="targetStatus">
-					<option label="Unspecified" value="" selected="true"></option>
-					<option label="UP" value="UP">UP</option>
-					<option label="STOPPED" value="STOPPED">STOPPED</option>
+					<option value="" selected="true">Unspecified</option>
+					<option value="UP">UP</option>
+					<option value="STOPPED">STOPPED</option>
 				</select>
 			</td></tr>
 		</table>

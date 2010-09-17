@@ -15,7 +15,7 @@ function add_field(form, obj, name, input_name) {
 function add_select_field(form, obj, name, input_name) {
 	if (!input_name)
     	input_name = name;
-	var value = $('select[name='+name+'] > option[selected]', form).attr('value');
+	var value = $('select[name='+name+']', form).attr('value');
 	if (value!=null && value!='')
     	obj[name] = value;
 }
@@ -51,9 +51,10 @@ function add_boolean_field(form, obj, name, input_name) {
 function set_select_from_field(form, data, name, input_name) {
 	if (!input_name)
 		input_name = name;
-	$('select[name='+input_name+'] > option[selected]', form).removeAttr('selected');
-	if (data[name]!=null && data[name]!='' && data[name]!=undefined)
-		$('select[name='+input_name+'] > option[value='+data[name]+']', form).attr('selected','true');
+	var value = data[name];
+	if (value==null || value==undefined)
+		value = '';
+	$('select[name='+input_name+']', form).attr('value', value);
 }
 //set an normal input according to a field value
 function set_input_from_field(form, data, name, input_name) {

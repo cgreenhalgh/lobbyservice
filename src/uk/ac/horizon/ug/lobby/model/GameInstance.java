@@ -331,5 +331,25 @@ public class GameInstance {
 	public void setServerConfigJson(String serverConfigJson) {
 		this.serverConfigJson = serverConfigJson;
 	}
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "GameInstance [allowAnonymousClients=" + allowAnonymousClients
+				+ ", baseUrl=" + baseUrl + ", createdTime=" + createdTime
+				+ ", endTime=" + endTime + ", full=" + full
+				+ ", gameInstanceFactoryKey=" + gameInstanceFactoryKey
+				+ ", gameServerId=" + gameServerId + ", gameTemplateId="
+				+ gameTemplateId + ", key=" + key + ", latitudeE6="
+				+ latitudeE6 + ", locationName=" + locationName
+				+ ", longitudeE6=" + longitudeE6 + ", maxNumSlots="
+				+ maxNumSlots + ", nominalStatus=" + nominalStatus
+				+ ", numSlotsAllocated=" + numSlotsAllocated
+				+ ", radiusMetres=" + radiusMetres + ", serverConfigJson="
+				+ serverConfigJson + ", startTime=" + startTime + ", status="
+				+ status + ", title=" + title + ", visibility=" + visibility
+				+ "]";
+	}
     
 }
