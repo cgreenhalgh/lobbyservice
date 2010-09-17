@@ -32,7 +32,7 @@ public class RunBackgroundTasksServlet extends HttpServlet {
 	
 	public void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException {
-		//logger.info("Get: contextPath="+req.getContextPath()+", pathInfo="+req.getPathInfo()+", queryString="+req.getQueryString());
+		logger.info("RunBackgroundTasksServlet");
 		try {
 			FactoryTasks.checkAllGameInstanceFactories();
 		} 
