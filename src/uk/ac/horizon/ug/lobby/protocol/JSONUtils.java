@@ -82,16 +82,16 @@ public class JSONUtils implements Constants {
 	 * @throws JSONException */
 	public static void writeGameTemplate(JSONWriter jw, GameTemplateInfo gameTemplateInfo) throws JSONException {
 		boolean selfContained = gameTemplateInfo.getGameInstance()==null && gameTemplateInfo.getGameInstanceFactory()==null;
-		writeGameTemplate(jw, gameTemplateInfo.getGameTemplate(), gameTemplateInfo.getGameClientTemplates(), gameTemplateInfo.getQueryUrl(), gameTemplateInfo.getGameInstance(), gameTemplateInfo.getJoinUrl(), gameTemplateInfo.getGameInstanceFactory(), gameTemplateInfo.getFirstStartTime(), gameTemplateInfo.getGameTimeOptions(), gameTemplateInfo.getNewInstanceUrl(), selfContained, gameTemplateInfo.isIncludePrivateFields());
+		writeGameTemplate(jw, gameTemplateInfo.getGameTemplate(), gameTemplateInfo.getGameClientTemplates(), gameTemplateInfo.getQueryUrl(), gameTemplateInfo.getGameInstance(), gameTemplateInfo.getJoinUrl(), gameTemplateInfo.getGameInstanceFactory(), gameTemplateInfo.getFirstStartTime(), gameTemplateInfo.getGameTimeOptions(), gameTemplateInfo.getNewInstanceUrl(), selfContained, gameTemplateInfo.isIncludePrivateFields(), gameTemplateInfo.getGameSlotId(), gameTemplateInfo.getClientId());
 	}
 	/** write GameTemplate summary 
 	 * @throws JSONException */
 	public static void writeGameTemplate(JSONWriter jw, GameTemplate gameTemplate) throws JSONException {
-		writeGameTemplate(jw, gameTemplate, null, null, null, null, null, null, null, null, true, false);
+		writeGameTemplate(jw, gameTemplate, null, null, null, null, null, null, null, null, true, false, null, null);
 	}
 	/** write GameTemplate summary 
 	 * @throws JSONException */
-	public static void writeGameTemplate(JSONWriter jw, GameTemplate gameTemplate, List<GameClientTemplate> gameClientTemplates, String queryUrl, GameInstance gameInstance, String joinUrl, GameInstanceFactory gameInstanceFactory, Long firstStartTime, GameTimeOptions gameTimeOptions, String newInstanceUrl, boolean selfContained, boolean includePrivateFields) throws JSONException {
+	public static void writeGameTemplate(JSONWriter jw, GameTemplate gameTemplate, List<GameClientTemplate> gameClientTemplates, String queryUrl, GameInstance gameInstance, String joinUrl, GameInstanceFactory gameInstanceFactory, Long firstStartTime, GameTimeOptions gameTimeOptions, String newInstanceUrl, boolean selfContained, boolean includePrivateFields, String gameSlotId, String clientId) throws JSONException {
 		jw.object();
 		// game template stuff if selfContained
 		if (selfContained) {
@@ -168,6 +168,14 @@ public class JSONUtils implements Constants {
 		if (joinUrl!=null) {
 			jw.key(JOIN_URL);
 			jw.value(joinUrl);
+		}
+		if (gameSlotId!=null) {
+			jw.key(GAME_SLOT_ID);
+			jw.value(gameSlotId);
+		}
+		if (clientId!=null) {
+			jw.key(CLIENT_ID);
+			jw.value(clientId);
 		}
 		jw.endObject();
 	}

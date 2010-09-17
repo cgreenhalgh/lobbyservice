@@ -50,6 +50,7 @@ import uk.ac.horizon.ug.lobby.ConfigurationUtils;
 import uk.ac.horizon.ug.lobby.Constants;
 import uk.ac.horizon.ug.lobby.HttpUtils;
 import uk.ac.horizon.ug.lobby.RequestException;
+import uk.ac.horizon.ug.lobby.browser.JoinUtils.JoinAuthInfo;
 import uk.ac.horizon.ug.lobby.model.Account;
 import uk.ac.horizon.ug.lobby.model.EMF;
 import uk.ac.horizon.ug.lobby.model.GameClientTemplate;
@@ -60,11 +61,15 @@ import uk.ac.horizon.ug.lobby.model.GameInstanceFactoryLocationType;
 import uk.ac.horizon.ug.lobby.model.GameInstanceFactoryStatus;
 import uk.ac.horizon.ug.lobby.model.GameInstanceFactoryType;
 import uk.ac.horizon.ug.lobby.model.GameInstanceNominalStatus;
+import uk.ac.horizon.ug.lobby.model.GameInstanceSlot;
+import uk.ac.horizon.ug.lobby.model.GameInstanceSlotStatus;
 import uk.ac.horizon.ug.lobby.model.GameInstanceStatus;
 import uk.ac.horizon.ug.lobby.model.GameServer;
 import uk.ac.horizon.ug.lobby.model.GameTemplate;
 import uk.ac.horizon.ug.lobby.model.GameTemplateVisibility;
 import uk.ac.horizon.ug.lobby.model.ServerConfiguration;
+import uk.ac.horizon.ug.lobby.protocol.ClientRequestScope;
+import uk.ac.horizon.ug.lobby.protocol.GameJoinResponseStatus;
 import uk.ac.horizon.ug.lobby.protocol.GameQuery;
 import uk.ac.horizon.ug.lobby.protocol.GameTemplateInfo;
 import uk.ac.horizon.ug.lobby.protocol.JSONUtils;
@@ -107,6 +112,7 @@ public class QueryGameTemplateServlet extends HttpServlet implements Constants {
 			throws IOException {
 		// parse request
 		String line = null;
+		String auth = null;
 		GameQuery gq = null;
 		GameTemplate gt = null;
 		try {
@@ -114,6 +120,8 @@ public class QueryGameTemplateServlet extends HttpServlet implements Constants {
 			line = br.readLine();
 			JSONObject json = new JSONObject(line);
 			gq = JSONUtils.parseGameQuery(json);
+			// second line is digital signature (if given)
+			auth = br.readLine();
 			
 			logger.info("GameQuery "+gq);
 			gt = getGameTemplate(req);
@@ -126,7 +134,9 @@ public class QueryGameTemplateServlet extends HttpServlet implements Constants {
 			return;
 		}
 		try {
-			GameIndex gindex = handleGameQuery(gq, gt);
+			JoinUtils.JoinAuthInfo jai = JoinUtils.authenticateOptional(gq.getClientId(), gq.getDeviceId(), line, auth);
+
+			GameIndex gindex = handleGameQuery(gq, gt, jai);
 			// response
 			JSONUtils.sendGameIndex(resp, gindex);
 			
@@ -139,11 +149,11 @@ public class QueryGameTemplateServlet extends HttpServlet implements Constants {
 			return;
 		}
 	}
-	public GameIndex testHandleGameQuery(GameQuery gq, GameTemplate gt) throws RequestException, JSONException {
-		return handleGameQuery(gq, gt);
+	public GameIndex testHandleGameQuery(GameQuery gq, GameTemplate gt, JoinAuthInfo jai) throws RequestException, JSONException {
+		return handleGameQuery(gq, gt, jai);
 	}
 	public static final int DEFAULT_MAX_RESULTS = 30;
-	static GameIndex handleGameQuery(GameQuery gq, GameTemplate gt) throws RequestException, JSONException {
+	static GameIndex handleGameQuery(GameQuery gq, GameTemplate gt, JoinAuthInfo jai) throws RequestException, JSONException {
 
 		// get some of the general server info
 		ServerConfiguration sc = ConfigurationUtils.getServerConfiguration();
@@ -191,6 +201,89 @@ public class QueryGameTemplateServlet extends HttpServlet implements Constants {
 			// add gcts (if location ok)
 			gcts.add(gct);
 		}
+		
+		//============================================================================
+		// GameSlots?
+		if (jai.gc!=null) {
+			
+			EntityManager em = EMF.get().createEntityManager();
+			try {
+				Query q = null;
+				if (jai.account==null) {
+					// TODO slot status?
+					q = em.createQuery("SELECT x FROM "+GameInstanceSlot.class.getSimpleName()+" x WHERE x."+
+							GAME_CLIENT_KEY+" = :"+GAME_CLIENT_KEY+" AND x."+GAME_TEMPLATE_ID+" = :"+GAME_TEMPLATE_ID+
+							" AND x."+STATUS+" IN ( '"+GameInstanceSlotStatus.ACTIVE+"', '"+GameInstanceSlotStatus.ALLOCATED+"')");
+					q.setParameter(GAME_CLIENT_KEY, jai.gc.getKey());
+				}
+				else {
+					q = em.createQuery("SELECT x FROM "+GameInstanceSlot.class.getSimpleName()+" x WHERE x."+
+							ACCOUNT_KEY+" = :"+ACCOUNT_KEY+" AND x."+GAME_TEMPLATE_ID+" = :"+GAME_TEMPLATE_ID+
+							" AND x."+STATUS+" IN ( '"+GameInstanceSlotStatus.ACTIVE+"', '"+GameInstanceSlotStatus.ALLOCATED+"')");
+					q.setParameter(ACCOUNT_KEY, jai.account.getKey());
+				}
+				q.setParameter(GAME_TEMPLATE_ID, gt.getId());
+				List<GameInstanceSlot> posgiss = (List<GameInstanceSlot>)q.getResultList();
+				for (GameInstanceSlot posgis: posgiss) {
+					if (posgis.getGameInstanceKey()==null) {
+						logger.warning("GameInstanceSlot without gameInstanceKey: "+posgis);
+						continue;
+					}
+					GameInstance gi = em.find(GameInstance.class, posgis.getGameInstanceKey());
+					if (gi==null) {
+						logger.warning("Could not find GameInstance for slot: "+posgis);
+						continue;
+					}
+					boolean include = false;
+					// include?
+					switch (gi.getNominalStatus()) {
+					case CANCELLED:
+					case ENDED:
+						// no
+						break;
+					case PLANNED:
+					case TEMPORARILY_UNAVAILABLE:
+					case AVAILABLE:
+						if (checkGameInstanceSlotTime(gi, gq.getTimeConstraint()))
+							include = true;
+						break;
+					}
+					boolean locationOk = true;
+					if (locationSpecific && gq.getLocationConstraint()!=null) {
+						LocationConstraint lc = gq.getLocationConstraint();
+
+						locationOk = checkLocationConstraint(lc, gi.getLatitudeE6(), gi.getLongitudeE6(), gi.getRadiusMetres());
+					}
+
+					if (include) {
+						GameTemplateInfo gti = new GameTemplateInfo(); 
+						gti.setGameInstance(gi);
+						gti.setGameTemplate(gt);
+						// GameClientTemplates??
+						gti.setJoinUrl(QueryGameTemplateServlet.makeJoinUrl(sc, gi));
+						gti.setGameSlotId(posgis.getKey().getName());
+						if (posgis.getGameClientKey()!=null) {
+							// client id is key name
+							gti.setClientId(posgis.getGameClientKey().getName());
+						}
+						else
+							logger.warning("GameInstanceSlot does not identify client: "+posgis);
+						// TODO clients as already identified?
+						if (locationOk)
+							gti.setGameClientTemplates(gcts);
+						else 
+							gti.setGameClientTemplates(noloc_gcts);
+
+						gtis.add(gti);
+					}
+				}
+			}
+			finally {
+				em.close();
+			}
+		}
+		
+		// ===========================================================================
 		if (gcts.size()==0) {
 			logger.info("Game "+gt.getId()+" does not support any client(s) specified");
 			// no matching client - so can't play
@@ -263,44 +356,8 @@ public class QueryGameTemplateServlet extends HttpServlet implements Constants {
 			logger.info("Found "+posgis.size()+" possible GameInstances on initial query");
 						
 			for (GameInstance gi : posgis) {
-				// recheck times (for simplicity)
-				if (gq.getTimeConstraint()!=null) {
-					TimeConstraint tc = gq.getTimeConstraint();
-					// start time...
-					if (!tc.isIncludeStarted() && tc.getMinTime()!=null) {
-						if (tc.getMinTime()>gi.getStartTime()) {
-							logger.info("GameInstance "+gi.getTitle()+" starts too early ("+gi.getStartTime()+" vs "+tc.getMinTime()+")");
-							continue; // starts too early
-						}
-					} 
-					// our earliest possible start time...
-					long ourStart = gi.getStartTime();
-					if (tc.getMinTime()!=null && tc.getMinTime()>ourStart)
-						ourStart = tc.getMinTime();
-					// our latest possible end time...
-					long ourEnd = gi.getEndTime();
-					// end time...
-					if (tc.isLimitEndTime() && tc.getMaxTime()!=null) {
-						if (gi.getEndTime()>tc.getMaxTime()) {
-							logger.info("GameInstance "+gi.getTitle()+" end too late ("+gi.getEndTime()+" vs "+tc.getMaxTime()+")");
-							continue; // ends too late
-						}
-					}
-					// duration
-					long duration = ourEnd - ourStart;
-					if (duration <= 0) {
-						logger.info("GameInstance "+gi.getTitle()+" would end before it starts for us ("+gi.getStartTime()+"-"+gi.getEndTime()+", min="+tc.getMinTime()+")");
-						continue; // no time left
-					}
-					if (tc.getMinDurationMs()!=null && tc.getMinDurationMs() > duration) {
-						logger.info("GameInstance "+gi.getTitle()+" too short: "+duration+" vs "+tc.getMinDurationMs());
-						continue; // not long enough
-					}
-					if (tc.getMaxDurationMs()!=null && tc.getMaxDurationMs() < duration) {
-						logger.info("GameInstance "+gi.getTitle()+" too long: "+duration+" vs "+tc.getMaxDurationMs());
-						continue; // too long
-					}
-				}
+				if (!checkGameInstanceTime(gi, gq.getTimeConstraint()))
+					continue;
 				// location
 				boolean locationOk = true;
 				if (locationSpecific && gq.getLocationConstraint()!=null) {
@@ -309,19 +366,28 @@ public class QueryGameTemplateServlet extends HttpServlet implements Constants {
 					locationOk = checkLocationConstraint(lc, gi.getLatitudeE6(), gi.getLongitudeE6(), gi.getRadiusMetres());
 				}
 				if (locationOk || locationIndependent) {
-					// useful
-					GameTemplateInfo gti = new GameTemplateInfo();
-					gti.setGameTemplate(gt);
-					gti.setGameInstance(gi);
-					gti.setJoinUrl(makeJoinUrl(sc, gi));
-					if (locationOk)
-						gti.setGameClientTemplates(gcts);
-					else 
-						gti.setGameClientTemplates(noloc_gcts);
-					gtis.add(gti);
-					if (gtis.size()>=maxResults)
-						// no more instances...
-						break;
+					// already done?
+					boolean done = false;
+					for (GameTemplateInfo gti2 : gtis)
+						if (gti2.getGameInstance().getKey().equals(gi.getKey())) {
+							done = true;
+							break;
+						}
+					if (!done) {
+						// useful
+						GameTemplateInfo gti = new GameTemplateInfo();
+						gti.setGameTemplate(gt);
+						gti.setGameInstance(gi);
+						gti.setJoinUrl(makeJoinUrl(sc, gi));
+						if (locationOk)
+							gti.setGameClientTemplates(gcts);
+						else 
+							gti.setGameClientTemplates(noloc_gcts);
+						gtis.add(gti);
+						if (gtis.size()>=maxResults)
+							// no more instances...
+							break;
+					}
 				}
 			}
 		}
@@ -487,6 +553,73 @@ public class QueryGameTemplateServlet extends HttpServlet implements Constants {
 			em.close();
 		}
 	}
+	private static boolean checkGameInstanceTime(GameInstance gi,
+			TimeConstraint tc) {
+		// recheck times (for simplicity)
+		if (tc!=null) {
+			// start time...
+			if (!tc.isIncludeStarted() && tc.getMinTime()!=null) {
+				if (tc.getMinTime()>gi.getStartTime()) {
+					logger.info("GameInstance "+gi.getTitle()+" starts too early ("+gi.getStartTime()+" vs "+tc.getMinTime()+")");
+					return false; // starts too early
+				}
+			} 
+			// our earliest possible start time...
+			long ourStart = gi.getStartTime();
+			if (tc.getMinTime()!=null && tc.getMinTime()>ourStart)
+				ourStart = tc.getMinTime();
+			// our latest possible end time...
+			long ourEnd = gi.getEndTime();
+			// end time...
+			if (tc.isLimitEndTime() && tc.getMaxTime()!=null) {
+				if (gi.getEndTime()>tc.getMaxTime()) {
+					logger.info("GameInstance "+gi.getTitle()+" end too late ("+gi.getEndTime()+" vs "+tc.getMaxTime()+")");
+					return false; // ends too late
+				}
+			}
+			// duration
+			long duration = ourEnd - ourStart;
+			if (duration <= 0) {
+				logger.info("GameInstance "+gi.getTitle()+" would end before it starts for us ("+gi.getStartTime()+"-"+gi.getEndTime()+", min="+tc.getMinTime()+")");
+				return false; // no time left
+			}
+			if (tc.getMinDurationMs()!=null && tc.getMinDurationMs() > duration) {
+				logger.info("GameInstance "+gi.getTitle()+" too short: "+duration+" vs "+tc.getMinDurationMs());
+				return false; // not long enough
+			}
+			if (tc.getMaxDurationMs()!=null && tc.getMaxDurationMs() < duration) {
+				logger.info("GameInstance "+gi.getTitle()+" too long: "+duration+" vs "+tc.getMaxDurationMs());
+				return false; // too long
+			}
+		}
+		return true;
+	}
+	/** more lax since we are already playing */
+	private static boolean checkGameInstanceSlotTime(GameInstance gi,
+			TimeConstraint tc) {
+		// recheck times (for simplicity)
+		if (tc!=null) {
+			// any overlap will do
+			if (tc.getMinTime()!=null) {
+				if (gi.getEndTime()<tc.getMinTime())
+					return false;
+			}
+			if (tc.getMaxTime()!=null) {
+				if (gi.getStartTime()>tc.getMaxTime())
+					return false;
+			}
+			// start time...
+			// ok- we'll take account of includeStarted as well
+			if (!tc.isIncludeStarted() && tc.getMinTime()!=null) {
+				if (tc.getMinTime()>gi.getStartTime()) {
+					logger.info("GameInstance "+gi.getTitle()+" starts too early ("+gi.getStartTime()+" vs "+tc.getMinTime()+")");
+					return false; // starts too early
+				}
+			} 
+		}
+		return true;
+	}
+
 	/**
 	 * @param lc
 	 * @param latitudeE6

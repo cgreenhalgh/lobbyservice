@@ -71,6 +71,7 @@ public class QueryGameTemplateByNameServlet extends HttpServlet implements Const
 			throws IOException {
 		// parse request
 		String line = null;
+		String auth = null;
 		GameQuery gq = null;
 		GameTemplate gt = null;
 		try {
@@ -78,6 +79,8 @@ public class QueryGameTemplateByNameServlet extends HttpServlet implements Const
 			line = br.readLine();
 			JSONObject json = new JSONObject(line);
 			gq = JSONUtils.parseGameQuery(json);
+			// second line is digital signature (if given)
+			auth = br.readLine();
 			
 			logger.info("GameQuery "+gq);
 			gt = getGameTemplateByName(req);
@@ -90,7 +93,8 @@ public class QueryGameTemplateByNameServlet extends HttpServlet implements Const
 			return;
 		}
 		try {
-			GameIndex gindex = QueryGameTemplateServlet.handleGameQuery(gq, gt);
+			JoinUtils.JoinAuthInfo jai = JoinUtils.authenticateOptional(gq.getClientId(), gq.getDeviceId(), line, auth);
+			GameIndex gindex = QueryGameTemplateServlet.handleGameQuery(gq, gt, jai);
 			// response
 			JSONUtils.sendGameIndex(resp, gindex);
 			

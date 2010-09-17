@@ -51,6 +51,10 @@ public class GameTemplateInfo {
 	private String joinUrl;
 	/** include 'private' fields */
 	private boolean includePrivateFields;
+	/** game slot id - for game instances with RESERVED slot (account/client-specific) */
+	private String gameSlotId; 
+	/** client id - assocated with game slot id - for game instances with RESERVED slot (account/client-specific) */
+	private String clientId;
 	/** cons */
 	public GameTemplateInfo() {		
 	}
@@ -173,6 +177,30 @@ public class GameTemplateInfo {
 	 */
 	public void setIncludePrivateFields(boolean includePrivateFields) {
 		this.includePrivateFields = includePrivateFields;
+	}
+	/**
+	 * @return the gameSlotId
+	 */
+	public String getGameSlotId() {
+		return gameSlotId;
+	}
+	/**
+	 * @param gameSlotId the gameSlotId to set
+	 */
+	public void setGameSlotId(String gameSlotId) {
+		this.gameSlotId = gameSlotId;
+	}
+	/**
+	 * @return the clientId
+	 */
+	public String getClientId() {
+		return clientId;
+	}
+	/**
+	 * @param clientId the clientId to set
+	 */
+	public void setClientId(String clientId) {
+		this.clientId = clientId;
 	}
 	
 }

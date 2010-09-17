@@ -24,6 +24,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.List;
 import java.util.Random;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.persistence.EntityManager;
@@ -129,6 +130,24 @@ public class JoinUtils implements Constants {
 			this.updateVersion = updateVersion;
 		}
 	}
+	/** initial check/authenticate join request - where optional.
+	 * Never creates Clients - GameClient return may be null.
+	 * @param clientId The ID of the GameClient (from the request)
+	 * @param deviceId The (optional) ID of the device, for use as fallback default clientId
+	 * @param link The text of the request line (for request authentication)
+	 * @param auth The text of the request signature line (for request authentication)
+	 * @param clientInfo ClientInfo for create new anonymous client (optional); null if not to create
+	 * @return null if not permitted (response sent) */
+	public static JoinAuthInfo authenticateOptional(String clientId, String deviceId, String line, String auth) {
+		try {
+			return authenticateInternal(clientId, deviceId, null, true, line, auth, true);
+		} catch (Exception e) {
+			logger.log(Level.WARNING,"Problem doing authenticateOptional - fall back to unknown", e);
+			JoinAuthInfo jai = new JoinAuthInfo();
+			jai.anonymous = true;
+			return jai;
+		}
+	}
 	/** initial check/authenticate join request.
 	 * @param clientId The ID of the GameClient (from the request)
 	 * @param deviceId The (optional) ID of the device, for use as fallback default clientId
@@ -139,6 +158,23 @@ public class JoinUtils implements Constants {
 	 * @throws IOException 
 	 * @throws RequestException */
 	public static JoinAuthInfo authenticate(String clientId, String deviceId, ClientInfo clientInfo, boolean allowAnonymousClients, String line, String auth) throws IOException, JoinException, RequestException {
+		return authenticateInternal(clientId, deviceId, clientInfo, allowAnonymousClients, line, auth, false);
+	}
+	/** initial check/authenticate join request.
+	 * @param clientId The ID of the GameClient (from the request)
+	 * @param deviceId The (optional) ID of the device, for use as fallback default clientId
+	 * @param link The text of the request line (for request authentication)
+	 * @param auth The text of the request signature line (for request authentication)
+	 * @param clientInfo ClientInfo for create new anonymous client (optional); null if not to create
+	 * @return null if not permitted (response sent) 
+	 * @throws IOException 
+	 * @throws RequestException */
+	private static JoinAuthInfo authenticateInternal(String clientId, String deviceId, ClientInfo clientInfo, boolean allowAnonymousClients, String line, String auth, boolean optional) throws IOException, JoinException, RequestException {
+
+		// default
+		JoinAuthInfo jai = new JoinAuthInfo();
+		jai.anonymous = true;
+		
 		EntityManager em = EMF.get().createEntityManager();
 		EntityTransaction et = em.getTransaction();
 		et.begin();
@@ -149,6 +185,9 @@ public class JoinUtils implements Constants {
 			if (clientId==null) {
 				// anonymous attempt
 				if (!allowAnonymousClients) {
+					if (optional)
+						// unknown
+						return jai;
 					throw new JoinException(GameJoinResponseStatus.ERROR_USER_AUTHENTICATION_REQUIRED, "This game does not allow anonymous players");
 				}
 				// ensure possible createAnonymousClient will be atomic wrt to the next check...
@@ -163,20 +202,28 @@ public class JoinUtils implements Constants {
 					if (gc!=null) {
 						if (gc.getAccountKey()!=null || gc.getSharedSecret()!=null) {
 							logger.warning("Client deviceId="+deviceId+" already exists, non-anonymous");
+							if (optional)
+								// fallback to unknown
+								return jai;
 							throw new JoinException(GameJoinResponseStatus.ERROR_CLIENT_AUTHENTICATION_REQUIRED, "This deviceId is already in use as an authenticated client");
 						}
 						else {
 							logger.info("Using default anonymous client with deviceId="+deviceId);
+							// existing anonymous
 						}
 					}
 				}
 
 				if (gc==null) {
 
-					if (clientInfo==null)
+					if (clientInfo==null || optional) {
+						if (optional)
+							// unknown
+							return jai;
 						// implies do not create
 						throw new JoinException(GameJoinResponseStatus.ERROR_CLIENT_AUTHENTICATION_REQUIRED, "Anonymous client does not exist");
-						
+					}
+					// won't be optional if we got here
 					// create is done in our transaction
 					gc = createAnonymousClient(em, clientId, clientInfo);
 				}
@@ -185,12 +232,16 @@ public class JoinUtils implements Constants {
 				et.commit();
 				et.begin();
 				anonymous = true;
+				// anonymous client...
 			}
 			else {
 				// identified client 
 				Key clientKey = GameClient.idToKey(clientId);
 				gc = em.find(GameClient.class, clientKey);
 				if (gc==null) {
+					if (optional)
+						// unknown
+						return jai;
 					throw new JoinException(GameJoinResponseStatus.ERROR_AUTHENTICATION_FAILED, "GameClient "+clientId+" unknown");
 				}
 				et.rollback();
@@ -200,22 +251,32 @@ public class JoinUtils implements Constants {
 					account = em.find(Account.class, gc.getAccountKey());
 					if (account==null) {
 						logger.warning("GameClient "+clientId+" found but Account missing: "+gc);
+						if (optional)
+							// unknown
+							return jai;
 						throw new JoinException(GameJoinResponseStatus.ERROR_AUTHENTICATION_FAILED, "This clientId is not usable");
 					}
 				}
 				else {
 					if (!allowAnonymousClients) {
+						if (optional) 
+							// fall back to unknown
+							return jai;
 						throw new JoinException(GameJoinResponseStatus.ERROR_USER_AUTHENTICATION_REQUIRED, "This game does not allow anonymous players");
 					}
 					anonymous = true;
 				}
 				// authenticate
 				if (!authenticateRequest(line, gc, account, auth)) {
+					if (optional) 
+						// fall back to unknown
+						return jai;
+					
 					throw new RequestException(HttpServletResponse.SC_FORBIDDEN, "Authentication failed");
 				}
+				// authenticated with gc and/or account...
 			}
 
-			JoinAuthInfo jai = new JoinAuthInfo();
 			jai.account = account;
 			jai.anonymous = anonymous;
 			jai.gc = gc;
