@@ -1,0 +1,168 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+
+  
+  <meta content="text/html; charset=ISO-8859-1" http-equiv="content-type">
+
+  
+  <title>Lobby Service Installation Notes</title>
+</head>
+
+
+<body>
+
+<h1>Lobby Service Installation Notes</h1>
+
+<p>Chris Greenhalgh, 2010-09-30</p>
+
+<h2>Building and Running<br>
+
+</h2>
+
+<h3>Pre-requisites</h3>
+
+<p>The Lobby Service code is hosted publicly in the <a href="http://github.com/cgreenhalgh/lobbyservice">http://github.com/cgreenhalgh/lobbyservice</a> github repository. You can use a <a href="http://help.github.com/">Git</a> client (<a href="http://github.com/horizon-institute/notes/wiki/git-installation-howto-%28windows%29">e.g.</a>) to download ("clone") this respository, or the "Download Srouce" option on the repository web page.&nbsp; </p>
+
+<p>The Lobby Service is currently implemented as a Java web (servlet)
+application for Google App Engine. The simplest way to build this is
+using Google's <a href="http://code.google.com/appengine/docs/java/tools/eclipse.html">GAE Plug-in</a> for <a href="http://www.eclipse.org/">Eclipse</a>. Follow their instructions to install Eclipse (currently version 3.5), the GAE SDK and the plugin.</p>
+
+<h3>Building with Eclipse</h3>
+
+<p>You should then be able to turn the lobbyservice repository code into an Eclipse project by:</p>
+
+<ul>
+
+  <li>File =&gt; New =&gt; "Java Project"</li>
+
+  
+  <ul>
+
+    <li>Select "From existing source" and browse to the checked out lobbyservice directory</li>
+
+  
+  </ul>
+
+  
+  <ul>
+
+    <li>Next / Finish</li>
+
+  
+  </ul>
+
+  <li>Select Build Path =&gt; Configure Build Path,&nbsp;</li>
+
+  
+  <ul>
+
+    <li>in the source tab remove test/src if present (tests are compiled and run using a separate ANT build process)</li>
+
+    <li>in the libraries tab, remove the GAE .jar files listed as
+\lobbyservice\war\..., i.e. leave jcoord.jar and org.json.jar, but
+remove the others.</li>
+
+  
+  </ul>
+
+  <li>Open the next project's Properties</li>
+
+  
+  <ul>
+
+    <li>open the Google item (tree), select App Engine;&nbsp;</li>
+
+    <li>check "Use Google App Engine" and select the desired SDK (previously downloaded).</li>
+
+  
+  </ul>
+
+</ul>
+
+<p>By default Eclipse should auto-build the web application whenever a change is made.</p>
+
+<h3>Deployment for Local Testing</h3>
+
+<p>In the context menu of the (error-free) project, select&nbsp; "Run
+As" =&gt; "Web Application". A console window labelled [Web
+Application] will show the console output from the local testing
+server.&nbsp;</p>
+
+<p>By default the testing server binds to localhost, port 8888. This
+can be changed by "Run Configurations..." =&gt; "lobbyservice" (or
+whatever - a sub-item under "Web Application"), in the Arguments tab,
+e.g. "--port=8888" "--address=0.0.0.0" (you will need to do something
+like the latter to make the test server accessible to client(s) running
+in a device emulator or on another machine).</p>
+<p>Note that GAE cron tasks are NOT run by the development server; you
+will need to set up your own CRON task or equivalent to schedule the
+lobby server background tasks. E.g. (in a bash-type shell) something
+like:</p>
+<pre>	while [[ 1 ]] ; do echo "tick"; curl -d '' http://localhost:8888/cron/RunBackgroundTasks; sleep 30; done</pre>
+
+<h3> Deployment to App Engine</h3>
+
+<p>In the project properties, under Google, App Engine, check/set the Deployment information, i.e. Application ID and version.</p>
+
+<p>In the context menu of the project, select "Google" =&gt; "Deploy to App Engine", enter/update your details as appropriate.</p>
+
+<h2>Configuration and Testing</h2>
+<h3>Initial Configuration</h3>
+<p>Go to the admin&nbsp;index page, <a href="http://localhost:8888/admin/index.html">http://localhost:8888/admin/index.html</a> - you will need to log in.</p>
+<p>Configure server-wide properties as required, e.g.&nbsp;<a href="examples/game_index.json">examples/game_index.json</a>:</p>
+<ul>
+  <li>Server base URL (<span style="font-family: monospace;">baseUrl</span>) - required - the full external HTTP URL for the root of the server, e.g. <span style="font-family: monospace;">http://localhost:8888</span></li>
+  <li>Lobby service top-level description properties, which are used in the RSS-like desription of the lobby service - all optional:</li>
+  <ul>
+    <li>Title (title)</li>
+    <li>Description (description)</li>
+    <li>Link (link) - URL for more information about the lobby service</li>
+    <li>Language (language) - code of language used for title, description, etc. (optional)</li>
+    <li>TTL, minutes (ttlMinutes) - suggested Time-To-Live in minutes
+of information items (e.g. game records) served by the lobby service,
+i.e. suggested cache time [not used at present]</li>
+    <li>Image URL (imageUrl) - URL of an image/icon for the lobby service</li>
+  </ul>
+  <li>Server-wide game instance creation limits:</li>
+  <ul>
+    <li>max new instance 'tokens' max (maxNewInstanceTokensMax) - the
+maximum instance creating 'credit' that a GameInstanceFactory can
+accumulate, i.e. the largest number of new game instances that a
+GameInstanceFactory can ever create in one go.</li>
+    <li>max new instance 'tokens' per hour
+(maxNewInstanceTokensPerHour) - the maximum rate at which a
+GameInstanceFactory can accumulate new instance-creating 'credit', i.e.
+the highest sustained rate at which a GameInstanceFactory can create
+new GameInstances.</li>
+  </ul>
+</ul>
+<h3>Other Administrative Tasks</h3>
+<p>The Accounts page, <a href="http://localhost:8888/admin/accounts.html">http://localhost:8888/admin/accounts.html</a>
+lists all known user accounts and the their game template quota, i.e.
+how many GameTemplates (distinct games) they are allowed to create in
+total. New accounts are created each time a new user successfully
+authenticates, but their initial quota will be 0, i.e. they will not be
+able to create any Game Templates.</p>
+<p>Note that accessing the admin pages does NOT currently create an
+Account; you will need to log into the user pages and then return to
+the admin accounts page in order to give yourself a game template quota.</p>
+<p>There is a button on the admin index page which allows the
+administrator to manually run background tasks. These should be run
+automatically on the real GAE server (see note on CRON jobs, above). </p>
+<h2>Testing</h2>
+<p>
+See the game operator's introduction, in particular for Exploding Places.</p>
+<p>There is a browser-based 'player' interface accessible as <a href="http://localhost:8888/browser/all_games.html">http://localhost:8888/browser/all_games.html</a>.
+This page will show the lobby server general information (title,
+description, etc.) plus a list of current Game Templates; there are
+links from each to a template-specific browser interface, which in turn
+allows specific game instances to be found, created and (nominally)
+joined.</p>
+<h2>Changes</h2>
+<ul>
+  <li>2010-09-30: Created first version.</li>
+</ul>
+
+</body>
+</html>

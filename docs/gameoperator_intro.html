@@ -1,0 +1,110 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html; charset=ISO-8859-1" http-equiv="content-type">
+  <title>Lobby Service: Game Operator's Introduction</title>
+</head>
+<body>
+<h1>Lobby Service Game Operator's Introduction</h1>
+<p>Chris Greenhalgh, 2010-09-30</p>
+<h2>The Game Operator<br>
+</h2>
+<p>A game operator is provides games to players. They use the lobby service to:</p>
+<ul>
+  <li> advertise available games to players, and</li>
+  <li>to handle the process of players reserving places in and joining specific games.</li>
+  <ul>
+    <li>in principle this could include charging and paying for 'tickets' [not yet implemented]&nbsp; </li>
+  </ul>
+</ul>
+<p>The may also use the lobby service to manage their own game servers, in particular to:</p>
+<ul>
+  <li>start/stop individual game engines/instances,</li>
+  <li>create new game engines/instances,</li>
+  <li>start/stop/migrate the game servers themselves, possibly cloud-hosted (e.g. on Amazon EC2) [not yet implemented]</li>
+</ul>
+<p>It is assumed that the game operator pays (or at least is liable to
+pay) to use the lobby service. As such, game operator actions must all
+be authenticated, and key operations by the game operator and by the
+lobby on their behalf must be audited for accounting purposes. They
+might in turn charge players with a view to covering costs and/or
+making a profit, but note that the charging structure for players will
+typically be different to that for game operators (which may be more
+directly related to underlying costs incurred by the lobby service).</p>
+<h2>Main Concepts</h2>
+<p>The following are the main lobby service concepts that are relevant
+to a game operator. They are also some&nbsp;of the main types in the
+lobby service database.&nbsp;</p>
+<p>Every authenticated user is represented within the lobby service by an <span style="font-weight: bold;">Account</span>
+record. At present a game operator is simply an Account with a positive
+non-zero game template quota (this quota it set by the lobby
+service&nbsp;administrator using the admin accounts page, <a href="http://localhost:8888/admin/accounts.html">http://localhost:8888/admin/accounts.html</a>).</p>
+<p>A <span style="font-weight: bold;">Game Template</span> represents a
+particular type of game or game 'brand', for example 'chess', or
+'drafts'. The example Game Template is the Exploding Places game
+developed by Active Ingredient and Horizon, initially commissioned by
+StreamArts and piloted in Woolwich 24th July 2010.</p>
+<p>A <span style="font-weight: bold;">Game Instance</span> represents a
+single game as played by a particular set of players at a particular
+time (and perhaps in a particular place), e.g. for example the specific
+game of chess played by Alice and Bob at 3:45pm on 30th September 2010
+at the Dog and Duck public house in Wembley. By analagy with cinema (or
+theatre) a Game Template represents particular film (or show) while a
+Game Instance represents a particular showing (or performance).</p>
+<p>A <span style="font-weight: bold;">Game Instance Slot</span> represents one 'slot' for a player in a particular Game Instance. In
+the cinema analogy it corresponds to a single seat in the auditorium.
+When a slot is FREE it can be allocated on request to a new player
+wishing to join that Game Instance. At present Game Instance Slots are
+created dynamically as required, up to a limit specified by the Game
+Instance.&nbsp;A player can reserve a Game Instance Slot in advance of
+the game starting, provided that the Game Instance itself exists (and
+there are available slots).&nbsp;&nbsp;</p>
+<p>A player accesses a game using some kind of client; this might be a
+particular application installed on their mobile device, a web
+interface or even just an SMS number. This is represented by a <span style="font-weight: bold;">Client</span> record in the lobby service. So a Game Instance Slot actually links a Game Instance to a particular Client.</p>
+<p>A Client can be anonymous, i.e. not linked to any
+known/authenticated user. Alternatively a Client may be known to belong
+to a particular Account&nbsp;(player). This is required in the case of paid or regulated game access. </p>
+<p>A game operator can individually describe Game Instances to the
+lobby service. Alternatively, where multiple game instances differ only
+in timing they can be described by a single <span style="font-weight: bold;">Game Instance Factory</span>.
+Whereas a Game Instance has a specific start time (past or future) a
+Game Instance Factory uses a time range (minimum time and maximum time)
+and a <a href="CRON%20expression%20-%20Wikipedia.htm">CRON expression</a> to specify a set of start times. Game Instances can be created by Factories in two different ways:</p>
+<ul>
+  <li>SCHEDULED - the lobby service background task automatically
+creates Game Instances as their start time approaches
+(template-configured, <span style="font-family: monospace;">instanceCreateTimeWindowMs</span>).</li>
+  <li>ON_DEMAND - the lobby service will create a Game Instance in
+response to an explicit request from a player client (if a suitable
+game instance does not already exist).</li>
+</ul>
+<p>A&nbsp;<span style="font-weight: bold;">Game Server </span>describes
+a service, process or server which hosts (or is) the server-side
+component of one or more Game Instances. The lobby service needs to
+know about the Game Server for a Game Instance if it is to manage that
+game, and it needs about the Game Server for a Game Instance Template
+if it is to create new instances of that game.&nbsp;</p>
+<p>[There may need to be some refinement here such as&nbsp;a new Game
+Server Template type to support the case of dynamic Game Server
+creation, e.g. with cloud-hosting]</p>
+<h2>Game Operator Interface</h2>
+<p>The game operator interface comprises a web API based on
+JSON-encoded messages over HTTP. There are a set of HTML/JavaScript
+pages which currently provide a simple form-like interface to this API. The HTML interface is based at <a href="http://localhost:8888/user/index.html">http://localhost:8888/user/index.html</a> with links to specific&nbsp; pages for Game Templates (<a href="http://localhost:8888/user/game_templates.html">http://localhost:8888/user/game_templates.html</a>), Game Instances (<a href="http://localhost:8888/user/game_instances.html">http://localhost:8888/user/game_instances.html</a>), Game Instance Factories (<a href="http://localhost:8888/user/game_instance_factories.html">http://localhost:8888/user/game_instance_factories.html</a>) and Game Servers (<a href="http://localhost:8888/user/game_servers.html">http://localhost:8888/user/game_servers.html</a>).</p>
+The API operations are similar in each case, comprising operations to:<br>
+<ul>
+  <li>list current items (templates or servers for this operator, or instances or&nbsp;factories for a particular template);</li>
+  <li>add a new item (template, server, instance or factory)</li>
+  <li>get an existing item by ID</li>
+  <li>update an existing item by ID</li>
+</ul>
+Todo:<br>
+specific entry points<br>
+examples - exploding places<br>
+<h2>Changes</h2>
+<ul>
+  <li>2010-09-30: created</li>
+</ul>
+</body>
+</html>
