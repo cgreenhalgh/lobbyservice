@@ -1,0 +1,57 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html; charset=ISO-8859-1" http-equiv="content-type">
+  <title>Lobby Service Installation Notes</title>
+</head>
+<body>
+<h1>Lobby Service Installation Notes</h1>
+<p>Chris Greenhalgh, 2010-09-30</p>
+<h2>Building and Running<br>
+</h2>
+<h3>Pre-requisites</h3>
+<p>The Lobby Service code is hosted publicly in the <a href="http://github.com/cgreenhalgh/lobbyservice">http://github.com/cgreenhalgh/lobbyservice</a> github repository. You can use a <a href="http://help.github.com/">Git</a> client (<a href="http://github.com/horizon-institute/notes/wiki/git-installation-howto-%28windows%29">e.g.</a>) to download ("clone") this respository, or the "Download Srouce" option on the repository web page.&nbsp; </p>
+<p>The Lobby Service is currently implemented as a Java web (servlet)
+application for Google App Engine. The simplest way to build this is
+using Google's <a href="http://code.google.com/appengine/docs/java/tools/eclipse.html">GAE Plug-in</a> for <a href="http://www.eclipse.org/">Eclipse</a>. Follow their instructions to install Eclipse (currently version 3.5), the GAE SDK and the plugin.</p>
+<h3>Building with Eclipse</h3>
+<p>You should then be able to turn the lobbyservice repository code into an Eclipse project by:</p>
+<ul>
+  <li>File =&gt; New =&gt; "Java Project"</li>
+  <ul>
+    <li>Select "From existing source" and browse to the checked out lobbyservice directory</li>
+  </ul>
+  <ul>
+    <li>Next / Finish</li>
+  </ul>
+  <li>Select Build Path =&gt; Configure Build Path,&nbsp;</li>
+  <ul>
+    <li>in the source tab remove test/src if present (tests are compiled and run using a separate ANT build process)</li>
+    <li>in the libraries tab, remove the GAE .jar files listed as
+\lobbyservice\war\..., i.e. leave jcoord.jar and org.json.jar, but
+remove the others.</li>
+  </ul>
+  <li>Open the next project's Properties</li>
+  <ul>
+    <li>open the Google item (tree), select App Engine;&nbsp;</li>
+    <li>check "Use Google App Engine" and select the desired SDK (previously downloaded).</li>
+  </ul>
+</ul>
+<p>By default Eclipse should auto-build the web application whenever a change is made.</p>
+<h3>Local Testing</h3>
+<p>In the context menu of the (error-free) project, select&nbsp; "Run As" =&gt; "Web Application". A console window labelled [Web Application] will show the console output from the local testing server.&nbsp;</p>
+<p>By default the testing server binds to localhost, port 8888. This
+can be changed by "Run Configurations..." =&gt; "lobbyservice" (or
+whatever - a sub-item under "Web Application"), in the Arguments tab,
+e.g. "--port=8888" "--address=0.0.0.0" (you will need to do something
+like the latter to make the test server accessible to client(s) running
+in a device emulator or on another machine).</p>
+<h3> Deployment to App Engine</h3>
+<p>In the project properties, under Google, App Engine, check/set the Deployment information, i.e. Application ID and version.</p>
+<p>In the context menu of the project, select "Google" =&gt; "Deploy to App Engine", enter/update your details as appropriate.</p>
+<h2>Configuration</h2>
+...
+<h2>Testing</h2>
+...<br>
+</body>
+</html>
