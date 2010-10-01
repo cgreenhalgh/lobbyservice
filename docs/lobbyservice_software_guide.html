@@ -1,0 +1,146 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html; charset=ISO-8859-1" http-equiv="content-type">
+  <title>Lobby Service Software Guide</title>
+</head>
+<body>
+<h1>Lobby Service Software Guide</h1>
+<p>Chris Greenhalgh, 2010-10-01</p>
+<p>This document gives some information on the general structure of the lobby service code and key entry points.</p>
+<h2>Platform</h2>
+<p>The Lobby Service is implemented in Java as a J2EE Web Application, currently specifically for Google App Engine.</p>
+<h3>App Engine Specifics</h3>
+<p>The server has the following current app engine dependencies:</p>
+<ul>
+  <li>Most JPA persistent classes use a <span style="font-family: monospace;">com.google.appengine.api.datastore.Key</span> field as their primary key.</li>
+  <li><span style="font-family: monospace;">com.google.appengine.api.datastore.KeyFactory</span> is used in various places to generate Keys based on specific IDs.&nbsp;</li>
+  <li>Authenticated users are identified within the application by <span style="font-family: monospace;">com.google.appengine.api.users.User</span> instances obtained from the <span style="font-family: monospace;">UserService</span>, and in particular the <span style="font-family: monospace;">userId</span> associated with this User object.</li>
+  <li>Background tasks are scheduled by a GAE-specific CRON facility, configured in <a href="../war/WEB-INF/cron.xml">war/WEB-INF/cron.xml</a></li>
+  <li>The JPA persistence is configured for GAE in <a href="../src/META-INF/persistence.xml">src/META-INF/persistence.xml</a>, but could easily be changed for another persistence provider (esp. one based on an RDBMS).</li>
+  <li>The integration tests use some of the test helper classes from the GAE SDK</li>
+</ul>
+In addition the server is implemented to reflect the constraints of using App Engine, e.g.:<br>
+<ul>
+  <li>transactions are limited to operate on objects within the same entity group (which results in very small/limited transactions).</li>
+  <li>complex queries require pre-built indices on GAE so appropriate configuration is maintained (<a href="../war/WEB-INF/datastore-indexes.xml">war/WEB-INF/datastore-indexes.xml</a>)</li>
+  <li>logging is via <span style="font-family: monospace;">java.util.logging.Logger</span>. </li>
+</ul>
+<h3>J2EE Specifics</h3>
+<p>It is implemented as vanila J2EE servlets (i.e. no additional supporting framework).</p>
+<p>All of the non-static URLs and their mapping to servlet classes are (as usual) specified in <a href="../war/WEB-INF/web.xml">war/WEB-INF/web.xml</a></p>
+<h3>Other dependencies</h3>
+<p>JSON encoding is used for data exchange (and some elements of
+schema-less data storage, e.g. for configuration options). In
+particular the org.json JSON library is used.</p>
+<p>There are some automated tests which use JUnit.</p>
+<p>Some basic geo-operations (Lat/Long conversions and distance calculations) use jcoord.</p>
+<p>The HTML/JS pages uses jQuery as the supporting "framework" for portability, etc.</p>
+<h2>Repository structure</h2>
+<p>The main directories and files are as follows:<span style="font-weight: bold;"></span></p>
+<ul>
+  <li><span style="font-family: monospace;">src/</span> - the Java source for the lobby service</li>
+  <ul>
+    <li><span style="font-family: monospace;">META-INF/</span> - persistence-related configuration files</li>
+  </ul>
+  <li><span style="font-family: monospace;">docs</span>/ - documentation and images</li>
+  <li><span style="font-family: monospace;">mobileclient/</span> - a prototype mobile client for the lobby, implemented using Titanium Mobile; currently neglected.</li>
+  <ul>
+    <li><span style="font-family: monospace;">Resources/</span> - source files for the mobileclient; starting point is app.js</li>
+  </ul>
+  <li><span style="font-family: monospace;">test/</span> - standalone tests, mainly integration</li>
+  <ul>
+    <li><span style="font-family: monospace;">build.xml</span> - ANT file for compiling/running tests</li>
+    <li><span style="font-family: monospace;">src/</span> - Java source for test</li>
+    <li>&nbsp;<span style="font-family: monospace;">lib/</span> - libraries (JARs) for the tests (only)</li>
+  </ul>
+  <li><span style="font-family: monospace;">war/</span> - root of the J2EE Web Application&nbsp;</li>
+  <ul>
+    <li><span style="font-family: monospace;">index.html</span> - application default page (blank)</li>
+  </ul>
+  <ul>
+    <li><span style="font-family: monospace;">admin/</span> - HTML/JS Admin web interface</li>
+    <ul>
+      <li><span style="font-family: monospace;">index.html</span> - server-wide configuration</li>
+      <li><span style="font-family: monospace;">accounts.html</span> - list of all accounts, and option to change gameTemplateQuota</li>
+    </ul>
+    <li><span style="font-family: monospace;">browser/</span> - HTML/JS client (browser) web interface, also usable in an embedded web view</li>
+    <ul>
+      <li><span style="font-family: monospace;">all_games.html</span> - simple list view of all Game Templates</li>
+      <li><span style="font-family: monospace;">game.html</span> - Game-Template-specific lobby client</li>
+      <li><span style="font-family: monospace;">game.js</span> - Javascript for game.html</li>
+      <li><span style="font-family: monospace;">game.css</span> - CSS for game.html</li>
+      <li><span style="font-family: monospace;">index.html</span> - browser index page</li>
+      <li><span style="font-family: monospace;">test.html</span> - ugly but informative browser test interface</li>
+    </ul>
+    <li><span style="font-family: monospace;">resources/</span> - common static web resources, e.g. jQuery libraries</li>
+    <li><span style="font-family: monospace;">user/</span> - HTML/JS user / game operator web interface</li>
+    <ul>
+      <li><span style="font-family: monospace;">game_instance_factories.html</span> - Game Instance Factory list/add/edit page</li>
+      <li><span style="font-family: monospace;">game_instances.html</span> - Game Instance list/add/edit page</li>
+      <li><span style="font-family: monospace;">game_servers.html</span> - Game Server list/add/edit page</li>
+      <li><span style="font-family: monospace;">game_templates.html</span> - Game Templates list/add/edit page</li>
+      <li><span style="font-family: monospace;">index.html</span> - index</li>
+    </ul>
+    <li><span style="font-family: monospace;">WEB-INF/</span>- Servlet files (for server-side use, not served to clients)</li>
+    <ul>
+      <li><span style="font-family: monospace;">lib/</span> - libraries, including GAE libraries</li>
+      <li><span style="font-family: monospace;">appengine-web.xml</span> - GAE configuration file</li>
+      <li><span style="font-family: monospace;">web.xml</span> - standard J2EE servlet configuration file</li>
+      <li><span style="font-family: monospace;">cron.xml</span> - GAE CRON configuration file</li>
+      <li><span style="font-family: monospace;">datastore-indexes.xml</span> - GAE pre-compiled indexes list</li>
+      <li><span style="font-family: monospace;">logging.properties</span> - java.util.logging configuration file, as specified in appengine-web.xml -&nbsp;</li>
+    </ul>
+  </ul>
+</ul>
+<p>WAR-file build configuration is handled within Eclipse using the GAE plug-in - see <a href="install.html">install.html</a></p>
+<h3>Java Packages and Classes</h3>
+<p>The Java source packages and some of the main classes are as follows:</p>
+<ul>
+  <li><span style="font-family: monospace;">uk.ac.horizon.ug.lobby </span>- some common configuration, utility (and historical) classes, including</li>
+  <ul>
+    <li><span style="font-family: monospace;">ConfigurationUtils</span> - get server-wide configuration</li>
+    <li><span style="font-family: monospace;">Constants</span> - useful constants, mainly field names for use in JSON encoding</li>
+    <li><span style="font-family: monospace;">HttpUtils</span> - e.g. get context path component</li>
+    <li><span style="font-family: monospace;">RequestException</span> - common Servlet exception including a preferred HTTP error code</li>
+  </ul>
+  <li><span style="font-family: monospace;">uk.ac.horizon.ug.lobby.admin</span> - the server Admin interface</li>
+  <ul>
+    <li>...</li>
+  </ul>
+  <li><span style="font-family: monospace;">uk.ac.horizon.ug.lobby.browser</span> - the lobby client interface</li>
+  <ul>
+    <li>...</li>
+  </ul>
+  <li><span style="font-family: monospace;">uk.ac.horizon.ug.lobby.model </span>- the persistent classes and supporting enumerations</li>
+  <ul>
+    <li><span style="font-family: monospace;">EMF</span> - global EntityManagerFactory (JPA Persistence) class</li>
+    <li><span style="font-family: monospace;">GUIDFactory</span> - GUID/UUID generator wrapper</li>
+    <li>...&nbsp;</li>
+    <li>(persistence classes with JPA annotations)</li>
+  </ul>
+  <li><span style="font-family: monospace;">uk.ac.horizon.ug.lobby.protocol</span> - various bean classes used as request/responses in various web interfaces</li>
+  <ul>
+    <li><span style="font-family: monospace;">JSONUtils</span> - all of the JSON marshalling/unmarhalling methods</li>
+    <li>...</li>
+  </ul>
+  <li><span style="font-family: monospace;">uk.ac.horizon.ug.lobby.server</span> - classes related to interfacing to external servers and the lobby services own background task(s)</li>
+  <ul>
+    <li><span style="font-family: monospace;">ServerProtocol</span> - the game server interface</li>
+    <li><span style="font-family: monospace;">ExplodingPlacesServerProtocol</span> - implementation of the ServerProtocol for the Exploding Places server</li>
+    <li><span style="font-family: monospace;">RunBackgroundTasksServlet</span> - background task servlet, normally called by CRON job</li>
+    <li>...</li>
+  </ul>
+  <li><span style="font-family: monospace;">uk.ac.horizon.ug.lobby.user</span> - the user (game operator) interface</li>
+  <ul>
+    <li><span style="font-family: monospace;">AccountUtils</span> - get/create Account object for authenticated user</li>
+    <li>...</li>
+  </ul>
+</ul>
+In most cases there should be at least some javadoc-style documentation in the classes.
+<h2>Changes</h2>
+<ul>
+  <li>2010-10-01: created</li>
+</ul>
+</body>
+</html>
