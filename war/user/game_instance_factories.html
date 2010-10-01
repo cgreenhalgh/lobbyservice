@@ -47,10 +47,10 @@
         	$.getJSON('GetUserGameTemplates',function(json) {
            	    $('select[name=gameTemplateId] > option').remove();
            	    //alert('got '+json.length+' template options: '+json);
-                $('select[name=gameTemplateId]').append('<option label="Select an option..." value="" selected/>Select an option...</option>');
+                $('select[name=gameTemplateId]').append('<option value="" selected>Select an option...</option>');
         	    for (var i=0; i<json.length; i++) {
             	    var item = json[i];
-               	    $('select[name=gameTemplateId]').append('<option label="'+item.title+'" value="'+item.id+'"/>'+item.title+'</option>');
+               	    $('select[name=gameTemplateId]').append('<option value="'+item.id+'">'+item.title+'</option>');
                	}
         	});
     	}
