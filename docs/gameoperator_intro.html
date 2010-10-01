@@ -1,29 +1,59 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <head>
+
   <meta content="text/html; charset=ISO-8859-1" http-equiv="content-type">
-  <title>Lobby Service: Game Operator's Introduction</title>
+  <title>Lobby Service: Game Operator's Guidetitle&gt;
+  </title>
+
 </head>
+
+
 <body>
-<h1>Lobby Service Game Operator's Introduction</h1>
+
+<h1>Lobby Service Game Operator's Guide</h1>
+
 <p>Chris Greenhalgh, 2010-09-30</p>
+
 <h2>The Game Operator<br>
+
 </h2>
-<p>A game operator is provides games to players. They use the lobby service to:</p>
+
+<p>A game operator is provides games to players. They use the
+lobby service to:</p>
+
 <ul>
+
   <li> advertise available games to players, and</li>
-  <li>to handle the process of players reserving places in and joining specific games.</li>
+
+  <li>to handle the process of players reserving places in and
+joining specific games.</li>
+
   <ul>
-    <li>in principle this could include charging and paying for 'tickets' [not yet implemented]&nbsp; </li>
+
+    <li>in principle this could include charging and paying for
+'tickets' [not yet implemented]&nbsp; </li>
+
   </ul>
+
 </ul>
-<p>The may also use the lobby service to manage their own game servers, in particular to:</p>
+
+<p>The may also use the lobby service to manage their own game
+servers, in particular to:</p>
+
 <ul>
+
   <li>start/stop individual game engines/instances,</li>
+
   <li>create new game engines/instances,</li>
-  <li>start/stop/migrate the game servers themselves, possibly cloud-hosted (e.g. on Amazon EC2) [not yet implemented]</li>
+
+  <li>start/stop/migrate the game servers themselves, possibly
+cloud-hosted (e.g. on Amazon EC2) [not yet implemented]</li>
+
 </ul>
-<p>It is assumed that the game operator pays (or at least is liable to
+
+<p>It is assumed that the game operator pays (or at least is
+liable to
 pay) to use the lobby service. As such, game operator actions must all
 be authenticated, and key operations by the game operator and by the
 lobby on their behalf must be audited for accounting purposes. They
@@ -31,81 +61,836 @@ might in turn charge players with a view to covering costs and/or
 making a profit, but note that the charging structure for players will
 typically be different to that for game operators (which may be more
 directly related to underlying costs incurred by the lobby service).</p>
+
 <h2>Main Concepts</h2>
-<p>The following are the main lobby service concepts that are relevant
-to a game operator. They are also some&nbsp;of the main types in the
+
+<p>The following are the main lobby service concepts that are
+relevant
+to a game operator. They are also some&nbsp;of the main types in
+the
 lobby service database.&nbsp;</p>
-<p>Every authenticated user is represented within the lobby service by an <span style="font-weight: bold;">Account</span>
+
+<p><span style="font-weight: bold;">Account</span>:
+Every authenticated user is represented within the lobby service by an
+Account
 record. At present a game operator is simply an Account with a positive
 non-zero game template quota (this quota it set by the lobby
 service&nbsp;administrator using the admin accounts page, <a href="http://localhost:8888/admin/accounts.html">http://localhost:8888/admin/accounts.html</a>).</p>
-<p>A <span style="font-weight: bold;">Game Template</span> represents a
+
+<p>A <span style="font-weight: bold;">Game Template</span>
+represents a
 particular type of game or game 'brand', for example 'chess', or
 'drafts'. The example Game Template is the Exploding Places game
 developed by Active Ingredient and Horizon, initially commissioned by
 StreamArts and piloted in Woolwich 24th July 2010.</p>
-<p>A <span style="font-weight: bold;">Game Instance</span> represents a
+
+<p><span style="font-weight: bold;">Game Client
+Template</span>: each Game Template has a set of associated Game
+Client Templates, each of which describes a particular client (device
+and/or application) that is supported by the game, i.e. can play the
+game. For example, a client might be "Android" mobile phone, at least
+version "1"."6".&nbsp;</p>
+
+<p>A <span style="font-weight: bold;">Game Instance</span>
+represents a
 single game as played by a particular set of players at a particular
 time (and perhaps in a particular place), e.g. for example the specific
 game of chess played by Alice and Bob at 3:45pm on 30th September 2010
 at the Dog and Duck public house in Wembley. By analagy with cinema (or
 theatre) a Game Template represents particular film (or show) while a
 Game Instance represents a particular showing (or performance).</p>
-<p>A <span style="font-weight: bold;">Game Instance Slot</span> represents one 'slot' for a player in a particular Game Instance. In
+
+<p>A <span style="font-weight: bold;">Game Instance
+Slot</span> represents one 'slot' for a player in a particular
+Game Instance. In
 the cinema analogy it corresponds to a single seat in the auditorium.
 When a slot is FREE it can be allocated on request to a new player
 wishing to join that Game Instance. At present Game Instance Slots are
 created dynamically as required, up to a limit specified by the Game
-Instance.&nbsp;A player can reserve a Game Instance Slot in advance of
+Instance.&nbsp;A player can reserve a Game Instance Slot in advance
+of
 the game starting, provided that the Game Instance itself exists (and
 there are available slots).&nbsp;&nbsp;</p>
-<p>A player accesses a game using some kind of client; this might be a
+
+<p><span style="font-weight: bold;">Client</span>:
+A player accesses a game using some kind of client; this might be a
 particular application installed on their mobile device, a web
-interface or even just an SMS number. This is represented by a <span style="font-weight: bold;">Client</span> record in the lobby service. So a Game Instance Slot actually links a Game Instance to a particular Client.</p>
+interface or even just an SMS number. This is represented by a Client
+record in the lobby service. So a Game Instance Slot actually links a
+Game Instance to a particular Client.</p>
+
 <p>A Client can be anonymous, i.e. not linked to any
 known/authenticated user. Alternatively a Client may be known to belong
-to a particular Account&nbsp;(player). This is required in the case of paid or regulated game access. </p>
-<p>A game operator can individually describe Game Instances to the
+to a particular Account&nbsp;(player). This is required in the case
+of paid or regulated game access. </p>
+
+<p><span style="font-weight: bold;">Game Instance
+Factory</span>: A game operator can individually describe Game
+Instances to the
 lobby service. Alternatively, where multiple game instances differ only
-in timing they can be described by a single <span style="font-weight: bold;">Game Instance Factory</span>.
+in timing they can be described by a single Game Instance Factory.
 Whereas a Game Instance has a specific start time (past or future) a
 Game Instance Factory uses a time range (minimum time and maximum time)
-and a <a href="CRON%20expression%20-%20Wikipedia.htm">CRON expression</a> to specify a set of start times. Game Instances can be created by Factories in two different ways:</p>
+and a <a href="CRON%20expression%20-%20Wikipedia.htm">CRON
+expression</a> to specify a set of start times. Game Instances
+can be created by Factories in two different ways:</p>
+
 <ul>
+
   <li>SCHEDULED - the lobby service background task automatically
 creates Game Instances as their start time approaches
 (template-configured, <span style="font-family: monospace;">instanceCreateTimeWindowMs</span>).</li>
-  <li>ON_DEMAND - the lobby service will create a Game Instance in
+
+  <li>ON_DEMAND - the lobby service will create a Game Instance
+in
 response to an explicit request from a player client (if a suitable
 game instance does not already exist).</li>
+
 </ul>
-<p>A&nbsp;<span style="font-weight: bold;">Game Server </span>describes
+
+<p>A&nbsp;<span style="font-weight: bold;">Game
+Server </span>describes
 a service, process or server which hosts (or is) the server-side
 component of one or more Game Instances. The lobby service needs to
 know about the Game Server for a Game Instance if it is to manage that
-game, and it needs about the Game Server for a Game Instance Template
+game (including introducing new players!), and it needs about the Game
+Server for a Game Instance Template
 if it is to create new instances of that game.&nbsp;</p>
-<p>[There may need to be some refinement here such as&nbsp;a new Game
+
+<p>[There may need to be some refinement here such as&nbsp;a
+new Game
 Server Template type to support the case of dynamic Game Server
 creation, e.g. with cloud-hosting]</p>
+
 <h2>Game Operator Interface</h2>
+
 <p>The game operator interface comprises a web API based on
 JSON-encoded messages over HTTP. There are a set of HTML/JavaScript
-pages which currently provide a simple form-like interface to this API. The HTML interface is based at <a href="http://localhost:8888/user/index.html">http://localhost:8888/user/index.html</a> with links to specific&nbsp; pages for Game Templates (<a href="http://localhost:8888/user/game_templates.html">http://localhost:8888/user/game_templates.html</a>), Game Instances (<a href="http://localhost:8888/user/game_instances.html">http://localhost:8888/user/game_instances.html</a>), Game Instance Factories (<a href="http://localhost:8888/user/game_instance_factories.html">http://localhost:8888/user/game_instance_factories.html</a>) and Game Servers (<a href="http://localhost:8888/user/game_servers.html">http://localhost:8888/user/game_servers.html</a>).</p>
+pages which currently provide a simple form-like interface to this API.
+The HTML interface is based at <a href="http://localhost:8888/user/index.html">http://localhost:8888/user/index.html</a>
+with links to specific&nbsp; pages for Game Templates (<a href="http://localhost:8888/user/game_templates.html">http://localhost:8888/user/game_templates.html</a>),
+Game Instances (<a href="http://localhost:8888/user/game_instances.html">http://localhost:8888/user/game_instances.html</a>),
+Game Instance Factories (<a href="http://localhost:8888/user/game_instance_factories.html">http://localhost:8888/user/game_instance_factories.html</a>)
+and Game Servers (<a href="http://localhost:8888/user/game_servers.html">http://localhost:8888/user/game_servers.html</a>).</p>
+
 The API operations are similar in each case, comprising operations to:<br>
+
 <ul>
-  <li>list current items (templates or servers for this operator, or instances or&nbsp;factories for a particular template);</li>
+
+  <li>list current items (templates or servers for this operator,
+or instances or&nbsp;factories for a particular template);</li>
+
   <li>add a new item (template, server, instance or factory)</li>
+
   <li>get an existing item by ID</li>
+
   <li>update an existing item by ID</li>
+
 </ul>
-<p>[at present there are no delete operations, and no operations to access Game Instance Slots]</p>
-Todo:<br>
-specific entry points<br>
-examples - exploding places<br>
-<h2>Changes</h2>
+
+<p>[at present there are no delete operations, and no operations
+to access Game Instance Slots]</p>
+
+<h3>Setting up Games</h3>
+
+<p>The steps required to set up the lobby service for a new game
+(template) are as follows (using the browser interface):</p>
+
+<h4>1. Game Template</h4>
+
+Using the Game Templates page (<a href="http://localhost:8888/user/game_templates.html">http://localhost:8888/user/game_templates.html</a>)
+create a new template for the game,&nbsp;including:
 <ul>
-  <li>2010-09-30: created</li>
+
+  <li>Information used to advertise/identify the game to players:</li>
+
+  <ul>
+
+    <li>title - the name/title of the game (e.g. Exploding
+Places)&nbsp;</li>
+
+    <li>description - a text (or html fragment) description of
+the game</li>
+
+    <li>language - optional, language of title/description/game</li>
+
+    <li>imageUrl - optional, URL of associated image/icon</li>
+
+    <li>link - optional, URL to related/descriptive web page.</li>
+
+  </ul>
+
+  <li>id - The&nbsp;unique system ID for game template (will
+be generated if not provided)</li>
+  <li>urlName - optional string used to identify the game template in certain lobby service URLs.&nbsp; </li>
+
+  <li>visibility - whether the Game Template is returned in
+public lists/queries from the server (PUBLIC) or not (HIDDEN)</li>
+
+  <li>clientTemplates - an array of zero or more Game Client
+Templates, comprising:</li>
+
+  <ul>
+
+    <li>title - name of the client type (shown to the user)</li>
+
+    <li>type -&nbsp; main client type, e.g. operating system
+name ("Android")</li>
+
+    <li>minMajorVersion - minimum client type (e.g. OS) major
+version number</li>
+
+    <li>minMinorVersion - minimum client type (e.g. OS) minor
+version number&nbsp;</li>
+
+    <li>locationSpecific - whether the client is location
+specific, e.g. a mobile device</li>
+
+    <li>appLaunchUrl - base URL used to launch the game client
+application on the client device, e.g. a web page for a browser-based
+client or based on a custom URL scheme for an installed client.</li>
+
+    <li>appMarketUrl - URL to open on the client to support
+installation/checking of the client application (if required) </li>
+
+  </ul>
+
 </ul>
+
+<p>Note that the Game Template's ID is part of the query URL that a
+player's lobby client needs in order to search for instances of this
+Game Template. Consequently it may be compiled into client applications
+in some cases, and care should be taken on lobby service restores (or
+equivalent) to preserve Game Template IDs. Alternatively the urlName
+can be used in variant URLs, but this more obviously implies an
+arbitration mechanism for choosing/allocating these values, which might
+easily conflict.&nbsp; </p>
+<p>For example, <a href="examples/game_template.json">examples/game_template.json</a>:</p>
+
+<pre>{<br>	"id": "165acda5-8f63-4dd1-a883-cb39a61f1d94", <br>	"title": "exploding places", <br>	"description": "Exploding places!", <br>	"link": "http://github.com/mdf/exploding/wiki", <br>	"imageUrl": "http://89.200.142.192/favicon.ico", <br>	"visibility": "PUBLIC", <br>	"clientTemplates":<br>	[<br>	{<br>	"title": "test client", <br>	"clientType": "Android", <br>	"minMajorVersion": 1,<br>	"minMinorVersion": 6, <br>	"minUpdateVersion": 0, <br>	"locationSpecific": true, <br>	"appLaunchUrl": "uk.ac.horizon.ug.exploding:///", <br>	"appMarketUrl": "http://github.com/mdf/explodingclient/raw/master/explodingclient.apk"<br>	}<br>	]<br>}</pre>
+
+<h4>2. Game Server</h4>
+
+<p>Using the Game Servers page&nbsp;(<a href="http://localhost:8888/user/game_servers.html">http://localhost:8888/user/game_servers.html</a>)
+define a new Game Server record for the game, including:</p>
+
+<ul>
+
+  <li>title - for the game operator</li>
+
+  <li>type - the particular type of Game Server, which in turn
+defines the protocol used by the lobby service to communicate with the
+game server; current options:</li>
+
+  <ul>
+
+    <li>EXPLODING_PLACES - the Exploding Places game server</li>
+
+    <li>[Note that adding more server types requires server code
+extensions, in particular a new class implementing <span style="font-family: monospace;">uk.ac.horizon.ug.lobby.server.ServerProtocol</span>
+and a new enumeration value in <span style="font-family: monospace;">uk.ac.horizon.ug.lobby.model.GameServerType</span>
+which references it; the web form also need updating to include the new
+option]</li>
+
+  </ul>
+
+  <li>gameTemplateId - each Game Server is specific to a single
+Game Template (required)</li>
+
+  <li>baseUrl - the URL of the server, passed to the
+server-type-specific ServerProtocol implementation code.</li>
+
+  <li>lobbySharedSecret - optional (protocol-dependent) string
+which is a shared secret with the game server, for type-specific
+authentication.</li>
+
+  <li>targetStatus - whether the game server is <span style="font-style: italic;">supposed</span> to be
+running at the moment (UP) or not (STOPPED). The lobby service should
+not attempt to contact the game server if it is nominally STOPPED.</li>
+
+</ul>
+
+For example, <a href="examples/game_server.json">examples/game_server.json</a>:<br>
+
+<pre>{<br>	"baseUrl": "http://localhost:8080/exploding",<br>	"gameTemplateId": "165acda5-8f63-4dd1-a883-cb39a61f1d94",<br>	"key": "ahBjaHJpcy1ncmVlbmhhbGdochALEgpHYW1lU2VydmVyGAIM",<br>	"title": "server1",<br>	"lobbySharedSecret": "1234",<br>	"targetStatus": "UP",<br>	"type": "EXPLODING_PLACES"<br>}</pre>
+
+<h4>3. Game Instance Factory</h4>
+
+<p>If there are to be repeated games or games created on demand
+then you should use the Game Instance Factory page (<a href="http://localhost:8888/user/game_instance_factories.html">http://localhost:8888/user/game_instance_factories.html</a>)
+to describe them.&nbsp;</p>
+
+<p>Note that there can be more than one Game Instance Factory for
+a
+single game, e.g. one for each distinct location where Game Instances
+are player, or one for open (anonymous) games and another for paid
+games, and so on.<span style="font-weight: bold;"></span></p>
+
+<p>The Game Instance Factory UI requires that you choose a Game
+Template before&nbsp;viewing/creating/updating the Game Instance
+Factories for that Game Template.<span style="font-weight: bold;"></span></p>
+
+<p>Each Game Instance Factory includes:</p>
+
+<ul>
+
+  <li>Information used to advertise/identify the game to players
+(in the case of ON_DEMAND GameInstanceFactories which are directly
+visible to players):</li>
+
+  <ul>
+
+    <li>title</li>
+
+    <li>visibility - whether the factory itself is in fact made
+visible to players (PUBLIC) or not (HIDDEN); typically an ON_DEMAND
+factory will be PUBLIC but a SCHEDULED factory may not (at least if
+GameInstances are created well in advance).</li>
+
+  </ul>
+
+  <li>Information&nbsp;passed on to created Game Instances,
+in particular</li>
+
+  <ul>
+
+    <li>Information&nbsp;which is in turn used to
+advertise/identify those Game Instances to players:</li>
+
+  </ul>
+
+  <ul>
+
+    <ul>
+
+      <li>instanceTitle - the title for the created instance(s)</li>
+
+    </ul>
+
+    <ul>
+
+      <li>instanceVisibility - visibility of the created
+instance(s) (PUBLIC or HIDDEN)</li>
+
+    </ul>
+
+  </ul>
+
+  <ul>
+
+    <li>Instance location information (also used when advertising
+ON_DEMAND Game Instance Factories):</li>
+
+  </ul>
+
+  <ul>
+
+    <ul>
+
+      <li>locationType - whether the Game Instance can be played
+anywhere (GLOBAL), or only in a certain place/area
+(SPECIFIED_LOCATION), or, for an ON_DEMAND instance, at the location of
+the requesting player (PLAYER_LOCATION).&nbsp;</li>
+
+    </ul>
+
+    <ul>
+
+      <li>locationName - how the location constraint (if any) is
+named/described to the player.&nbsp;</li>
+
+    </ul>
+
+    <ul>
+
+      <li>latitudeE6 - for a&nbsp;location-specific game, the
+latitude (N/S) in degrees x 10^6 (i.e. in whole micro-degrees) of the
+game (centre).</li>
+
+    </ul>
+
+    <ul>
+
+      <li>longitudeE6 - for a&nbsp;location-specific game,
+the longitude (E/W) in degrees x 10^6 (i.e. in whole micro-degrees) of
+the game (centre).</li>
+
+    </ul>
+
+    <ul>
+
+      <li>radiusMetres - for a location-specific game, the radius
+in metres of the area in which the game can be played.</li>
+
+    </ul>
+
+  </ul>
+
+  <ul>
+
+    <li>Instance game joining information:</li>
+
+  </ul>
+
+  <ul>
+
+    <ul>
+
+      <li>maxNumSlots - the maximum number of Game Instance Slots
+for the the Game Instance, and therefore the maximum number of players.</li>
+
+    </ul>
+
+    <ul>
+
+      <li>allowAnonymousClient - whether anonymous
+(unauthenticated) clients are allowed to join the game.</li>
+
+    </ul>
+
+    <li>Instance timing information:</li>
+
+    <ul>
+
+      <li>durationMs - length of each game in ms (used to
+determine Game Instance endTime given its startTime).</li>
+
+    </ul>
+
+  </ul>
+
+  <li>Instance timing information, which specifies possible
+startTimes of created instances (also used when advertising ON_DEMAND
+Game Instance Factories):</li>
+
+  <ul>
+
+    <li>minTime - earliest allowed instance start time (i.e.
+nominal game start time) (Java time, i.e. ms since 1st Jan 1970)</li>
+
+    <li>maxTime - latest allowed instance start time</li>
+
+    <li>startTimeCron - simple <a href="CRON%20expression%20-%20Wikipedia.htm">CRON-expression</a>
+specifying possible start times (considered only between minTime and
+maxTime), e.g. "0 0 9-17 * * Mon,Tue,Wed,Thu,Fri *" would be hourly,
+9am- 5pm inclusive, on weekdays.</li>
+
+  </ul>
+
+  <li>Information used to limit the rate at which new Game
+Instances can be created:</li>
+
+  <ul>
+
+    <li>newInstanceTokens - the number of new Game Instances that
+could be made immediately and at once, if required</li>
+
+    <li>newInstanceTokensMax - the most Game Instances that could
+ever be made at once, i.e. the maximum value that newInstanceTokens is
+allowed to reach. <span style="font-weight: bold;">Note</span>:
+may also be capped by&nbsp; server-wide configuration
+(maxNewInstanceTokensMax).</li>
+
+    <li>newInstanceTokensPerHour - the rate (per hour) at which
+newInstanceTokens increases and therefore the maximum sustained rate at
+which new Game Instances can be created.&nbsp;<span style="font-weight: bold;">Note</span>: may also be
+capped by&nbsp; server-wide configuration
+(maxNewInstanceTokensPerHour).</li>
+
+  </ul>
+
+  <li>Information used to manage the creation of new Game
+Instances in the lobby service:</li>
+
+  <ul>
+
+    <li>type - whether Game Instances are all automatically
+created by the lobby service (background task) whenever they are
+approaching (SCHEDULED) or whether Game Instances are only created by
+the lobby service when specifically requested by client(s) (ON_DEMAND)</li>
+
+    <li>instanceCreateTimeWindowMs - for SCHEDULED games, how far
+ahead of time they are created.</li>
+
+  </ul>
+
+  <ul>
+
+    <li>createForAnonymousClient - for ON_DEMAND games, whether a
+Game Instance will be made in response to a request from an anonymous
+(unauthenticated) Client.</li>
+
+    <li>allowPrivateInstances - for ON_DEMAND games, whether a
+client can request a HIDDEN GameInstance, i.e. one which will not be
+visible to other players.</li>
+
+  </ul>
+
+  <li>Information used to create and&nbsp;manage running the
+game(s) themselves on the Game Server:</li>
+
+  <ul>
+
+    <li>gameServerId - the ID of the GameServer, which identifies
+the protocol (ServerProtocol class) to use and the baseUrl of the
+server.</li>
+
+  </ul>
+
+  <ul>
+
+    <li>serverConfigJson - additional type- and template-specific
+configuration for the server encoded as a JSON object, e.g. for the
+Exploding Places server "{'contentGroup':{'location':'Woolwich'}}"
+tells the ExplodingPlacesServerProtocol class to use a ContentGroup on
+the exploding places game server with 'location' 'Woolwich' when
+createing new games.&nbsp;</li>
+
+  </ul>
+
+  <ul>
+
+    <li>serverCreateTimeOffsetMs - relative to the GameInstance
+startTime (i.e. nominal game start time) when should the server's game
+instance be started, e.g. "-30000" is 30s before.</li>
+
+  </ul>
+
+  <ul>
+
+    <li>serverStartTimeOffsetMs - relative to the GameInstance
+startTime when should the game server be told to actually "start" the
+game (this may be a no-op on some games/game servers)</li>
+
+    <li>serverEndingTimeOffsetMs - relative to the GameInstance
+endTime when should the game server be told that the game is
+"ending"&nbsp;(this may be a no-op on some games/game servers)</li>
+
+    <li>serverEndTimeOffsetMs - relative to the GameInstance
+endTime when should the game server be told that the game has
+"ended"&nbsp;(this may be a no-op on some games/game servers)</li>
+
+  </ul>
+
+</ul>
+
+For example, <br>
+
+<ul>
+
+  <li><a href="examples/game_instance_factory.json">examples/game_instance_factory.json</a>
+- a SCHEDULED Game Instance Factory</li>
+
+  <li><a href="examples/game_instance_factory_ondemand.json">examples/game_instance_factory_ondemand.json</a>
+- an ON_DEMAND Game Instance Factory</li>
+
+</ul>
+
+Note that if you use the above sample then in each case the
+gameServerId must be subsequently specified (it will be different for
+each server/installation as the Game Server's ID is only generated when
+it is added to the lobby service (previous step).
+<h4>4. Game Instance</h4>
+
+<p>If a Game Instance Template (above) is not used then Game
+Instances can be defined individually by the game operator; use the
+Game Instance page (<a href="http://localhost:8888/user/game_instances.html">http://localhost:8888/user/game_instances.html</a>)
+to describe them. This page can also be used to do simple monitoring
+and management of Game Instances created automatically from a Game
+Instance Factory (above).&nbsp;</p>
+
+<p>The Game Instance Factory UI requires that you choose a Game
+Template before&nbsp;viewing/creating/updating the Game Instance
+Factories for that Game Template.</p>
+
+<p>Each Game Instance&nbsp;includes the following information:<span style="font-weight: bold;"></span></p>
+
+<ul>
+
+  <li>Information&nbsp;which is used to advertise/identify
+the Game Instance to players:</li>
+
+  <ul>
+
+    <li>title - the title for the created instance(s)</li>
+
+    <li>visibility - whether the instance will be visible to
+player searches (PUBLIC) or not (HIDDEN)</li>
+
+  </ul>
+
+  <li>Instance location information&nbsp;:</li>
+
+  <ul>
+
+    <li>radiusMetres - for a location-specific game, the radius
+in
+metres of the area in which the game can be played, or 0 if there is no
+limit.</li>
+
+    <li>locationName - how the location constraint (if any) is
+named/described to the player.&nbsp;</li>
+
+    <li>latitudeE6
+- for a&nbsp;location-specific game, the latitude (N/S) in degrees
+x 10^6
+(i.e. in whole micro-degrees) of the game (centre).</li>
+
+    <li>longitudeE6 - for a&nbsp;location-specific game, the
+longitude (E/W) in degrees x 10^6 (i.e. in whole micro-degrees) of the
+game (centre).</li>
+
+  </ul>
+
+  <li>Instance game joining information:</li>
+
+  <ul>
+
+    <li>maxNumSlots - the maximum number of Game Instance Slots
+for the the Game Instance, and therefore the maximum number of players.</li>
+
+    <li>allowAnonymousClient - whether anonymous
+(unauthenticated) clients are allowed to join the game.</li>
+
+    <li>numSlotsAllocated - the current number of allocated Game
+Instance Slots (maintained by the server; cannot be updated by the game
+operator)</li>
+
+    <li>full - whether the game is full, i.e. all slots
+allocated&nbsp;(maintained by the server; cannot be updated by the
+game operator)</li>
+
+  </ul>
+
+  <li>Instance timing information:</li>
+
+  <ul>
+
+    <li>startTime - the nominal start time of the game (Java time)</li>
+
+    <li>endTime - the nominal end time of the game (Java time)</li>
+
+    <li>createdTime - the time at which the instance was created</li>
+
+  </ul>
+
+  <li>nominalStatus - the nominal status of the game described by
+the Game Instance, i.e. POSSIBLE (might be created), PLANNED (will be
+created), AVAILABLE (should be running at the moment), ENDED (has
+officially ended), CANCELLED (will not be/has not been created),
+TEMPORARILY_UNAVAILABLE (<span style="font-style: italic;">should</span>
+be AVAILABLE but isn't at the moment). <span style="font-weight: bold;">Note</span>: the main
+method for managing a Game Instance is to set this property.</li>
+
+  <li>External game server information:</li>
+
+  <ul>
+
+    <li>gameServerId - the ID of the GameServer record for the
+server</li>
+
+    <li>baseUrl - game-specific base URL (if different from the
+Game Server baseUrl)</li>
+
+    <li>serverConfigJson - game-specific external server
+configuration information, e.g. in exploding places the game server's
+game ID and tag (typically set/used by the ServerProtocol)</li>
+
+    <li>status - the last known status of the game server/game
+(maintained by the lobby service)</li>
+
+  </ul>
+
+</ul>
+
+<p>For example, <a href="examples/game_instance.json">examples/game_instance.json</a></p>
+
+<p>Note that lobby service does not attempt to manage the game
+server for Game Instances that are directly created (i.e. not created
+by a Game Instance Factory). The lobby service's only interaction with
+the game server in this case is the server-specific registration/login
+of a player as they start to play the game.&nbsp;</p>
+
+<p>For Game Instances created by a suitably configured Game
+Instance Factory the lobby service background task will attempt to:</p>
+
+<ul>
+
+  <li>update the Game Instance's nominalStatus as the game
+reaches its startTime (PLANNED to AVAILABLE) and endTime (AVAILABLE to
+ENDED).</li>
+
+  <li>ask the game server to create the game&nbsp;it is due
+to start (serverCreateTimeOffsetMs),</li>
+
+  <li>tell the game server to start the game when it is due to
+start (serverStartTimeOffsetMs) - may be a null operation</li>
+
+  <li>tell the game server that the game is ending&nbsp;when
+it is due to end (serverEndingTimeOffsetMs) - may be a null operation</li>
+
+  <li>ask the game server to end the game when it is due to end
+(serverEndTimeOffsetMs)&nbsp;</li>
+
+</ul>
+
+<p>If the lobby is successful in interacting with the game server
+then the status and nominalStatus will be updated accordingly. If there
+are errors when interacting with the game server then the status (and
+as appropriate the&nbsp;nominalStatus)&nbsp; will reflect this
+(e.g. the Game can be automatically marked as TEMPORARILY_UNAVAILABLE).</p>
+
+<h3>Monitoring</h3>
+
+<p>A full game operating monitoring interface has not yet been
+created/defined.</p>
+
+<p>At present the Game Instance page can be used to monitor the
+creation and management of Game Instances (per Game Template).</p>
+
+<p>Some additional audit information is recorded in
+GameTemplateAuditRecords, but these are not currently accessible in the
+game operator UI.</p>
+
+<p><span style="font-weight: bold;">Note</span>:
+creating GameInstances and managing game servers are performed by the
+lobby service background task which is currently scheduled as a CRON
+job (or may be called manually from the lobby Admin interface).</p>
+
+<h3>Web API</h3>
+
+<table style="text-align: left; width: 100%; height: 192px;" border="1" cellpadding="2" cellspacing="2">
+
+  <tbody>
+
+    <tr>
+
+      <td>URL</td>
+
+      <td>Method</td>
+
+      <td>Request/reponse body</td>
+
+      <td>Description</td>
+
+    </tr>
+
+    <tr>
+
+      <td>/user/GetUserAccount</td>
+
+      <td>GET</td>
+
+      <td>returns JSON-encoded Account </td>
+
+      <td>Returns information about the calling user's Account,
+e.g. gameTemplateQuota</td>
+
+    </tr>
+
+    <tr>
+
+      <td>/user/GetUserGameTemplates</td>
+
+      <td>GET</td>
+
+      <td>returns JSON-encoded array of GameTemplates. </td>
+
+      <td>Returns all GameTemplates for this user.</td>
+
+    </tr>
+
+    <tr>
+
+      <td>/user/AddGameTemplate</td>
+
+      <td>POST</td>
+
+      <td>requires JSON-encoded GameTemplate<br>
+
+returns JSON-encoded GameTemplate</td>
+
+      <td>Add a GameTemplate; returns added record (including id).</td>
+
+    </tr>
+
+    <tr>
+
+      <td>/user/UserGameTemplate/<span style="font-style: italic;">GTID</span></td>
+
+      <td>GET</td>
+
+      <td>returns JSON-encoded GameTemplate with additional
+information, e.g. clientTemplates, gameServer record</td>
+
+      <td>Get the GameTemplate with the ID <span style="font-style: italic;">GTID</span>.</td>
+
+    </tr>
+
+    <tr>
+
+      <td>/user/UserGameTemplate/<span style="font-style: italic;">GTID</span></td>
+
+      <td>POST</td>
+
+      <td>requires JSON-encoded partial GameTemplate, which may
+include clientTemplates array.<br>
+
+returns JSON-encoded GameTemplate with additional information</td>
+
+      <td>Update the GameTemplate with ID <span style="font-style: italic;">GTID</span>. Any omitted
+properties are left unchanged.</td>
+
+    </tr>
+
+    <tr>
+
+      <td>...GameServer...</td>
+
+      <td></td>
+
+      <td></td>
+
+      <td></td>
+
+    </tr>
+
+    <tr>
+
+      <td>...GameInstanceFactory...</td>
+
+      <td></td>
+
+      <td></td>
+
+      <td></td>
+
+    </tr>
+
+    <tr>
+
+      <td>...GameInstance...</td>
+
+      <td></td>
+
+      <td></td>
+
+      <td></td>
+
+    </tr>
+
+  </tbody>
+</table>
+
+<h2>Changes</h2>
+
+<ul>
+
+  <li>2010-09-30: created</li>
+
+  <li>2010-10-01: first draft</li>
+
+</ul>
+
 </body>
 </html>
