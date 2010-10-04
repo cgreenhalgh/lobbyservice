@@ -1,0 +1,40 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!-- The HTML 4.01 Transitional DOCTYPE declaration-->
+<!-- above set at the top of the file will set     -->
+<!-- the browser's rendering engine into           -->
+<!-- "Quirks Mode". Replacing this declaration     -->
+<!-- with a "Standards Mode" doctype is supported, -->
+<!-- but may lead to some differences in layout.   -->
+
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+	<meta name="viewport" content="width=device-width"/>
+	<!-- <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/> -->
+    <title>Time test</title>
+    
+    <script type = "text/javascript" src="../resources/jquery-1.4.2.min.js"></script>
+    <script type = "text/javascript" src="../resources/jquery.json-2.2.min.js"></script>
+    <script type = "text/javascript" src="../resources/common_utils.js"></script>
+    <script type = "text/javascript">
+
+ // on load
+    $(document).ready(function() {
+        alert('hello');
+        var now = new Date();
+        try {
+	        $('#out').html('<p>Date='+now+', getTime='+now.getTime()+', timezoneOffset='+now.getTimezoneOffset()+', UTCString='+now.toUTCString()+'</p>');
+        }
+        catch (e) {
+            alert(e.type+': '+e.message);
+        }
+    });
+    
+    </script>
+  </head>
+
+  <body>
+    <p>Test:</p>
+  	<div id="out"></div>
+  </body>
+</html>

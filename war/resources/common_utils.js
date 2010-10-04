@@ -71,9 +71,11 @@ function escape_ascii(data) {
 }
 
 function currentTimeMillis() {
-	// it seems like Date.getTime() might be in the local timezone (which stinks)
 	var d = new Date();
-	return d.getTime()+d.getTimezoneOffset() * 60000;
+	// I have seen some suggestions that Date.getTime() might be in the local timezone (which stinks)
+	// but the specs certainly suggest it should be UTC, and that seems ok on my desktop and android phone
+	// return d.getTime()+d.getTimezoneOffset() * 60000;
+	return d.getTime();
 }
 
 function get_lobbyclient() {

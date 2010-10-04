@@ -550,7 +550,7 @@ function get_time_constraint() {
 	var timeOptionMin = [now, now, now-timeOfDay+24*60*60*1000, now, now];
 	var timeOptionMax = [now+5*60*1000, now-timeOfDay+24*60*60*1000, now-timeOfDay+2*24*60*60*1000, 
 	                     now-timeOfDay+7*24*60*60*1000, 0];
-	var timeOptionIx = Number($('select[name=timeOption] > option[selected]').attr('value'));
+	var timeOptionIx = Number($('select[name=timeOption]').attr('value'));
 	timeConstraint.minTime = timeOptionMin[timeOptionIx];
 	if (timeOptionMax[timeOptionIx]!=0) {
 		timeConstraint.maxTime = timeOptionMax[timeOptionIx];
@@ -560,7 +560,7 @@ function get_time_constraint() {
 function get_location_constraint() {	
 	var rangeOptions = ['Here!', 'Up to 1.5 km', 'Up to 5 km', 'Up to 15 km', 'Up to 50 km', 'Up to 150 km', 'Up to 500 km', 'Anywhere'];
 	var rangeOptionMetres = [0, 1500, 5000, 15000, 50000, 150000, 500000, -1];
-	var rangeOptionIx = Number($('select[name=rangeOption] > option[selected]').attr('value'));
+	var rangeOptionIx = Number($('select[name=rangeOption]').attr('value'));
 	var locationConstraint = {};
 	if (rangeOptionIx<7 && coords!=null) {
 		// not anywhere

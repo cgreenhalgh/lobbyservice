@@ -16,6 +16,7 @@ $(document).ready(function() {
 	//alert('clientId = '+clientId);
 	if (clientId!=undefined && clientId!=null) {
 		// ...
+		$('#currentClient').html('Client: '+clientId);
 	}
 	else 
 		$('#client_div').hide('fast');
@@ -61,6 +62,7 @@ function update_clients(clients) {
 	for (var i=0; i<clients.length; i++) {
 		var client = clients[i];
 		if (client.id==clientId) {
+			$('#currentClient').html(client.status+ ' client: '+clientId);
 			$('input[name=block]').attr('disabled', client.status=='BLOCKED');
 			$('input[name=trust]').attr('disabled', client.status!='ANONYMOUS');
 		}
