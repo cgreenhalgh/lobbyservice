@@ -22,7 +22,16 @@
     </script>
   </head>
 <body>
+	<!-- 'current' (e.g. referring) client -->
+	<div id="client_div">
+    	<table id="client" class="listTable">
+    		<tr><td><input class="queryOption" type="button" name="trust" value="Trust this client" onclick="do_trust()"/>
+    			<input class="queryOption" type="button" name="block" value="Block this client" onclick="do_block()"/></td></tr>
+    	</table>
+  	</div>
+  	<!-- all clients -->
 	<div id="clients_div">
+		<p class="queryLabel">All Clients:</p>
     	<table id="clients" class="listTable">
     	</table>
   	</div>

@@ -55,6 +55,14 @@ public class GameClient {
     private Integer updateVersion;
     /** IMEI */
     private String imei;
+    /** created date/time */
+    private long createdTime;
+    /** trusted (by Account) from time */
+    private Long trustedFromTime;
+    /** trusted (by Account) from time */
+    private Long trustedToTime;
+    /** status */
+    private GameClientStatus status;
     /** generate key */
     public static final Key idToKey(String id) {
     	// No point making Account parent, and it makes the create new client have more of a race!
@@ -193,5 +201,53 @@ public class GameClient {
 	 */
 	public void setNickname(String nickname) {
 		this.nickname = nickname;
+	}
+	/**
+	 * @return the createdTime
+	 */
+	public long getCreatedTime() {
+		return createdTime;
+	}
+	/**
+	 * @param createdTime the createdTime to set
+	 */
+	public void setCreatedTime(long createdTime) {
+		this.createdTime = createdTime;
+	}
+	/**
+	 * @return the trustedFromTime
+	 */
+	public Long getTrustedFromTime() {
+		return trustedFromTime;
+	}
+	/**
+	 * @param trustedFromTime the trustedFromTime to set
+	 */
+	public void setTrustedFromTime(Long trustedFromTime) {
+		this.trustedFromTime = trustedFromTime;
+	}
+	/**
+	 * @return the trustedToTime
+	 */
+	public Long getTrustedToTime() {
+		return trustedToTime;
+	}
+	/**
+	 * @param trustedToTime the trustedToTime to set
+	 */
+	public void setTrustedToTime(Long trustedToTime) {
+		this.trustedToTime = trustedToTime;
+	}
+	/**
+	 * @return the status
+	 */
+	public GameClientStatus getStatus() {
+		return status;
+	}
+	/**
+	 * @param status the status to set
+	 */
+	public void setStatus(GameClientStatus status) {
+		this.status = status;
 	}
 }

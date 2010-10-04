@@ -73,6 +73,14 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
 		<servlet-class>uk.ac.horizon.ug.lobby.user.UserGameInstanceFactoryServlet</servlet-class>
 	</servlet>
 	<servlet>
+		<servlet-name>GetUserGameClients</servlet-name>
+		<servlet-class>uk.ac.horizon.ug.lobby.user.GetUserGameClientsServlet</servlet-class>
+	</servlet>
+	<servlet>
+		<servlet-name>ClientManagement</servlet-name>
+		<servlet-class>uk.ac.horizon.ug.lobby.user.ClientManagementServlet</servlet-class>
+	</servlet>
+	<servlet>
 		<servlet-name>RegisterClient</servlet-name>
 		<servlet-class>uk.ac.horizon.ug.lobby.browser.RegisterClientServlet</servlet-class>
 	</servlet>
@@ -107,6 +115,10 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
 	<servlet>
 		<servlet-name>RunBackgroundTasks</servlet-name>
 		<servlet-class>uk.ac.horizon.ug.lobby.server.RunBackgroundTasksServlet</servlet-class>
+	</servlet>
+	<servlet>
+		<servlet-name>UpdateSchema</servlet-name>
+		<servlet-class>uk.ac.horizon.ug.lobby.server.UpdateSchemaServlet</servlet-class>
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>Lobbyservice</servlet-name>
@@ -177,6 +189,14 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
 		<url-pattern>/user/UserGameInstanceFactory/*</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
+		<servlet-name>GetUserGameClients</servlet-name>
+		<url-pattern>/user/GetUserGameClients</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>ClientManagement</servlet-name>
+		<url-pattern>/user/ClientManagement</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
 		<servlet-name>GetGameIndex</servlet-name>
 		<url-pattern>/browser/GetGameIndex</url-pattern>
 	</servlet-mapping>
@@ -211,6 +231,10 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
 	<servlet-mapping>
 		<servlet-name>RunBackgroundTasks</servlet-name>
 		<url-pattern>/cron/RunBackgroundTasks</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>UpdateSchema</servlet-name>
+		<url-pattern>/admin/UpdateSchema</url-pattern>
 	</servlet-mapping>
 	<welcome-file-list>
 		<welcome-file>index.html</welcome-file>

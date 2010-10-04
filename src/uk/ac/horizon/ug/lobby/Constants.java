@@ -7,9 +7,11 @@ public interface Constants {
 	public static final String APP_LAUNCH_URL = "appLaunchUrl";
 	public static final String APP_MARKET_URL = "appMarketUrl";
 	public static final String BASE_URL = "baseUrl";	
+	public static final String CLIENT_HMAC = "clientHmac";
 	public static final String CLIENT_ID = "clientId";
 	public static final String CLIENT_IP = "clientIp";
 	public static final String CLIENT_TEMPLATES = "clientTemplates";
+	public static final String CLIENT_TIME = "clientTime";
 	public static final String CLIENT_TITLE = "clientTitle";
 	public static final String CLIENT_TYPE = "clientType";
 	public static final String CREATE_FOR_ANONYMOUS_CLIENT = "createForAnonymousClient";
@@ -41,6 +43,7 @@ public interface Constants {
 	public static final String HOUR = "hour";
 	public static final String ID = "id";
 	public static final String IMAGE_URL = "imageUrl";
+	public static final String IMEI = "imei";
 	public static final String INCLUDE_AVAILABLE = "includeAvailable";
 	public static final String INCLUDE_ENDED = "includeEnded";
 	public static final String INCLUDE_PLANNED = "includePlanned";
@@ -85,6 +88,7 @@ public interface Constants {
 	public static final String NEW_INSTANCE_TOKENS_PER_HOUR = "newInstanceTokensPerHour";
 	public static final String NEW_INSTANCE_URL = "newInstanceUrl";
 	public static final String NEW_INSTANCE_VISIBILITY = "newInstanceVisibility";
+	public static final String NEW_STATUS = "newStatus";
 	public static final String NICKNAME = "nickname";
 	public static final String MIN_DURATION_MS = "minDurationMs";
 	public static final String MIN_MINOR_VERSION = "minMinorVersion";
@@ -120,6 +124,8 @@ public interface Constants {
 	public static final String TIME_CONSTRAINT = "timeConstraint";
 	public static final String TIME_OPTIONS = "timeOptions";
 	public static final String TITLE = "title";
+	public static final String TRUSTED_FROM_TIME = "trustedFromTime";
+	public static final String TRUSTED_TO_TIME = "trustedToTime";
 	public static final String TTL_MINUTES = "ttlMinutes";
 	public static final String TYPE = "type";
 	public static final String UPDATE_VERSION = "updateVersion";

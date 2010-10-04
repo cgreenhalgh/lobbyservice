@@ -55,28 +55,6 @@
 // start here...
 $.ajaxSetup({cache:false,async:true,timeout:30000});
 
-function currentTimeMillis() {
-	// it seems like Date.getTime() might be in the local timezone (which stinks)
-	var d = new Date();
-	return d.getTime()+d.getTimezoneOffset() * 60000;
-}
-
-function get_lobbyclient() {
-	try {
-		return lobbyclient;
-	}
-	catch (err) {}
-	return undefined;
-}
-
-function log(msg) {
-	if (get_lobbyclient()!=undefined)
-		get_lobbyclient().log(msg);
-// debug
-	else
-		alert(msg);
-}
-
 // get game if dedicated lobbyclient
 function get_game() {
 	if (get_lobbyclient()==undefined)
@@ -214,93 +192,18 @@ function test_storage() {
 
 }
 
-// fallback to non-persistent
-var persistent_cache = {};
-var persistence_type = undefined;
-var key_prefix = 'game.js.';
-var myLocalStorage;
-
-function init_persistence() {
-	if (window.localStorage!=undefined) {
-		// W3C WebStorage
-		myLocalStorage = window.localStorage;
-		persistence_type = 'WebStorage';
-	}
-	else if (get_lobbyclient()!=undefined) {
-		if (lobbyclient.getLocalStorage()!=undefined && lobbyclient.getLocalStorage()!=null) {
-			myLocalStorage = {};
-			// Java string is not a string?!
-			myLocalStorage.getItem = function(key) { 
-				var val = lobbyclient.getLocalStorage().getItem(key);
-				if (val==null)
-					return null;
-				if (val==undefined)
-					return undefined;
-				return String(val);
-			};
-			myLocalStorage.setItem = function(key,value) { lobbyclient.getLocalStorage().setItem(key,value); };
-			persistence_type = 'Lobbyclient';
-		}
-	}
-	else {
-		var cookies_ok = false;
-		try {
-			// 1 year
-			// TODO fix: illegal format for expires: Fri Sep 16 2011 10:29:03 GMT+0000 (GMT)
-			// -> Thu, 2 Aug 2001 20:47:11 UTC [~]
-			document.cookie = key_prefix+'test=ok; expires='+timeToCookie(currentTimeMillis()+1000*60*60*24*365)+'; path=/browser/';
-			cookies_ok = true;
-		} catch (err) {
-		}
-		if (cookies_ok) {
-			// try cookies
-			myLocalStorage = {};
-			myLocalStorage.getItem = function(key) {
-				var val = get_cookie_value(key_prefix+key);
-				if (val==null || val==undefined)
-					return val;
-				return decodeURIComponent(val);
-			}
-			myLocalStorage.setItem = function(key,value) {
-				// 1 year
-				// TODO fix: illegal format for expires: Fri Sep 16 2011 10:29:03 GMT+0000 (GMT)
-				// -> Thu, 2 Aug 2001 20:47:11 UTC [~]
-				document.cookie = key_prefix+key+'='+encodeURIComponent(value)+'; expires='+timeToCookie(currentTimeMillis()+1000*60*60*24*365)+'; path=/browser/';
-				return;
-			}
-			persistence_type = 'Cookies';
-		}
-		else {
-			// fallback to transient
-			myLocalStorage = {};
-			myLocalStorage.getItem = function(key) {
-				return persistent_cache[key];
-			}
-			myLocalStorage.setItem = function(key, value) {
-				persistent_cache[key] = value;
-			}
-		}
-	}
+function reset_client_id() {
+	var client_id_key = 'clientId';
+	client_id = Math.uuidFast();
+	set_persistent_string(client_id_key, client_id);
+	alert('Creating new client ID ('+client_id+') - will not have access to previous games');
 }
-
-
-// get a persistent value 
-function set_persistent_string(key, value) {
-	myLocalStorage.setItem(key, value);
-}
-
-function get_persistent_string(key) {
-	return myLocalStorage.getItem(key);
-}
-
 // get client ID - hopefully persistent; make if unknown.
 function get_client_id() {
 	var client_id_key = 'clientId';
 	var client_id = get_persistent_string(client_id_key);
 	if (client_id==undefined || client_id==null) {
-		client_id = Math.uuidFast();
-		set_persistent_string(client_id_key, client_id);
-		alert('Creating new client ID ('+client_id+') - will not have access to previous games');
+		reset_client_id();
 	}
 	return client_id;
 }
@@ -558,6 +461,18 @@ function show_account() {
 	$('#join_div').hide('fast');
 }
 
+function update_registered() {
+	$('#accountClientId').html('Client ID: checking...');
+	$('#accountClientId').html('Client ID: '+get_client_id()+' ('+persistence_type+')');
+	// registration
+	$('#accountRegistered').html('Client Registered: checking...');
+	var registerClientStatus = get_persistent_string('registerClientStatus');
+	if (registerClientStatus==null || registerClientStatus==undefined) {
+		$('#accountRegistered').html('Client Registered: No');		
+	}
+	else
+		$('#accountRegistered').html('Client Registered: '+registerClientStatus);				
+}
 
 // on load
 $(document).ready(function() {
@@ -584,18 +499,9 @@ $(document).ready(function() {
 	//test_storage();
 
 	$('#clientId').html('Client ID: checking...');
-	$('#accountClientId').html('Client ID: checking...');
 	$('#clientId').html('Client ID: '+get_client_id()+' ('+persistence_type+')');
-	$('#accountClientId').html('Client ID: '+get_client_id()+' ('+persistence_type+')');
 
-	// registration
-	$('#accountRegistered').html('Client Registered: checking...');
-	var registerClientStatus = get_persistent_string('registerClientStatus');
-	if (registerClientStatus==null || registerClientStatus==undefined) {
-		$('#accountRegistered').html('Client Registered: No');		
-	}
-	else
-		$('#accountRegistered').html('Client Registered: '+registerClientStatus);				
+	update_registered();
 
 	//alert('width='+$('body').innerWidth()+',height='+$('body').innerHeight());
 	//var width = $('body').innerWidth();
@@ -670,7 +576,7 @@ function get_location_constraint() {
 
 function is_authenticated() {
 	var sharedSecret = get_persistent_string('sharedSecret');
-	if (sharedSecret!=null && sharedSecret!=undefined)
+	if (sharedSecret!=null && sharedSecret!=undefined || sharedSecret=='')
 		return true;
 	return false;
 }
@@ -1036,7 +942,7 @@ var https_scheme = 'http';
 // try to register client with server
 function do_register() {
 	var sharedSecret = get_persistent_string('sharedSecret');
-	if (sharedSecret==null || sharedSecret==undefined) {
+	if (sharedSecret==null || sharedSecret==undefined || sharedSecret=='') {
 		// generate...
 		log('generating new sharedSecret');
 		sharedSecret = make_secret();
@@ -1082,33 +988,57 @@ function do_register() {
 				var msg = data.status;
 				$('#accountRegistered').html('Client Registered: '+msg);
 
-				if (data.status=='OK') 
+				if (data.status=='OK') {
 					set_persistent_string('registerClientStatus', data.status);// no op
+					if (delayed_online_account) {
+						do_online_account2();
+					}
+				}
 				else {
 					// some kind of error
 					alert(msg);
-				}					
+				}				
+				delayed_online_account = false;
+				update_registered();
 			},
 			error: function error(req, status) {
+				delayed_online_account = false;
 				var msg = 'Sorry - there was a problem ('+status+')';
 				$('#accountRegistered').html('Client Registered: Error ('+status+')');
 				alert(msg);
 			}
 		});
 	} catch (e) {
+		delayed_online_account = false;
 		var msg = 'Sorry - there was a problem ('+e.name+': '+e.message+')';
 		$('#accountRegistered').html('Client Registered: Error ('+e.name+': '+e.message+')');
 		alert(msg);
 	}
 }
+// forget client - i.e. new clientId
+function do_forget() {
+	if (confirm('Warning: you will lose any anonymous games!')) {
+		reset_client_id();
+		set_persistent_string('registerClientStatus', 'No');
+		set_persistent_string('sharedSecret','');
+		update_registered();
+	}
+}
+
+var delayed_online_account = false;
 
 // try to open user's online account
 function do_online_account() {
 	if (!('OK'==get_persistent_string('registerClientStatus'))) {
+		delayed_online_account = true;
 		do_register();
-		if (!('OK'==get_persistent_string('registerClientStatus')))
-			return;
+		return;
 	}
+	else
+		do_online_account2();
+}
+// avoid possibility of a loop
+function do_online_account2() {
 	// queryUrl , e.g. http://128.243.22.74:8888/browser/QueryGameTemplate/165acda5-8f63-4dd1-a883-cb39a61f1d94
 	// -> RegisterClient URL
 	if (queryUrl==null || queryUrl==undefined) {

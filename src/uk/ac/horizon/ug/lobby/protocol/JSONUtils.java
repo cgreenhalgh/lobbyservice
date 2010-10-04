@@ -41,6 +41,9 @@ import com.google.appengine.api.datastore.KeyFactory;
 
 import uk.ac.horizon.ug.lobby.Constants;
 import uk.ac.horizon.ug.lobby.model.Account;
+import uk.ac.horizon.ug.lobby.model.AccountAuditRecord;
+import uk.ac.horizon.ug.lobby.model.GameClient;
+import uk.ac.horizon.ug.lobby.model.GameClientStatus;
 import uk.ac.horizon.ug.lobby.model.GameClientTemplate;
 import uk.ac.horizon.ug.lobby.model.GameIndex;
 import uk.ac.horizon.ug.lobby.model.GameInstance;
@@ -1199,6 +1202,46 @@ public class JSONUtils implements Constants {
 		}
 		jw.endObject();
 	}
+	/** write GameTemplateAuditRecord object for user 
+	 * @throws JSONException */
+	public static void writeAccountAuditRecord(JSONWriter jw, AccountAuditRecord o) throws JSONException {
+		jw.object();
+		if (o.getAccountKey()!=null) {
+			jw.key(ACCOUNT_KEY);
+			jw.value(o.getAccountKey().getName());
+		}
+		if (o.getClientIp()!=null) {
+			jw.key(CLIENT_IP);
+			jw.value(o.getClientIp());
+		}
+		if (o.getDetailsJson()!=null) {
+			jw.key(DETAILS_JSON);
+			jw.value(o.getDetailsJson());
+		}
+		if (o.getGameClientKey()!=null) {
+			jw.key(GAME_CLIENT_KEY);
+			jw.value(o.getGameClientKey());
+		}
+		if (o.getKey()!=null) {
+			jw.key(KEY);
+			jw.value(KeyFactory.keyToString(o.getKey()));
+		}
+		if (o.getLevel()!=null) {
+			jw.key(LEVEL);
+			jw.value(o.getLevel().toString());
+		}
+		if (o.getMessage()!=null) {
+			jw.key(MESSAGE);
+			jw.value(o.getMessage());
+		}
+		jw.key(TIME);
+		jw.value(o.getTime());
+		if (o.getType()!=null) {
+			jw.key(TYPE);
+			jw.value(o.getType().toString());
+		}
+		jw.endObject();
+	}
 	/** parse JSON Object to ClientRequest
 	 * @throws JSONException */
 	public static ClientRequest parseClientRequest(JSONObject json) throws JSONException {
@@ -1322,5 +1365,128 @@ public class JSONUtils implements Constants {
 		}
 		w.close();
 	}
-	
+	/** write RegisterClientResponse object for user 
+	 * @throws JSONException */
+	public static void writeGameClient(JSONWriter jw, GameClient o) throws JSONException {
+		jw.object();
+		if (o.getClientType()!=null) {
+			jw.key(CLIENT_TYPE);
+			jw.value(o.getClientType());
+		}	
+		jw.key(CREATED_TIME);
+		jw.value(o.getCreatedTime());
+		if (o.getId()!=null) {
+			jw.key(ID);
+			jw.value(o.getId());
+		}
+		if (o.getImei()!=null) {
+			jw.key(IMEI);
+			jw.value(o.getImei());
+		}
+		if (o.getMajorVersion()!=null) {
+			jw.key(MAJOR_VERSION);
+			jw.value(o.getMajorVersion());
+		}
+		if (o.getMinorVersion()!=null) {
+			jw.key(MINOR_VERSION);
+			jw.value(o.getMinorVersion());
+		}
+		if (o.getNickname()!=null) {
+			jw.key(NICKNAME);
+			jw.value(o.getNickname());
+		}
+		if (o.getStatus()!=null) {
+			jw.key(STATUS);
+			jw.value(o.getStatus().toString());
+		}
+		if (o.getTrustedFromTime()!=null) {
+			jw.key(TRUSTED_FROM_TIME);
+			jw.value(o.getTrustedFromTime());
+		}
+		if (o.getTrustedToTime()!=null) {
+			jw.key(TRUSTED_TO_TIME);
+			jw.value(o.getTrustedToTime());
+		}
+		if (o.getUpdateVersion()!=null) {
+			jw.key(UPDATE_VERSION);
+			jw.value(o.getUpdateVersion());
+		}
+		jw.endObject();
+	}
+	/** write (user) GameClient summary 
+	 * @throws JSONException */
+	public static void writeGameClients(JSONWriter jw, List<GameClient> gameClients) throws JSONException {
+		jw.array();
+		for (GameClient gameClient : gameClients) {
+			writeGameClient(jw, gameClient);
+		}
+		jw.endArray();
+	}
+	/** send GameClient as response 
+	 * @throws IOException */
+	public static void sendGameClients(HttpServletResponse resp, List<GameClient> gameClients) throws IOException {
+		Writer w = JSONUtils.getResponseWriter(resp);
+		JSONWriter jw = new JSONWriter(w);
+		try {
+			JSONUtils.writeGameClients(jw, gameClients);	
+		} catch (JSONException je) {
+			throw new IOException(je);
+		}
+		w.close();
+	}
+	/** parse JSON Object to ClientManagementRequest
+	 * @throws JSONException */
+	public static ClientManagementRequest parseClientManagementRequest(JSONObject json) throws JSONException {
+		ClientManagementRequest o = new ClientManagementRequest();
+		Iterator keys = json.keys();
+		while(keys.hasNext()) {
+			String key = (String)keys.next();
+//			logger.info("GCT: "+key+"="+json.getObject(key));
+			if (key.equals(CLIENT_ID))
+				o.setClientId(json.getString(key));
+			else if (key.equals(CLIENT_HMAC))
+				o.setClientHmac(json.getString(key));
+			else if (key.equals(CLIENT_TIME))
+				o.setClientTime(json.getString(key));
+			else if (key.equals(NEW_STATUS))
+				o.setNewStatus(GameClientStatus.valueOf(json.getString(key)));
+			else if (key.equals(VERSION))
+				o.setVersion(json.getInt(key));
+			else 
+				throw new JSONException("Unsupported key '"+key+"' in ClientManagementRequest: "+json);
+		}
+		return o;
+	}
+	/** write ClientManagementResponse object for user 
+	 * @throws JSONException */
+	public static void writeClientManagementResponse(JSONWriter jw, ClientManagementResponse o) throws JSONException {
+		jw.object();
+		jw.key(VERSION);
+		jw.value(o.getVersion());
+		if (o.getClientId()!=null) {
+			jw.key(CLIENT_ID);
+			jw.value(o.getClientId());
+		}	
+		if (o.getMessage()!=null) {
+			jw.key(MESSAGE);
+			jw.value(o.getMessage());
+		}
+		if (o.getStatus()!=null) {
+			jw.key(STATUS);
+			jw.value(o.getStatus().toString());
+		}
+		jw.endObject();
+	}
+	/** send GameClient as response 
+	 * @throws IOException */
+	public static void sendClientManagementResponse(HttpServletResponse resp, ClientManagementResponse o) throws IOException {
+		Writer w = JSONUtils.getResponseWriter(resp);
+		JSONWriter jw = new JSONWriter(w);
+		try {
+			JSONUtils.writeClientManagementResponse(jw, o);	
+		} catch (JSONException je) {
+			throw new IOException(je);
+		}
+		w.close();
+	}
 }

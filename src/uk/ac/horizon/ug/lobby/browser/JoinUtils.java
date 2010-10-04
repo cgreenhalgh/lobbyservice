@@ -43,6 +43,7 @@ import uk.ac.horizon.ug.lobby.model.Account;
 import uk.ac.horizon.ug.lobby.model.EMF;
 import uk.ac.horizon.ug.lobby.model.GUIDFactory;
 import uk.ac.horizon.ug.lobby.model.GameClient;
+import uk.ac.horizon.ug.lobby.model.GameClientStatus;
 import uk.ac.horizon.ug.lobby.model.GameClientTemplate;
 import uk.ac.horizon.ug.lobby.protocol.GameJoinRequest;
 import uk.ac.horizon.ug.lobby.protocol.GameJoinResponse;
@@ -421,6 +422,8 @@ public class JoinUtils implements Constants {
 	/** create and persist a new anonymous GameClient within calling transaction (for consistency) */
 	private static GameClient createAnonymousClient(EntityManager em, String clientId, ClientInfo clientInfo) {
 		GameClient gc = new GameClient();
+		gc.setCreatedTime(System.currentTimeMillis());
+		gc.setStatus(GameClientStatus.ANONYMOUS);
 		if (clientId==null)
 			clientId = GUIDFactory.newGUID();
 		gc.setId(clientId);

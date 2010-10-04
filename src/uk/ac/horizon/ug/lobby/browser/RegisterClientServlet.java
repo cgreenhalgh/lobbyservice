@@ -38,6 +38,7 @@ import com.google.appengine.api.datastore.Key;
 import uk.ac.horizon.ug.lobby.RequestException;
 import uk.ac.horizon.ug.lobby.model.EMF;
 import uk.ac.horizon.ug.lobby.model.GameClient;
+import uk.ac.horizon.ug.lobby.model.GameClientStatus;
 import uk.ac.horizon.ug.lobby.protocol.ClientRequest;
 import uk.ac.horizon.ug.lobby.protocol.ClientResponse;
 import uk.ac.horizon.ug.lobby.protocol.ClientResponseStatus;
@@ -123,6 +124,8 @@ public class RegisterClientServlet extends HttpServlet {
 				// create client
 				gc = new GameClient();
 				gc.setKey(clientKey);
+				gc.setCreatedTime(System.currentTimeMillis());
+				gc.setStatus(GameClientStatus.ANONYMOUS);
 				em.persist(gc);
 				logger.info("Creating GameClient "+clientId+" on RegisterClient");
 			}

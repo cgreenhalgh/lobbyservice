@@ -70,6 +70,112 @@ function escape_ascii(data) {
 	return buffer;
 }
 
+function currentTimeMillis() {
+	// it seems like Date.getTime() might be in the local timezone (which stinks)
+	var d = new Date();
+	return d.getTime()+d.getTimezoneOffset() * 60000;
+}
+
+function get_lobbyclient() {
+	try {
+		return lobbyclient;
+	}
+	catch (err) {}
+	return undefined;
+}
+
+function log(msg) {
+	if (get_lobbyclient()!=undefined)
+		get_lobbyclient().log(msg);
+// debug
+	else
+		alert(msg);
+}
+
+
+//===========================================================
+// persistence
+
+//fallback to non-persistent
+var persistent_cache = {};
+var persistence_type = undefined;
+var key_prefix = 'game.js.';
+var myLocalStorage;
+
+function init_persistence() {
+	if (window.localStorage!=undefined) {
+		// W3C WebStorage
+		myLocalStorage = window.localStorage;
+		persistence_type = 'WebStorage';
+	}
+	else if (get_lobbyclient()!=undefined) {
+		if (lobbyclient.getLocalStorage()!=undefined && lobbyclient.getLocalStorage()!=null) {
+			myLocalStorage = {};
+			// Java string is not a string?!
+			myLocalStorage.getItem = function(key) { 
+				var val = lobbyclient.getLocalStorage().getItem(key);
+				if (val==null)
+					return null;
+				if (val==undefined)
+					return undefined;
+				return String(val);
+			};
+			myLocalStorage.setItem = function(key,value) { lobbyclient.getLocalStorage().setItem(key,value); };
+			persistence_type = 'Lobbyclient';
+		}
+	}
+	else {
+		var cookies_ok = false;
+		try {
+			// 1 year
+			// TODO fix: illegal format for expires: Fri Sep 16 2011 10:29:03 GMT+0000 (GMT)
+			// -> Thu, 2 Aug 2001 20:47:11 UTC [~]
+			document.cookie = key_prefix+'test=ok; expires='+timeToCookie(currentTimeMillis()+1000*60*60*24*365)+'; path=/browser/';
+			cookies_ok = true;
+		} catch (err) {
+		}
+		if (cookies_ok) {
+			// try cookies
+			myLocalStorage = {};
+			myLocalStorage.getItem = function(key) {
+				var val = get_cookie_value(key_prefix+key);
+				if (val==null || val==undefined)
+					return val;
+				return decodeURIComponent(val);
+			}
+			myLocalStorage.setItem = function(key,value) {
+				// 1 year
+				// TODO fix: illegal format for expires: Fri Sep 16 2011 10:29:03 GMT+0000 (GMT)
+				// -> Thu, 2 Aug 2001 20:47:11 UTC [~]
+				document.cookie = key_prefix+key+'='+encodeURIComponent(value)+'; expires='+timeToCookie(currentTimeMillis()+1000*60*60*24*365)+'; path=/browser/';
+				return;
+			}
+			persistence_type = 'Cookies';
+		}
+		else {
+			// fallback to transient
+			myLocalStorage = {};
+			myLocalStorage.getItem = function(key) {
+				return persistent_cache[key];
+			}
+			myLocalStorage.setItem = function(key, value) {
+				persistent_cache[key] = value;
+			}
+		}
+	}
+}
+
+
+// get a persistent value 
+function set_persistent_string(key, value) {
+	myLocalStorage.setItem(key, value);
+}
+
+function get_persistent_string(key) {
+	return myLocalStorage.getItem(key);
+}
+
+
 
 //===========================================================
 // Utilities for for building JSON requests from HTML Forms.

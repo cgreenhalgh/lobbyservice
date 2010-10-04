@@ -33,6 +33,8 @@ import org.json.JSONWriter;
 import com.google.appengine.api.datastore.Key;
 
 import uk.ac.horizon.ug.lobby.Constants;
+import uk.ac.horizon.ug.lobby.model.AccountAuditRecord;
+import uk.ac.horizon.ug.lobby.model.AccountAuditRecordType;
 import uk.ac.horizon.ug.lobby.model.AuditRecordLevel;
 import uk.ac.horizon.ug.lobby.model.EMF;
 import uk.ac.horizon.ug.lobby.model.GameTemplateAuditRecord;
@@ -127,5 +129,23 @@ public class AuditUtils implements Constants {
 		logGameTemplateAuditRecord(gameTemplateId,
 				gameInstanceFactoryKey, gameInstanceKey, accountKey,
 				clientIp, time, type, level, detailsJson, message);
+	}
+	/** create/persist a GameTemplateAuditRecord */
+	public static void logAccountAuditRecord(Key gameClientKey,
+			Key accountKey,
+			String clientIp, long time, AccountAuditRecordType type,
+			AuditRecordLevel level, String detailsJson, String message) {
+		AccountAuditRecord r = new AccountAuditRecord(null, gameClientKey,
+				accountKey,
+				clientIp, time, type, level, detailsJson, message);
+		persist(r);
+		StringWriter sw = new StringWriter();
+		JSONWriter jw = new JSONWriter(sw);
+		try {
+			JSONUtils.writeAccountAuditRecord(jw, r);
+			logger.info("logGameTemplateAuditRecord:"+sw.toString());
+		} catch (JSONException e) {
+			logger.log(Level.WARNING,"Writing GameTemplateAuditRecord", e);
+		}
 	}
 }
