@@ -20,6 +20,7 @@
 package uk.ac.horizon.ug.lobby.browser;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.List;
@@ -27,6 +28,9 @@ import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.crypto.Mac;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 import javax.servlet.http.HttpServletResponse;
@@ -138,9 +142,9 @@ public class JoinUtils implements Constants {
 	 * @param auth The text of the request signature line (for request authentication)
 	 * @param clientInfo ClientInfo for create new anonymous client (optional); null if not to create
 	 * @return null if not permitted (response sent) */
-	public static JoinAuthInfo authenticateOptional(String clientId, String deviceId, String line, String auth) {
+	public static JoinAuthInfo authenticateOptional(String clientId, String deviceId, String requestUri, String line, String auth) {
 		try {
-			return authenticateInternal(clientId, deviceId, null, true, line, auth, true);
+			return authenticateInternal(clientId, deviceId, null, true, requestUri, line, auth, true);
 		} catch (Exception e) {
 			logger.log(Level.WARNING,"Problem doing authenticateOptional - fall back to unknown", e);
 			JoinAuthInfo jai = new JoinAuthInfo();
@@ -157,8 +161,8 @@ public class JoinUtils implements Constants {
 	 * @return null if not permitted (response sent) 
 	 * @throws IOException 
 	 * @throws RequestException */
-	public static JoinAuthInfo authenticate(String clientId, String deviceId, ClientInfo clientInfo, boolean allowAnonymousClients, String line, String auth) throws IOException, JoinException, RequestException {
-		return authenticateInternal(clientId, deviceId, clientInfo, allowAnonymousClients, line, auth, false);
+	public static JoinAuthInfo authenticate(String clientId, String deviceId, ClientInfo clientInfo, boolean allowAnonymousClients, String requestUri, String line, String auth) throws IOException, JoinException, RequestException {
+		return authenticateInternal(clientId, deviceId, clientInfo, allowAnonymousClients, requestUri, line, auth, false);
 	}
 	/** initial check/authenticate join request.
 	 * @param clientId The ID of the GameClient (from the request)
@@ -169,7 +173,7 @@ public class JoinUtils implements Constants {
 	 * @return null if not permitted (response sent) 
 	 * @throws IOException 
 	 * @throws RequestException */
-	private static JoinAuthInfo authenticateInternal(String clientId, String deviceId, ClientInfo clientInfo, boolean allowAnonymousClients, String line, String auth, boolean optional) throws IOException, JoinException, RequestException {
+	private static JoinAuthInfo authenticateInternal(String clientId, String deviceId, ClientInfo clientInfo, boolean allowAnonymousClients, String requestUri, String line, String auth, boolean optional) throws IOException, JoinException, RequestException {
 
 		// default
 		JoinAuthInfo jai = new JoinAuthInfo();
@@ -267,7 +271,7 @@ public class JoinUtils implements Constants {
 					anonymous = true;
 				}
 				// authenticate
-				if (!authenticateRequest(line, gc, account, auth)) {
+				if (!authenticateRequest(requestUri, line, gc, account, auth)) {
 					if (optional) 
 						// fall back to unknown
 						return jai;
@@ -338,10 +342,13 @@ public class JoinUtils implements Constants {
 		}
 		else 
 			random.nextBytes(bytes);
+		return toHex(bytes);
+	}
+	public static String toHex(byte bytes[]) {
 		StringBuilder sb = new StringBuilder();
 		for (int i=0; i<bytes.length; i++) {
-			sb.append(nibble(bytes[i] & 0xf));
 			sb.append(nibble((bytes[i] >> 4) & 0xf));
+			sb.append(nibble(bytes[i] & 0xf));
 		}
 		return sb.toString();
 	}
@@ -353,11 +360,62 @@ public class JoinUtils implements Constants {
 			return (char)('a'+i-10);
 	}
 
-	public static boolean authenticateRequest(String line, GameClient gc,
+	public static byte[] parseHex(String sharedSecretHex){
+		byte data[] = new byte[(sharedSecretHex.length()+1)/2];
+		for (int i=0; i<sharedSecretHex.length(); i++) {
+			int nibble = 0;
+			char c = sharedSecretHex.charAt(i);
+			if (c>='0' && c<='9')
+				nibble = (int)(c-'0');
+			else if (c>='a' && c<='f')
+				nibble = (int)(10+c-'a');
+			else if (c>='A' && c<='F')
+				nibble = (int)(10+c-'A');
+			if ((i&1)==0)
+				data[i/2] = (byte)(/*data[i/2] | */(nibble << 4));
+			else
+				data[i/2] = (byte)(data[i/2] | (nibble));
+		}
+		return data;
+	}
+	
+	public static boolean authenticateRequest(String requestUri, String line, GameClient gc,
 			Account account, String auth) {
 		logger.warning("Authenticate "+line+" with "+auth+" for "+gc+" ("+account+")");
-		// TODO
-		return true;
+		// v.1 HMAC-SHA1 of bytes of line (UTF-8)
+		if (auth==null || auth.length()==0)
+		{
+			logger.warning("Authenticate with no auth line");
+			return false;
+		}
+		String sharedSecret = gc.getSharedSecret();
+		if (sharedSecret==null || sharedSecret.length()==0) {
+			logger.warning("Authenticate with no sharedSecret for "+gc);
+			return false;			
+		}
+		byte[] keyBytes = parseHex(sharedSecret);
+		SecretKey key = new SecretKeySpec(keyBytes, "HmacSHA1");
+		//logger.info("sharedSecret="+sharedSecret+" ("+toHex(keyBytes)+"), key="+key);
+		Mac m;
+		try {
+			m = Mac.getInstance("HmacSHA1");
+			m.init(key);
+			// URI should already be %escaped?
+			m.update(requestUri.getBytes(Charset.forName("ASCII")));
+			m.update((byte)0);
+			m.update(line.getBytes(Charset.forName("UTF-8")));
+			byte[] mac = m.doFinal();
+			String smac = toHex(mac);
+			
+			if (smac.equals(auth)) {
+				return true;
+			}
+			logger.warning("HMAC did not match: "+auth+" vs "+smac);
+			return false;
+		} catch (Exception e) {
+			logger.log(Level.WARNING, "Error generating HMAC", e);
+		}
+		return false;
 	}
 
 	/** create and persist a new anonymous GameClient within calling transaction (for consistency) */

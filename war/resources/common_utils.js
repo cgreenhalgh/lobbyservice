@@ -1,5 +1,76 @@
 // Common JS utilities for LobbyService web forms, etc.
 
+//http://www.netlobo.com/url_query_string_javascript.html
+function gup( name ) {  
+	name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");  
+	var regexS = "[\\?&]"+name+"=([^&#]*)";  
+	var regex = new RegExp( regexS ); 
+	var results = regex.exec( window.location.href ); 
+	if( results == null )   
+		return "";  
+	else    
+		return results[1];
+}
+
+//string to UTF-8 bytes in HEX for Hmac generation
+// based on http://answers.oreilly.com/topic/657-how-to-use-utf-8-with-javascript/
+function nibble_to_hex(nibble){
+    var chars = '0123456789ABCDEF';
+    return chars.charAt(nibble);
+}
+function escape_utf8(data) {
+	if (data == '' || data == null){
+		return '';
+	}
+	data = data.toString();
+	var buffer = '';
+	for(var i=0; i<data.length; i++){
+		var c = data.charCodeAt(i);
+		var bs = new Array();
+		if (c > 0x10000){
+			// 4 bytes
+			bs[0] = 0xF0 | ((c & 0x1C0000) >>> 18);
+			bs[1] = 0x80 | ((c & 0x3F000) >>> 12);
+			bs[2] = 0x80 | ((c & 0xFC0) >>> 6);
+			bs[3] = 0x80 | (c & 0x3F);
+		}else if (c > 0x800){
+			// 3 bytes
+			bs[0] = 0xE0 | ((c & 0xF000) >>> 12);
+			bs[1] = 0x80 | ((c & 0xFC0) >>> 6);
+			bs[2] = 0x80 | (c & 0x3F);
+		}else if (c > 0x80){
+			// 2 bytes
+			bs[0] = 0xC0 | ((c & 0x7C0) >>> 6);
+			bs[1] = 0x80 | (c & 0x3F);
+		}else{
+			// 1 byte
+			bs[0] = c;
+		}
+		for(var j=0; j<bs.length; j++){
+			var b = bs[j];
+			var hex = nibble_to_hex((b & 0xF0) >>> 4) 
+			+ nibble_to_hex(b & 0x0F);
+			buffer += hex;
+		}
+	}
+	return buffer;
+}
+function escape_ascii(data) {
+	if (data == '' || data == null){
+		return '';
+	}
+	data = data.toString();
+	var buffer = '';
+	for(var i=0; i<data.length; i++){
+		var b = data.charCodeAt(i) & 0xFF;
+		var hex = nibble_to_hex((b & 0xF0) >>> 4) 
+			+ nibble_to_hex(b & 0x0F);
+			buffer += hex;
+	}
+	return buffer;
+}
+
+
 //===========================================================
 // Utilities for for building JSON requests from HTML Forms.
 

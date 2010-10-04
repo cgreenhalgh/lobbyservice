@@ -109,6 +109,7 @@ public interface Constants {
 	public static final String SERVER_ENDING_TIME_OFFSET_MS = "serverEndingTimeOffsetMs";
 	public static final String SERVER_END_TIME_OFFSET_MS = "serverEndTimeOffsetMs";
 	public static final String SERVER_START_TIME_OFFSET_MS = "serverStartTimeOffsetMs";
+	public static final String SHARED_SECRET = "sharedSecret";
 	public static final String START_TIME = "startTime";
 	public static final String START_TIME_CRON = "startTimeCron";
 	public static final String START_TIME_OPTIONS_JSON = "startTimeOptionsJson";

@@ -127,7 +127,7 @@ public class ClientRequestServlet extends HttpServlet implements Constants {
 		}
 		try {			
 			// app logic...
-			ClientResponse cresp = handleRequest(creq, line, auth);
+			ClientResponse cresp = handleRequest(creq, req.getRequestURI(), line, auth);
 			
 			JSONUtils.sendClientResponse(resp, cresp);
 		} catch (RequestException e) {
@@ -152,10 +152,10 @@ public class ClientRequestServlet extends HttpServlet implements Constants {
 		}
 	}
 
-	private ClientResponse handleRequest(ClientRequest creq, String line,
+	private ClientResponse handleRequest(ClientRequest creq, String requestUri, String line,
 			String auth) throws IOException, JoinException, RequestException {
 		// authenticate 
-		JoinUtils.JoinAuthInfo jai = JoinUtils.authenticate(creq.getClientId(), null, null, true, line, auth);			
+		JoinUtils.JoinAuthInfo jai = JoinUtils.authenticate(creq.getClientId(), null, null, true, requestUri, line, auth);			
 
 		ClientResponse cresp = null;
 		switch (creq.getType()) {

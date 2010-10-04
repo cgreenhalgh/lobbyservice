@@ -1265,4 +1265,62 @@ public class JSONUtils implements Constants {
 		}
 		w.close();
 	}
+	/** parse JSON Object to SetSharedSecretRequest
+	 * @throws JSONException */
+	public static RegisterClientRequest parseRegisterClientRequest(JSONObject json) throws JSONException {
+		RegisterClientRequest o = new RegisterClientRequest();
+		Iterator keys = json.keys();
+		while(keys.hasNext()) {
+			String key = (String)keys.next();
+//			logger.info("GCT: "+key+"="+json.getObject(key));
+			if (key.equals(CLIENT_ID))
+				o.setClientId(json.getString(key));
+			else if (key.equals(SHARED_SECRET))
+				o.setSharedSecret(json.getString(key));
+			else if (key.equals(CLIENT_TYPE))
+				o.setClientType(json.getString(key));
+			else if (key.equals(MAJOR_VERSION))
+				o.setMajorVersion(json.getInt(key));
+			else if (key.equals(MINOR_VERSION))
+				o.setMinorVersion(json.getInt(key));
+			else if (key.equals(NICKNAME))
+				o.setNickname(json.getString(key));
+			else if (key.equals(SEQ_NO))
+				o.setSeqNo(json.getInt(key));
+			else if (key.equals(TIME))
+				o.setTime(json.getLong(key));
+			else if (key.equals(UPDATE_VERSION))
+				o.setUpdateVersion(json.getInt(key));
+			else if (key.equals(VERSION))
+				o.setVersion(json.getInt(key));
+			else 
+				throw new JSONException("Unsupported key '"+key+"' in RegisterClientRequest: "+json);
+		}
+		return o;
+	}
+	/** write RegisterClientResponse object for user 
+	 * @throws JSONException */
+	public static void writeRegisterClientResponse(JSONWriter jw, RegisterClientResponse o) throws JSONException {
+		jw.object();
+		if (o.getStatus()!=null) {
+			jw.key(STATUS);
+			jw.value(o.getStatus().toString());
+		}
+		jw.key(VERSION);
+		jw.value(o.getVersion());
+		jw.endObject();
+	}
+	/** set ClientResponse as response 
+	 * @throws IOException */
+	public static void sendRegisterClientResponse(HttpServletResponse resp, RegisterClientResponse o) throws IOException {
+		Writer w = JSONUtils.getResponseWriter(resp);
+		JSONWriter jw = new JSONWriter(w);
+		try {
+			JSONUtils.writeRegisterClientResponse(jw, o);	
+		} catch (JSONException je) {
+			throw new IOException(je);
+		}
+		w.close();
+	}
+	
 }

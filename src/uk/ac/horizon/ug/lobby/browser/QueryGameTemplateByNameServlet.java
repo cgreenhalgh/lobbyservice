@@ -93,7 +93,7 @@ public class QueryGameTemplateByNameServlet extends HttpServlet implements Const
 			return;
 		}
 		try {
-			JoinUtils.JoinAuthInfo jai = JoinUtils.authenticateOptional(gq.getClientId(), gq.getDeviceId(), line, auth);
+			JoinUtils.JoinAuthInfo jai = JoinUtils.authenticateOptional(gq.getClientId(), gq.getDeviceId(), req.getRequestURI(), line, auth);
 			GameIndex gindex = QueryGameTemplateServlet.handleGameQuery(gq, gt, jai);
 			// response
 			JSONUtils.sendGameIndex(resp, gindex);

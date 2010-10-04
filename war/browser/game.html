@@ -17,6 +17,7 @@
     <script type = "text/javascript" src="../resources/jquery-1.4.2.min.js"></script>
     <script type = "text/javascript" src="../resources/jquery.json-2.2.min.js"></script>
     <script type = "text/javascript" src="../resources/common_utils.js"></script>
+    <script type = "text/javascript" src="../resources/sha1.js"></script>
     <script type = "text/javascript" src="game.js"></script>
     <script type = "text/javascript">
     </script>
@@ -27,7 +28,18 @@
   	<div id="game_div" >
     	<table id="game" class="titleTable"></table>
 	</div>
+	<div id="account_div">
+  		<input class="queryOption" type="button" value="Search" onclick="show_query()"/>
+    	<table id="account" class="listTable">
+			<tr><td id="accountClientId" class="queryLabel"></td></tr>
+			<tr><td id="accountRegistered" class="queryLabel"></td></tr>
+			<tr><td><input class="queryOption" type="button" name="register" value="Register Client" onclick="do_register()"/>
+				<input class="queryOption" type="button" name="account" value="Online Account" onclick="do_online_account()"/>
+			</td></tr>
+    	</table>
+  	</div>
 	<div id="query_div">
+  		<input class="queryOption" type="button" value="Account" onclick="show_account()"/><br/>
 		<form action="dummy">
 			<table>
 				<tr><td class="queryLabel">When?</td></tr>
@@ -64,15 +76,18 @@
 		</form>
 	</div>
   	<div id="list_div">
+  		<input class="queryOption" type="button" value="Account" onclick="show_account()"/>
   		<input class="queryOption" type="button" value="Search again" onclick="show_query()"/><br/>
     	<table id="list" class="listTable"></table>
 	</div>
   	<div id="create_div">
+  		<input class="queryOption" type="button" value="Account" onclick="show_account()"/>
   		<input class="queryOption" type="button" value="Search again" onclick="show_query()"/>
   		<input class="queryOption" type="button" value="Back to list" onclick="show_list()"/><br/>
     	<table id="create" class="listTable"></table>
 	</div>
   	<div id="join_div">
+  		<input class="queryOption" type="button" value="Account" onclick="show_account()"/>
   		<input class="queryOption" type="button" value="Search again" onclick="show_query()"/>
   		<input class="queryOption" type="button" value="Back to list" onclick="show_list()"/><br/>
     	<table id="join" class="listTable"></table>

@@ -30,7 +30,7 @@ public class LobbyserviceServlet extends HttpServlet {
 	
 	public void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException {
-		logger.info("Get: contextPath="+req.getContextPath()+", pathInfo="+req.getPathInfo()+", queryString="+req.getQueryString());
+		logger.info("Get: contextPath="+req.getContextPath()+", pathInfo="+req.getPathInfo()+", queryString="+req.getQueryString()+", requestURI="+req.getRequestURI()+", localName="+req.getLocalName()+", localPort="+req.getLocalPort()+", serverName="+req.getServerName()+", serverPort="+req.getServerPort()+", serverPath="+req.getServletPath());
 		
 		if ("/json".equals(req.getPathInfo())) {
 			resp.setCharacterEncoding("UTF-8");

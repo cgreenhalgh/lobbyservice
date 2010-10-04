@@ -154,7 +154,7 @@ public class NewGameInstanceServlet extends HttpServlet implements Constants {
 			
 			// authenticate client
 			JoinUtils.ClientInfo clientInfo = new JoinUtils.ClientInfo(gjreq.getClientType(), gjreq.getMajorVersion(), gjreq.getMinorVersion(), gjreq.getUpdateVersion());
-			JoinUtils.JoinAuthInfo jai = JoinUtils.authenticate(gjreq.getClientId(), gjreq.getDeviceId(), clientInfo, gif.isAllowAnonymousClients(), line, auth);
+			JoinUtils.JoinAuthInfo jai = JoinUtils.authenticate(gjreq.getClientId(), gjreq.getDeviceId(), clientInfo, gif.isAllowAnonymousClients(), req.getRequestURI(), line, auth);
 			GameClient gc = jai.gc;
 			Account account = jai.account;
 			boolean anonymous = jai.anonymous;

@@ -2,9 +2,13 @@
 <html>
 <head>
 
+
+  
   
   <meta content="text/html; charset=ISO-8859-1" http-equiv="content-type">
 
+
+  
   
   <title>Lobby Service Client API</title>
 </head>
@@ -12,95 +16,149 @@
 
 <body>
 
+
 <h1>Lobby Service Client API</h1>
+
 
 <p>Chris Greenhalgh, 2010-10-01</p>
 
+
 <p>This document is a (partial) description of the lobby service client API.</p>
+
 
 <p>Additional insight can be gained from the HTML/JS clients in <span style="font-family: monospace;">war/browser/</span>.</p>
 
+
 <h2>Overview</h2>
+
 
 <p>Like the other interfaces to the lobby service requests are JSON-encoded and HTTP POST or GET methods are used.</p>
 
+
 <p> The client API has the following main entry points:</p>
+
 
 <table style="text-align: left; width: 100%;" border="1" cellpadding="2" cellspacing="2">
 
+
   <tbody>
 
+
     <tr>
+
 
       <td>Path</td>
 
+
       <td>Method</td>
+
 
       <td>Data</td>
 
+
       <td>Description</td>
+
 
     </tr>
 
+
     <tr>
+      <td>/browser/RegisterClient</td>
+      <td>POST (HTTPS)</td>
+      <td>requires JSON-encoded RegisterClientRequest<br>
+returns JSON-encoded RegisterClientResponse</td>
+      <td>Register client, passing shared secret (and optionally other
+client info) to server (over HTTPS). Required in order to do
+authenticated client operations.</td>
+    </tr>
+    <tr>
+
 
       <td>/browser/GetGameIndex</td>
 
+
       <td>GET</td>
+
 
       <td>returns JSON-encoded GameIndex with GameTemplate items</td>
 
+
       <td>Get a list of all GameTemplates known to the server.</td>
+
 
     </tr>
 
+
     <tr>
+
 
       <td>/browser/QueryGameTemplate/<span style="font-style: italic;">GTID</span></td>
 
+
       <td>POST</td>
+
 
       <td>requires JSON-encoded GameQuery<br>
 
+
 returns JSON-encoded GameIndex with GameInstance/InstanceFactory items</td>
+
 
       <td>Search for GameInstances and/or GameInstanceFactories for the
 specified GameTemplate that meet the query criteria, e.g. in location,
 timing and client type</td>
 
+
     </tr>
 
+
     <tr>
+
 
       <td>/browser/NewGameInstance/<span style="font-style: italic;">GIFID</span></td>
 
+
       <td>POST</td>
+
 
       <td>requires JSON-encoded GameJoinRequest of type NEW_INSTANCE<br>
 
+
 returns JSON-encoded GameJoinResponse</td>
+
 
       <td>Ask to reserve a slot in a newly created GameInstance for the specified GameInstanceFactory</td>
 
+
     </tr>
+
 
     <tr>
 
+
       <td>/browser/JoinGameInstance/<span style="font-style: italic;">GIID</span></td>
+
 
       <td>POST</td>
 
+
       <td>requires JSON-encoded GameJoinRequest<br>
+
 
 returns JSON-encoded GameJoinResponse</td>
 
+
       <td>Ask to reserve a slot or start playing a particular GameInstance</td>
+
 
     </tr>
 
+
+  
   
   </tbody>
 </table>
+
 
 <p>The GameIndex return values are modelled on RSS, and comprise a
 header with general information (about the lobby service in the first
@@ -108,43 +166,61 @@ case and about the game template in the second) plus a list of specific
 items (about the game templates in the first case and the game
 instances and/or factories in the second case).</p>
 
+
 <p>The items returned in the first and second case include full URLs
 for subsequent operations, supporting the possibility of&nbsp;RSS-like
 distribution and syndication of this information. </p>
 
+
 <p>The flow of client operations is:</p>
+
 
 <ol>
 
+
   <li>client&nbsp;</li>
 
+
+  
   
   <ul>
+
 
     <li>calls GetGameIndex to obtain available GameTemplates, each of which includes a <span style="font-family: monospace;">queryUrl</span> corresponding to the relevant QueryGameTemplate entry point</li>
 
+
     <li>or pre-configured with a specific GameTemplate (QueryGameTemplate URL)</li>
 
+
+  
   
   </ul>
 
+
   <li>client calls the QueryGameTemplate entry point for a particular GameTemplate with appropriate constraints</li>
 
+
+  
   
   <ul>
+
 
     <li>the get back a GameIndex with a list of matching GameInstance
 and/or GameInstanceFactory items with corresponding joinUrl or
 newInstanceUrl respectively.</li>
 
+
+  
   
   </ul>
+
 
   <li>In the case of a GameInstanceFactory, the client calls the
 newInstanceUrl, i.e. the appropriate NewGameInstance entry point. This
 may create a new GameInstance or identify a suitable existing instance.
 If successful it will reserve a place for the client, returning a
 joinUrl for the specific GameInstance</li>
+
 
   <li>client calls the joinUrl, i.e. the appropriate JoinGameInstance
 entry point. The client can reserve a slot, or ask to start playing. If
@@ -155,66 +231,107 @@ client and communicate with the specific game server for this
 particular game. (At this point the lobby client is no longer required,
 unless the player wishes to rejoin the game later.)&nbsp;</li>
 
+
 </ol>
+
 
 <h2>Data types</h2>
 
+
 See<br>
+
 
 <ul>
 
+
   <li>uk.ac.horizon.ug.lobby.model.GameIndex</li>
+
 
   <li>uk.ac.horizon.ug.lobby.protocol.GameTemplateInfo</li>
 
+
+  
   
   <ul>
+
 
     <li>uk.ac.horizon.ug.lobby.model.GameTemplate</li>
 
+
+  
   
   </ul>
 
+
+  
   
   <ul>
+
 
     <li>uk.ac.horizon.ug.lobby.model.GameInstance</li>
 
+
+  
   
   </ul>
 
+
+  
   
   <ul>
 
+
     <li>uk.ac.horizon.ug.lobby.model.GameInstanceFactory</li>
 
+
+  
   
   </ul>
 
+
   <li>uk.ac.horizon.ug.lobby.protocol.GameQuery</li>
+
 
   <li>uk.ac.horizon.ug.lobby.protocol.GameJoinRequest</li>
 
+
   <li>uk.ac.horizon.ug.lobby.protocol.GameJoinResponse</li>
+  <li>uk.ac.horizon.ug.lobby.protocol.RegisterClientRequest</li>
+  <li>uk.ac.horizon.ug.lobby.protocol.RegisterClientResponse</li>
+</ul>
+
+
+<ul>
+
 
 </ul>
+
 
 <p>Note that uk.ac.horizon.ug.lobby.protocol.JSONUtils does quite a lot
 of custom marshalling for the GameIndex and its GameTemplateInfo items.</p>
 
+
 <h2>Authentication</h2>
+
 <p>Authentication in the client API is based on per-request authentication of the Client making the request. </p>
+
 <p>GameQuery and GameJoinRequest each include:</p>
+
 <ul>
+
   <li>clientId - optional unique identifier for client, which is a
 unique identifier within the scope of the game server. It can be
 generated by the client device, e.g. as a GUID.&nbsp;</li>
+
   <li>deviceId - optional unique identifier for the device and/or
 client where a clientId is not provided, which should be globally
 unique and also persistent for that device/client (e.g. device IMEI or
 generated GUID).&nbsp;</li>
+
 </ul>
+
 <p>If a clientId is provided then the request must be successfully authenticated.</p>
+
 <p>If&nbsp;a deviceId but no clientId is provided then the deviceId is
 used as a default clientId, but there is no authentication. It is
 essentially anonymous and insecure, but operates as a kind of weak
@@ -222,48 +339,72 @@ capability, i.e. in non-malicious cases two clients are unlikely to
 provide the same deviceId, while the same client will normally provide
 the same deviceId persistently. So it can be used to link multiple
 requests from a single unauthenticated client.</p>
+
 <p>If no deviceId or clientId is provided but some client identity is
 required (e.g. to reserve a game slot or join a game) then a new
 clientId is generated (a random GUID) and returned to the calling
 client for use in subsequent requests.</p>
+
 <p>The planned authentication method is:</p>
+
 <ul>
+
   <li>each request body comprises&nbsp;</li>
+
+  
   <ul>
+
     <li>a single line (i.e. up to '\n') of UTF-8 encoded text which is
 the JSON-encoded request information (i.e.&nbsp;GameQuery or
 GameJoinRequest)</li>
+
+    
     <ul>
+
       <li>which includes clientId (if the request is to be authenticated)</li>
+
+    
     </ul>
+
     <li>a second line (i.e. up to '\n' or EOF) of UTF-8 encoded text,
 which is a Hash-based Message Authentication Code (if the request is to
 be authenticated).</li>
+
+  
   </ul>
+
 </ul>
+
 The proposed <a href="http://en.wikipedia.org/wiki/HMAC">HMAC</a>&nbsp;is the (UTF-8=ASCII)  textual hex representation of a HMAC-SHA-1:
 <ul>
-  <li>the full request URL, including any parameters, fragments, etc. [have to check what encoding / canonicalisation]</li>
-  <li>a separator byte</li>
-  <li>the bytes of the UTF-8 encoded request body line.</li>
-</ul>
-<p>The HMAC uses a secret shared between the client and server (Client.sharedSecret).</p>
-<p>An example Javascript HMAC-SHA1 implementation is <a href="http://jssha.sourceforge.net/">http://jssha.sourceforge.net/</a></p>
-<p>Following <a href="http://openid.net/specs/openid-authentication-1_1.html">OpenID 1.1</a> the default for shared secret generation is DH-SHA1 (Diffie-Helman Key Exchange with SHA-1).</p>
-<p>[Support for this is not yet implemented, but would require a
-separate API operation for negotiating a shared secret, with the client
-passing at least its clientId and its DH public key to the lobby
-service, which would response with at least its own public key and the
-exchange value]</p>
-<p>TODO (not yet implemented)</p>
 
+  <li>the path of request URL (current excluding parameters,
+fragments, etc., although ideally they should be included), assumed
+8-bit (ASCII)&nbsp;</li>
+  <li>a separator byte (0)</li>
+
+  <li>the bytes of the UTF-8 encoded request body line.</li>
+
+</ul>
+
+<p>The HMAC uses a secret shared between the client and server (Client.sharedSecret).</p>
+
+<p>An example Javascript HMAC-SHA1 implementation is <a href="http://jssha.sourceforge.net/">http://jssha.sourceforge.net/</a></p>
+
+<p>At least for now, the shared secret is generated by the client and passed to the server using RegisterClient over HTTPS (for GAE see <a href="http://code.google.com/appengine/docs/java/config/webxml.html#Secure_URLs">http://code.google.com/appengine/docs/java/config/webxml.html#Secure_URLs</a>). This makes the registration idempotent and secure on re-try (contra server-side generation and return to the client). </p>
+<p style="margin-left: 40px;">Alternatively, following <a href="http://openid.net/specs/openid-authentication-1_1.html">OpenID 1.1</a> the&nbsp;shared secret generation could be generated with DH-SHA1 (Diffie-Helman Key Exchange with SHA-1) [e.g.?&nbsp;<a href="http://www.soa-world.de/echelon/2010/09/diffie-hellman-key-exchange-in-javascript.html">http://www.soa-world.de/echelon/2010/09/diffie-hellman-key-exchange-in-javascript.html</a>].&nbsp;</p>
 <h2>Changes</h2>
+
 
 <ul>
 
-  <li>2010-10-01: created&nbsp; </li>
+
+  <li>2010-10-01: created&nbsp;</li>
+  <li>2010-10-04: initial authentication</li>
+
 
 </ul>
+
 
 </body>
 </html>

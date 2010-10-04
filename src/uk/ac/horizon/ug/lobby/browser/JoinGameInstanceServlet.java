@@ -146,7 +146,7 @@ public class JoinGameInstanceServlet extends HttpServlet implements Constants {
 			// authenticate client
 			// own em/etc.
 			JoinUtils.ClientInfo clientInfo = new JoinUtils.ClientInfo(gjreq.getClientType(), gjreq.getMajorVersion(), gjreq.getMinorVersion(), gjreq.getUpdateVersion());
-			JoinUtils.JoinAuthInfo jai = JoinUtils.authenticate(gjreq.getClientId(), gjreq.getDeviceId(), clientInfo, gi.isAllowAnonymousClients(), line, auth);
+			JoinUtils.JoinAuthInfo jai = JoinUtils.authenticate(gjreq.getClientId(), gjreq.getDeviceId(), clientInfo, gi.isAllowAnonymousClients(), req.getRequestURI(), line, auth);
 			if (jai.anonymous && gjreq.getGameSlotId()!=null){
 				throw new JoinException(GameJoinResponseStatus.ERROR_CLIENT_AUTHENTICATION_REQUIRED, "Changing an existing game slot requires a client to be identified");
 			}

@@ -73,6 +73,10 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
 		<servlet-class>uk.ac.horizon.ug.lobby.user.UserGameInstanceFactoryServlet</servlet-class>
 	</servlet>
 	<servlet>
+		<servlet-name>RegisterClient</servlet-name>
+		<servlet-class>uk.ac.horizon.ug.lobby.browser.RegisterClientServlet</servlet-class>
+	</servlet>
+	<servlet>
 		<servlet-name>GetGameIndex</servlet-name>
 		<servlet-class>uk.ac.horizon.ug.lobby.browser.GetGameIndexServlet</servlet-class>
 	</servlet>
@@ -177,6 +181,10 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
 		<url-pattern>/browser/GetGameIndex</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
+		<servlet-name>RegisterClient</servlet-name>
+		<url-pattern>/browser/RegisterClient</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
 		<servlet-name>QueryGameTemplate</servlet-name>
 		<url-pattern>/browser/QueryGameTemplate/*</url-pattern>
 	</servlet-mapping>
@@ -226,5 +234,14 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
         <auth-constraint> 
             <role-name>*</role-name> 
         </auth-constraint> 
+    </security-constraint>
+    <!-- HTTPS only for client set shared secret (doesn't work on dev server - just HTTP) -->
+    <security-constraint>
+        <web-resource-collection>
+            <url-pattern>/browser/RegisterClient</url-pattern>
+        </web-resource-collection>
+        <user-data-constraint>
+            <transport-guarantee>CONFIDENTIAL</transport-guarantee>
+        </user-data-constraint>
     </security-constraint>
 </web-app>

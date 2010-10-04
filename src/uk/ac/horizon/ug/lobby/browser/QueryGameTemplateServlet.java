@@ -134,7 +134,7 @@ public class QueryGameTemplateServlet extends HttpServlet implements Constants {
 			return;
 		}
 		try {
-			JoinUtils.JoinAuthInfo jai = JoinUtils.authenticateOptional(gq.getClientId(), gq.getDeviceId(), line, auth);
+			JoinUtils.JoinAuthInfo jai = JoinUtils.authenticateOptional(gq.getClientId(), gq.getDeviceId(), req.getRequestURI(), line, auth);
 
 			GameIndex gindex = handleGameQuery(gq, gt, jai);
 			// response

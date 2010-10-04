@@ -72,6 +72,9 @@ function get_lobbyclient() {
 function log(msg) {
 	if (get_lobbyclient()!=undefined)
 		get_lobbyclient().log(msg);
+// debug
+	else
+		alert(msg);
 }
 
 // get game if dedicated lobbyclient
@@ -302,17 +305,6 @@ function get_client_id() {
 	return client_id;
 }
 
-//http://www.netlobo.com/url_query_string_javascript.html
-function gup( name ) {  
-	name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");  
-	var regexS = "[\\?&]"+name+"=([^&#]*)";  
-	var regex = new RegExp( regexS ); 
-	var results = regex.exec( window.location.href ); 
-	if( results == null )   
-		return "";  
-	else    
-		return results[1];
-}
 function update_game_index(index) {
 	var table = $('#game');
 	gameIndex = index;
@@ -346,6 +338,8 @@ function load_game_index() {
 			// the Java string doesn't work with parseJSON ?! :-(
 			var index = $.parseJSON(String(get_game().getIndexJson()));
 			//alert('index='+$.toJSON(index)+' from '+get_game().getIndexJson());
+			if (index==null) 
+				alert('index='+$.toJSON(index)+' from '+get_game().getIndexJson()+' from '+get_game());
 			update_game_index(index);
 			return;
 		}
@@ -368,6 +362,7 @@ function load_game_index() {
 			dataType: 'json',
 			success: function success(data, status) {
 			log('Query resp. '+$.toJSON(data));
+			//alert('Query resp. '+$.toJSON(data)+' ('+status+')');
 			update_game_index(data);
 		},
 		error: function error(req, status) {
@@ -528,28 +523,39 @@ function get_os_name() {
 }
 
 function show_list() {
+	$('#account_div').hide('fast');
 	$('#query_div').hide('fast');
 	$('#list_div').show('fast');
 	$('#create_div').hide('fast');
 	$('#join_div').hide('fast');
 }
 function show_query() {
+	$('#account_div').hide('fast');
 	$('#list_div').hide('fast');
 	$('#query_div').show('fast');
 	$('#create_div').hide('fast');
 	$('#join_div').hide('fast');
 }
 function show_create() {
+	$('#account_div').hide('fast');
 	$('#list_div').hide('fast');
 	$('#query_div').hide('fast');
 	$('#create_div').show('fast');
 	$('#join_div').hide('fast');
 }
 function show_join() {
+	$('#account_div').hide('fast');
 	$('#list_div').hide('fast');
 	$('#query_div').hide('fast');
 	$('#create_div').hide('fast');
 	$('#join_div').show('fast');
+}
+function show_account() {
+	$('#account_div').show('fast');
+	$('#list_div').hide('fast');
+	$('#query_div').hide('fast');
+	$('#create_div').hide('fast');
+	$('#join_div').hide('fast');
 }
 
 
@@ -578,8 +584,18 @@ $(document).ready(function() {
 	//test_storage();
 
 	$('#clientId').html('Client ID: checking...');
+	$('#accountClientId').html('Client ID: checking...');
 	$('#clientId').html('Client ID: '+get_client_id()+' ('+persistence_type+')');
+	$('#accountClientId').html('Client ID: '+get_client_id()+' ('+persistence_type+')');
 
+	// registration
+	$('#accountRegistered').html('Client Registered: checking...');
+	var registerClientStatus = get_persistent_string('registerClientStatus');
+	if (registerClientStatus==null || registerClientStatus==undefined) {
+		$('#accountRegistered').html('Client Registered: No');		
+	}
+	else
+		$('#accountRegistered').html('Client Registered: '+registerClientStatus);				
 
 	//alert('width='+$('body').innerWidth()+',height='+$('body').innerHeight());
 	//var width = $('body').innerWidth();
@@ -652,11 +668,43 @@ function get_location_constraint() {
 	return locationConstraint;	    	
 }
 
+function is_authenticated() {
+	var sharedSecret = get_persistent_string('sharedSecret');
+	if (sharedSecret!=null && sharedSecret!=undefined)
+		return true;
+	return false;
+}
+
+// add HMAC to request - to authenticate 
+function add_hmac(line, url) {
+	// bytes...
+	// Path of URL
+	var hix = url.indexOf('//');
+	if (hix<0)
+		hix = 0;
+	else
+		hix = hix+2;
+	var ix = url.indexOf('/', hix);
+	var path = '';
+	if (ix>=0)
+		// include /
+		path = url.substr(ix);
+	log('Request URI = '+path);
+	var hex = escape_ascii(path);
+	hex = hex+'00'; // byte
+	hex = hex+escape_utf8(line);
+	// todo
+	var sha = new jsSHA(hex,'HEX');
+	//var sha = new jsSHA('','HEX');
+	var hmac = sha.getHMAC(get_persistent_string('sharedSecret'),'HEX','HEX');
+	//var hmac = '1234';
+	return line+'\n'+hmac;
+}
+
 // do search 
 function do_query() {
 	var query = {version:1};
 	// deviceId
-	// TODO clientId
 	query.deviceId = get_client_id();
 	if (os!=null && $('input[name=includeClient]').attr('checked')==true) {
 		query.clientType = os[0];
@@ -671,8 +719,9 @@ function do_query() {
 	}
 	query.timeConstraint = get_time_constraint();
 	query.locationConstraint = get_location_constraint();
-	// TODO clientId
-	query.deviceId = get_client_id(); // unauthenticated!
+	// clientId
+	if (is_authenticated())
+		query.clientId = get_client_id(); // unauthenticated!
 	// TODO
 
 	var table = $('#list');
@@ -683,6 +732,9 @@ function do_query() {
 	update_search_disabled();
 
 	var data = $.toJSON(query);
+	if (is_authenticated()) {
+		data = add_hmac(data, queryUrl);
+	}
 	try {
 		log('Query req. '+data+' to '+queryUrl);
 		$.ajax({url: queryUrl, 
@@ -783,6 +835,9 @@ function get_game_join_request(type) {
 	// latitudeE6, longitudeE6, newInstanceStartTime, newInstanceVisibility
 	request.time = currentTimeMillis();
 	request.deviceId = get_client_id(); // unauthenticated!
+	// clientId
+	if (is_authenticated())
+		request.clientId = get_client_id(); // unauthenticated!
 	if (os!=null) {
 		request.clientType = os[0];
 		if (os[1].length>0)
@@ -814,12 +869,16 @@ function do_create() {
 		return;
 	}
 	try {
-		log('New req. '+$.toJSON(request)+' to '+instanceItem.newInstanceUrl);
+		var data = $.toJSON(request);
+		if (is_authenticated()) {
+			data = add_hmac(data, instanceItem.newInstanceUrl);
+		}
+		log('New req. '+data+' to '+instanceItem.newInstanceUrl);
 		$.ajax({url: instanceItem.newInstanceUrl, 
     		type: 'POST',
     		contentType: 'application/json',
     		processData: false,
-    		data: $.toJSON(request),
+    		data: data,
     		dataType: 'json',
     		success: function success(data, status) {
 				log('New resp. '+$.toJSON(data));
@@ -839,7 +898,7 @@ function do_create() {
 				alert(msg);
 			}
 		});
-	} catch (err) {
+	} catch (e) {
 		$('input[name=do_join]').attr('disabled', false);
 		var msg = 'Sorry - there was a problem ('+e.name+': '+e.message+')';
 		table.append('<tr class="temp"><td>'+msg+'</td></tr>');
@@ -915,12 +974,16 @@ function do_join() {
 	table.append('<tr class="temp"><td>Requesting to join game...</td></tr>');
 	var request = get_game_join_request('PLAY');
 	try {
-		log('Join req. '+$.toJSON(request)+' to '+instanceItem.joinUrl);
+		var data = $.toJSON(request);
+		if (is_authenticated()) {
+			data = add_hmac(data, instanceItem.joinUrl);
+		}
+		log('Join req. '+data+' to '+instanceItem.joinUrl);
 		$.ajax({url: instanceItem.joinUrl, 
     		type: 'POST',
     		contentType: 'application/json',
     		processData: false,
-    		data: $.toJSON(request),
+    		data: data,
     		dataType: 'json',
     		success: function success(data, status) {
 				log('Join resp. '+$.toJSON(data));
@@ -945,10 +1008,142 @@ function do_join() {
 				alert(msg);
 			}
 		});
-	} catch (err) {
+	} catch (e) {
 		$('input[name=do_join]').attr('disabled', false);
 		var msg = 'Sorry - there was a problem ('+e.name+': '+e.message+')';
 		table.append('<tr class="temp"><td>'+msg+'</td></tr>');
 		alert(msg);
+	}
+}
+
+var CHARS = '0123456789ABCDEF'.split('');
+// hex-encoded
+function make_secret() {
+	var secret = new Array(16), rnd=0, r;
+	for (var i = 0; i < 16; i++) {
+		if (rnd <= 0x02) rnd = 0x2000000 + (Math.random()*0x1000000)|0;
+	    r = rnd & 0xf;
+	    rnd = rnd >> 4;
+	    secret[i] = CHARS[r];
+	}
+	return secret.join('');
+}
+
+// on dev server https is not supported :-(
+var https_scheme = 'http'; 
+//var https_scheme = 'https'; 
+
+// try to register client with server
+function do_register() {
+	var sharedSecret = get_persistent_string('sharedSecret');
+	if (sharedSecret==null || sharedSecret==undefined) {
+		// generate...
+		log('generating new sharedSecret');
+		sharedSecret = make_secret();
+		log('sharedSecret = '+sharedSecret);
+		set_persistent_string('sharedSecret', sharedSecret);
+	}
+	var request = {version:1, clientId:get_client_id(), sharedSecret:sharedSecret};
+	request.time = currentTimeMillis();
+	if (os!=null) {
+		request.clientType = os[0];
+		if (os[1].length>0)
+			request.majorVersion = Number(os[1]);
+		if (os[2].length>0)
+			request.minorVersion = Number(os[2]);
+	}
+	// queryUrl , e.g. http://128.243.22.74:8888/browser/QueryGameTemplate/165acda5-8f63-4dd1-a883-cb39a61f1d94
+	// -> RegisterClient URL
+	if (queryUrl==null || queryUrl==undefined) {
+		alert('Sorry - client is not configured correctly');
+		return;
+	}
+	// back two /s in path (template id and op name)
+	var ix = queryUrl.lastIndexOf('/');
+	if (ix>0)
+		ix = queryUrl.lastIndexOf('/', ix-1);
+	var six = queryUrl.indexOf(':');
+	if (ix<=0 || six<=0) {
+		alert('Sorry - client is not configured correctly');
+		return;
+	}
+	var url = https_scheme+queryUrl.substr(six, ix-six+1)+'RegisterClient';
+	try {
+		$('#accountRegistered').html('Client Registered: registering...');
+		log('Register req. '+$.toJSON(request)+' to '+url);
+		$.ajax({url: url, 
+    		type: 'POST',
+    		contentType: 'application/json',
+    		processData: false,
+    		data: $.toJSON(request),
+    		dataType: 'json',
+    		success: function success(data, status) {
+				log('Register resp. '+$.toJSON(data));
+				var msg = data.status;
+				$('#accountRegistered').html('Client Registered: '+msg);
+
+				if (data.status=='OK') 
+					set_persistent_string('registerClientStatus', data.status);// no op
+				else {
+					// some kind of error
+					alert(msg);
+				}					
+			},
+			error: function error(req, status) {
+				var msg = 'Sorry - there was a problem ('+status+')';
+				$('#accountRegistered').html('Client Registered: Error ('+status+')');
+				alert(msg);
+			}
+		});
+	} catch (e) {
+		var msg = 'Sorry - there was a problem ('+e.name+': '+e.message+')';
+		$('#accountRegistered').html('Client Registered: Error ('+e.name+': '+e.message+')');
+		alert(msg);
+	}
+}
+
+// try to open user's online account
+function do_online_account() {
+	if (!('OK'==get_persistent_string('registerClientStatus'))) {
+		do_register();
+		if (!('OK'==get_persistent_string('registerClientStatus')))
+			return;
+	}
+	// queryUrl , e.g. http://128.243.22.74:8888/browser/QueryGameTemplate/165acda5-8f63-4dd1-a883-cb39a61f1d94
+	// -> RegisterClient URL
+	if (queryUrl==null || queryUrl==undefined) {
+		alert('Sorry - client is not configured correctly');
+		return;
+	}
+	// back three /s in path (template id, op name, context)
+	var ix = queryUrl.lastIndexOf('/');
+	if (ix>0)
+		ix = queryUrl.lastIndexOf('/', ix-1);
+	if (ix>0)
+		ix = queryUrl.lastIndexOf('/', ix-1);
+	if (ix<=0) {
+		alert('Sorry - client is not configured correctly');
+		return;
+	}
+	var url = queryUrl.substr(0,ix+1)+'user/browser/clients.html';
+	// parameters
+	url = addParameter(url, 'clientId', get_client_id());
+	var now = currentTimeMillis();
+	url = addParameter(url, 'time', now);
+	var hmac = '';//TODO
+	url = addParameter(url, 'hmac', hmac);
+	try {
+		log('Open accounts page '+url);
+		
+		//alert('try to open '+appLaunchUrl);
+		// if http/https assume browser-based and use a new window
+		// window.open doesn't seem to be picked up by my WebView at present :-(
+		if (get_lobbyclient()!=undefined)
+			get_lobbyclient().open(url);
+		else
+			window.open(url,'account');
+	}
+	catch (e) {
+		alert('Sorry - '+e.name+': '+e.message);
 	}
 }
