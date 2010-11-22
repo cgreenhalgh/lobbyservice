@@ -690,7 +690,7 @@ function getGameClientTemplate() {
 		return undefined;
 	if (instanceItem.clientTemplates!=undefined) {
 		if (instanceItem.clientTemplates.length>0) {
-			if (instanceItem.clientTemplates[0].applicationLaunchId!=undefined) {
+			if (instanceItem.clientTemplates[0].appLaunchUrl!=undefined) {
 				return instanceItem.clientTemplates[0];
 			}		
 		}
@@ -862,7 +862,7 @@ function handle_play_ok(response) {
 			if (get_lobbyclient()!=undefined)
 				get_lobbyclient().open(appLaunchUrl);
 			else
-				window.open(appLaunchUrl,'game_client');
+				window.open(appLaunchUrl,'gameclient','fullscreen=yes',false);
 		}
 		catch(err) {
 			alert('Sorry - could not start game ('+err.message+')');

@@ -245,6 +245,10 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
         <web-resource-name>admin pages</web-resource-name> 
             <url-pattern>/admin/*</url-pattern> 
         </web-resource-collection> 
+        <web-resource-collection>
+        <web-resource-name>cron jobs</web-resource-name> 
+            <url-pattern>/cron/*</url-pattern> 
+        </web-resource-collection> 
         <auth-constraint> 
             <role-name>admin</role-name> 
         </auth-constraint> 
@@ -260,12 +264,12 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
         </auth-constraint> 
     </security-constraint>
     <!-- HTTPS only for client set shared secret (doesn't work on dev server - just HTTP) -->
-    <security-constraint>
+<!-- <security-constraint>
         <web-resource-collection>
             <url-pattern>/browser/RegisterClient</url-pattern>
         </web-resource-collection>
         <user-data-constraint>
             <transport-guarantee>CONFIDENTIAL</transport-guarantee>
         </user-data-constraint>
-    </security-constraint>
+    </security-constraint> -->    
 </web-app>

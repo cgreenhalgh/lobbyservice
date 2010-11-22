@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <cronentries>
-  <cron>
   <!--  not run on desktop,
        e.g. $ while [[ 1 ]] ; do echo "tick"; curl -d '' http://128.243.22.74:8888/cron/RunBackgroundTasks; sleep 30; done -->
+  <!-- <cron>
     <url>/cron/RunBackgroundTasks</url>
     <description>Create scheduled GameInstances and manage external servers</description>
     <schedule>every 1 minutes</schedule>
-  </cron>
+  </cron>  -->  
 </cronentries>

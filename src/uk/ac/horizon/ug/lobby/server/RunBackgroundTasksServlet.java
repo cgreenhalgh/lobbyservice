@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.*;
 
 /** run periodic background tasks */
@@ -30,6 +31,17 @@ import javax.servlet.http.*;
 public class RunBackgroundTasksServlet extends HttpServlet {
 	static Logger logger = Logger.getLogger(RunBackgroundTasksServlet.class.getName());
 	
+	
+	/* (non-Javadoc)
+	 * @see javax.servlet.http.HttpServlet#doGet(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
+	 */
+	@Override
+	protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+			throws ServletException, IOException {
+		doPost(req, resp);
+	}
+
+
 	public void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException {
 		logger.info("RunBackgroundTasksServlet");

@@ -156,6 +156,7 @@ public class ExplodingPlacesServerProtocol implements ServerProtocol {
 		//   <playerName>...</playerName>
 		//   <clientVersion>1</clientVersion>
 		//   <clientType>AndroidDevclient</clientType>
+		//   <gameTag>...</gameTag>
 		//  </login>
 		
 		// to baseUrl/rpc/login.
