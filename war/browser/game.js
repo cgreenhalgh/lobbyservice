@@ -856,13 +856,17 @@ function handle_play_ok(response) {
 			}
 		}
 		try {
+			// work-around/test...
+			var table = $('#join');
+			table.append('<tr class="temp"><td><a href="'+appLaunchUrl+'" target="_blank">Click here if client does not open</a></td></tr>');
+
 			//alert('try to open '+appLaunchUrl);
 			// if http/https assume browser-based and use a new window
 			// window.open doesn't seem to be picked up by my WebView at present :-(
 			if (get_lobbyclient()!=undefined)
 				get_lobbyclient().open(appLaunchUrl);
 			else
-				window.open(appLaunchUrl,'gameclient','fullscreen=yes',false);
+				window.open(appLaunchUrl,'_blank','fullscreen=yes');//,'gameclient','fullscreen=yes',false);
 		}
 		catch(err) {
 			alert('Sorry - could not start game ('+err.message+')');
@@ -1071,7 +1075,7 @@ function do_online_account2() {
 		if (get_lobbyclient()!=undefined)
 			get_lobbyclient().open(url);
 		else
-			window.open(url,'account');
+			window.open(url,'_blank','fullscreen=yes');//,'account');
 	}
 	catch (e) {
 		alert('Sorry - '+e.name+': '+e.message);

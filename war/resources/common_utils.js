@@ -90,8 +90,8 @@ function log(msg) {
 	if (get_lobbyclient()!=undefined)
 		get_lobbyclient().log(msg);
 // debug
-	else
-		alert(msg);
+//	else
+//		alert(msg);
 }
 
 
