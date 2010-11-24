@@ -429,6 +429,8 @@ user-generated content) into the initial state of subsequent sessions</li>
     <li>person's/group's mobile device = their primary/personal
 link to the game</li>
 
+    <li>person's PC/set-top box = primary/personal link to a 'virtual' role in the game</li>
+
   </ul>
 
   <ul>
@@ -459,6 +461,96 @@ link to the game</li>
 
     </ul>
 
+  </ul>
+
+  <li>client description</li>
+  <ul>
+  	<li>lobby client</li>
+  	<ul>
+  		<li>game independent, browser-based</li>
+  		<ul>
+  			<li>Starts browser client by URL redirect - knows browser capabilities</li>
+  			<li>Start custom app via custom mime type - knows OS but not application installation</li>
+  		</ul>
+  		<li>game dependent, browser-based</li>
+  		<ul>
+  			<li>(see above)</li>
+  		</ul>
+  		<li>game independent, application-based</li>
+  		<ul>
+  			<li>Starts client natively, e.g. intent on Android - could check installed application</li>
+  		</ul>
+  		<li>game-dependent, application-based</li>
+  		<ul>
+  			<li>Is embedded within the client - knows installed application and version</li>
+  		</ul>
+  	</ul>
+  	<li>game client</li>
+  	<ul>
+  		<li>game-specific native application</li>
+  		<li>multi-game (semi-generic) native application</li>
+  		<li>browser-based</li>
+  	</ul>
+  	<li>Client 'layers'</li>
+  	<ul>
+  		<li>Hardware platform - determines available sensors, screen etc.; not easy to check in browser</li>
+  		<li>Operating system - (with hardware) determines suitability of installable applications</li>
+  		<li>Application</li>
+  		<ul>
+  			<li>Game-independent</li>
+  			<ul>
+  				<li>Web browser</li>
+  				<ul>
+  					<li>Browser compatibility/support... e.g. geolocation, HTML5, video codec(s), ...</li>
+  				</ul>
+  				<li>Flash player</li>
+  				<li>"Generic" (i.e. multi-game) application, e.g. Calvium? (OS/hardware-dependent)</li>
+  			</ul>
+  			<li>Game-specific</li>
+  			<ul>
+  				<li>Custom application (OS/hardware-dependent)</li>
+  			</ul>
+  		</ul>
+  	</ul>
+  	<li>Client requirement (characteristic) types</li>
+  	<ul>
+  		<li>Hardware (supported), e.g. accelerometer, GPS, ...; also max memory, persistent storage, CPU speed</li>
+  		<ul>
+  			<li>Check and give up, or play with reduced functionality</li>
+  		</ul>
+  		<li>Custom application, specific version(s)</li>
+  		<ul>
+  			<li>Install/upgrade if available (for OS, hardware)</li>
+  		</ul>
+		<li>Browser feature</li>
+		<ul>
+  			<li>Check and give up, or play with reduced functionality</li>
+  			<li>Use a custom browser??</li>	
+		</ul>
+		<li>Permission</li>
+		<ul>
+  			<li>Check and ask, then give up, or play with reduced functionality</li>
+		</ul>
+		<li>Managed resources, e.g. memory, storage space</li>
+		<ul>
+  			<li>Check and ask, then give up, or play with reduced functionality</li>
+		</ul>
+		<li>Contextual/transient/environmental constraints, e.g. GPS availability, accuracy, network availability (GSM/GPRS, 3G, WiFi), bandwidth</li>
+		<ul>
+  			<li>Check, monitor, prompt/feedback, then give up, or play with reduced functionality</li>
+		</ul>
+		<li>User preference/interaction, e.g. hands-free/in-hand, audio, use of screen display, use of touch, language</li>
+		<ul>
+			<li>Check and ask, then give up</li>
+		</ul>		
+  	</ul>
+  	<li>Requirement structure</li>
+  	<ul>
+  		<li>required characteristic name, e.g. OS name</li>
+  		<li>required characteristic value constraint, e.g. = 'Android'</li>
+  		<li>on unknown action</li>
+  		<li>on failure action, e.g. </li>
+  	</ul>
   </ul>
 
   <li>mobile device types</li>
