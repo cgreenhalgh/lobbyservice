@@ -35,6 +35,9 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 import javax.servlet.http.HttpServletResponse;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import com.google.appengine.api.datastore.Key;
 
 import uk.ac.horizon.ug.lobby.Constants;
@@ -45,6 +48,8 @@ import uk.ac.horizon.ug.lobby.model.GUIDFactory;
 import uk.ac.horizon.ug.lobby.model.GameClient;
 import uk.ac.horizon.ug.lobby.model.GameClientStatus;
 import uk.ac.horizon.ug.lobby.model.GameClientTemplate;
+import uk.ac.horizon.ug.lobby.protocol.ClientRequirement;
+import uk.ac.horizon.ug.lobby.protocol.ClientRequirementFailureType;
 import uk.ac.horizon.ug.lobby.protocol.GameJoinRequest;
 import uk.ac.horizon.ug.lobby.protocol.GameJoinResponse;
 import uk.ac.horizon.ug.lobby.protocol.GameJoinResponseStatus;
@@ -64,76 +69,29 @@ public class JoinUtils implements Constants {
 	}
 	/** client info - for create anon */
 	public static class ClientInfo {
-		public String clientType;
-		public Integer majorVersion;
-		public Integer minorVersion;
-		public Integer updateVersion;
+		public String characteristicsJson;
 		/** cons */
 		public ClientInfo() {}
-		
 		/**
-		 * @param string
-		 * @param majorVersion
-		 * @param minorVersion
-		 * @param updateVersion
+		 * @param characteristicsJson
 		 */
-		public ClientInfo(String string, Integer majorVersion,
-				Integer minorVersion, Integer updateVersion) {
+		public ClientInfo(String characteristicsJson) {
 			super();
-			this.clientType = string;
-			this.majorVersion = majorVersion;
-			this.minorVersion = minorVersion;
-			this.updateVersion = updateVersion;
-		}
-
-		/**
-		 * @return the clientType
-		 */
-		public String getClientType() {
-			return clientType;
+			this.characteristicsJson = characteristicsJson;
 		}
 		/**
-		 * @param clientType the clientType to set
+		 * @return the characteristicsJson
 		 */
-		public void setClientType(String clientType) {
-			this.clientType = clientType;
+		public String getCharacteristicsJson() {
+			return characteristicsJson;
 		}
 		/**
-		 * @return the majorVersion
+		 * @param characteristicsJson the characteristicsJson to set
 		 */
-		public Integer getMajorVersion() {
-			return majorVersion;
+		public void setCharacteristicsJson(String characteristicsJson) {
+			this.characteristicsJson = characteristicsJson;
 		}
-		/**
-		 * @param majorVersion the majorVersion to set
-		 */
-		public void setMajorVersion(Integer majorVersion) {
-			this.majorVersion = majorVersion;
-		}
-		/**
-		 * @return the minorVersion
-		 */
-		public Integer getMinorVersion() {
-			return minorVersion;
-		}
-		/**
-		 * @param minorVersion the minorVersion to set
-		 */
-		public void setMinorVersion(Integer minorVersion) {
-			this.minorVersion = minorVersion;
-		}
-		/**
-		 * @return the updateVersion
-		 */
-		public Integer getUpdateVersion() {
-			return updateVersion;
-		}
-		/**
-		 * @param updateVersion the updateVersion to set
-		 */
-		public void setUpdateVersion(Integer updateVersion) {
-			this.updateVersion = updateVersion;
-		}
+		
 	}
 	/** initial check/authenticate join request - where optional.
 	 * Never creates Clients - GameClient return may be null.
@@ -428,14 +386,9 @@ public class JoinUtils implements Constants {
 			clientId = GUIDFactory.newGUID();
 		gc.setId(clientId);
 		//gc.setKey(GameClient.idToKey(null, clientId));
-		if (clientInfo.getClientType()!=null)
-			gc.setClientType(clientInfo.getClientType());
-		if (clientInfo.getMajorVersion()!=null)
-			gc.setMajorVersion(clientInfo.getMajorVersion());
-		if (clientInfo.getMinorVersion()!=null)
-			gc.setMinorVersion(clientInfo.getMinorVersion());
-		if (clientInfo.getUpdateVersion()!=null)
-			gc.setUpdateVersion(clientInfo.getUpdateVersion());
+		if (clientInfo.getCharacteristicsJson()!=null) {
+			gc.setCharacteristicsJson(clientInfo.getCharacteristicsJson());
+		}
 		// nickname only for slot, not client
 		//EntityTransaction et = em.getTransaction();
 		em.persist(gc);
@@ -444,6 +397,105 @@ public class JoinUtils implements Constants {
 	}
 
 	public static List<GameClientTemplate> getGameClientTemplates(GameJoinRequest gjreq, String gameTemplateId) {
-		return QueryGameTemplateServlet.getGameClientTemplates(gjreq.getClientTitle(), gjreq.getClientType(), gameTemplateId, gjreq.getMajorVersion(), gjreq.getMinorVersion(), gjreq.getUpdateVersion());
+		return QueryGameTemplateServlet.getGameClientTemplates(gjreq.getClientTitle(), gjreq.getCharacteristicsJson(), gameTemplateId);
+	}
+	public static enum SatisfiesClientRequirements {
+		YES, NO, MAYBE
+	}
+	public static SatisfiesClientRequirements satisfiesClientRequirements (
+			JSONObject characteristics, List<ClientRequirement> crs) {
+		boolean uncertain = false;
+		for (ClientRequirement cr : crs) {
+			String key = cr.getCharacteristic();
+			boolean satisfied = false;
+			if (characteristics.has(key)) {
+				try {
+					String value = characteristics.get(key).toString();
+					String exp = cr.getExpression();
+					satisfied = satisfiesConstraint(value, exp);
+				} catch (JSONException e) {
+					logger.log(Level.WARNING, "Characteristics missing expected key "+key+" - should not happen");
+				}
+			}
+			else {
+				if ("UNDEFINED".equalsIgnoreCase(cr.getExpression()))
+					// OK!
+					satisfied = true;
+			}
+			if (!satisfied) {
+				switch (cr.getFailure()) {
+				case Fail:
+					return SatisfiesClientRequirements.NO;
+				case Continue:
+					break;
+				case Recheck:
+					uncertain = true;
+					break;
+				}
+			}
+		}
+		if (uncertain)
+			return SatisfiesClientRequirements.MAYBE;
+		return SatisfiesClientRequirements.YES;
+	}
+	private static boolean satisfiesConstraint(String value, String exp) {
+		if ("UNDEFINED".equalsIgnoreCase(exp))
+			return value==null;
+		if ("TRUE".equalsIgnoreCase(exp)) {
+			return "TRUE".equalsIgnoreCase(value);
+		}
+		if ("FALSE".equalsIgnoreCase(exp)) {
+			return !"TRUE".equalsIgnoreCase(value);
+		}
+		if (exp.startsWith("="))
+			return exp.substring(1).trim().equals(value);
+		if (exp.startsWith("IN")) {
+			String options [] = exp.substring(2).split("[(,]");
+			for (int i=0; i<options.length; i++) {
+				if (options[i].equals(value))
+					return true;
+			}
+			return false;
+		}
+		if (exp.startsWith(">=")) {
+			try {
+				double dval = Double.parseDouble(value);
+				double eval = Double.parseDouble(exp.substring(2).trim());
+				return dval >= eval;
+			}
+			catch (NumberFormatException nfe) {
+				logger.log(Level.WARNING, "satisfiesConstraint "+value+" vs "+exp, nfe);
+				return false;
+			}
+		}
+		if (exp.startsWith("<=")) {
+			try {
+				double dval = Double.parseDouble(value);
+				double eval = Double.parseDouble(exp.substring(2).trim());
+				return dval <= eval;
+			}
+			catch (NumberFormatException nfe) {
+				logger.log(Level.WARNING, "satisfiesConstraint "+value+" vs "+exp, nfe);
+				return false;
+			}
+		}
+		if (exp.startsWith("LIKE")) {
+			exp = exp.substring(4).replace("()","  ").trim();
+			boolean wildcardAtStart = exp.startsWith("%");
+			boolean wildcardAtEnd = exp.endsWith("%");
+			exp = exp.substring(wildcardAtStart ? 1 : 0, exp.length()-(wildcardAtStart ? 1 : 0)-(wildcardAtEnd ? 1 : 0));
+			if (wildcardAtStart && wildcardAtEnd) {
+				return value.contains(exp);
+			}
+			if (wildcardAtStart && !wildcardAtEnd) {
+				return value.endsWith(exp);				
+			}
+			if (!wildcardAtStart && wildcardAtEnd) {
+				return value.startsWith(exp);
+			}
+			return value.equals(exp);
+		}
+		logger.log(Level.WARNING,"Unsupported ClientRequirement expression: "+exp);
+		return false;
 	}
 }

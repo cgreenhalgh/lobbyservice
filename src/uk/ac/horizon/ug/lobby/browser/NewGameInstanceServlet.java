@@ -153,7 +153,7 @@ public class NewGameInstanceServlet extends HttpServlet implements Constants {
 			gjresp.setType(gjreq.getType());
 			
 			// authenticate client
-			JoinUtils.ClientInfo clientInfo = new JoinUtils.ClientInfo(gjreq.getClientType(), gjreq.getMajorVersion(), gjreq.getMinorVersion(), gjreq.getUpdateVersion());
+			JoinUtils.ClientInfo clientInfo = new JoinUtils.ClientInfo(gjreq.getCharacteristicsJson());
 			JoinUtils.JoinAuthInfo jai = JoinUtils.authenticate(gjreq.getClientId(), gjreq.getDeviceId(), clientInfo, gif.isAllowAnonymousClients(), req.getRequestURI(), line, auth);
 			GameClient gc = jai.gc;
 			Account account = jai.account;

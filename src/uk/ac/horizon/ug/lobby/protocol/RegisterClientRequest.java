@@ -19,6 +19,8 @@
  */
 package uk.ac.horizon.ug.lobby.protocol;
 
+import org.json.JSONObject;
+
 /** Request from (new) client to set shared secret. Should only be send over HTTPS/SSL.
  * Mostly fields from GameClient
  * 
@@ -40,14 +42,20 @@ public class RegisterClientRequest {
 	private String sharedSecret;
     /** default nickname */
     private String nickname;
+    /** client characteristics - JSON encoded object, i.e. set of property names & values */
+    private String characteristicsJson;
+    /** cache of parsed characteristics */
+    private transient JSONObject characteristics;
+    // now characteristic OSName
     /** client type, e.g. "Android" */
-    private String clientType;
+    //private String clientType;
+    // now characteristic OSVersion
     /** min major version */
-    private Integer majorVersion;
+    //private Integer majorVersion;
     /** min minor version (or 0) */
-    private Integer minorVersion;
+    //private Integer minorVersion;
     /** min update (or 0) */
-    private Integer updateVersion;
+    //private Integer updateVersion;
 	/** cons */
 	public RegisterClientRequest() {		
 	}
@@ -124,51 +132,27 @@ public class RegisterClientRequest {
 		this.nickname = nickname;
 	}
 	/**
-	 * @return the clientType
+	 * @return the characteristicsJson
 	 */
-	public String getClientType() {
-		return clientType;
+	public String getCharacteristicsJson() {
+		return characteristicsJson;
 	}
 	/**
-	 * @param clientType the clientType to set
+	 * @param characteristicsJson the characteristicsJson to set
 	 */
-	public void setClientType(String clientType) {
-		this.clientType = clientType;
+	public void setCharacteristicsJson(String characteristicsJson) {
+		this.characteristicsJson = characteristicsJson;
 	}
 	/**
-	 * @return the majorVersion
+	 * @return the characteristics
 	 */
-	public Integer getMajorVersion() {
-		return majorVersion;
+	public JSONObject getCharacteristics() {
+		return characteristics;
 	}
 	/**
-	 * @param majorVersion the majorVersion to set
+	 * @param characteristics the characteristics to set
 	 */
-	public void setMajorVersion(Integer majorVersion) {
-		this.majorVersion = majorVersion;
-	}
-	/**
-	 * @return the minorVersion
-	 */
-	public Integer getMinorVersion() {
-		return minorVersion;
-	}
-	/**
-	 * @param minorVersion the minorVersion to set
-	 */
-	public void setMinorVersion(Integer minorVersion) {
-		this.minorVersion = minorVersion;
-	}
-	/**
-	 * @return the updateVersion
-	 */
-	public Integer getUpdateVersion() {
-		return updateVersion;
-	}
-	/**
-	 * @param updateVersion the updateVersion to set
-	 */
-	public void setUpdateVersion(Integer updateVersion) {
-		this.updateVersion = updateVersion;
+	public void setCharacteristics(JSONObject characteristics) {
+		this.characteristics = characteristics;
 	}
 }

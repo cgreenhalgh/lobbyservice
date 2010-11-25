@@ -19,6 +19,8 @@
  */
 package uk.ac.horizon.ug.lobby.protocol;
 
+import org.json.JSONObject;
+
 import uk.ac.horizon.ug.lobby.model.GameTemplateVisibility;
 
 /** Query from client to server, looking for a specific game.
@@ -45,16 +47,22 @@ public class GameJoinRequest {
 	private GameJoinRequestType type;
 	/** current version */
 	public static final int CURRENT_VERSION = 1;
+    /** client characteristics - JSON encoded object, i.e. set of property names & values */
+    private String characteristicsJson;
+    /** cache of parsed characteristics */
+    private transient JSONObject characteristics;
+    // now characteristics OSName
 	/** client type - required */
-	private String clientType;
+	//private String clientType;
 	/** preferred/required client (template) name - optional */
 	private String clientTitle;
+    // now characteristics OSVersion
 	/** client version - required (default 0) */
-	private Integer majorVersion;
+	//private Integer majorVersion;
 	/** client version - required (default 0) */
-	private Integer minorVersion;
+	//private Integer minorVersion;
 	/** client version - required (default 0) */
-	private Integer updateVersion;
+	//private Integer updateVersion;
 	/** client current location - optional */
 	private Integer latitudeE6;
 	/** client current location - optional */
@@ -139,18 +147,6 @@ public class GameJoinRequest {
 		this.type = type;
 	}
 	/**
-	 * @return the clientType
-	 */
-	public String getClientType() {
-		return clientType;
-	}
-	/**
-	 * @param clientType the clientType to set
-	 */
-	public void setClientType(String clientType) {
-		this.clientType = clientType;
-	}
-	/**
 	 * @return the clientTitle
 	 */
 	public String getClientTitle() {
@@ -161,42 +157,6 @@ public class GameJoinRequest {
 	 */
 	public void setClientTitle(String clientTitle) {
 		this.clientTitle = clientTitle;
-	}
-	/**
-	 * @return the majorVersion
-	 */
-	public Integer getMajorVersion() {
-		return majorVersion;
-	}
-	/**
-	 * @param majorVersion the majorVersion to set
-	 */
-	public void setMajorVersion(Integer majorVersion) {
-		this.majorVersion = majorVersion;
-	}
-	/**
-	 * @return the minorVersion
-	 */
-	public Integer getMinorVersion() {
-		return minorVersion;
-	}
-	/**
-	 * @param minorVersion the minorVersion to set
-	 */
-	public void setMinorVersion(Integer minorVersion) {
-		this.minorVersion = minorVersion;
-	}
-	/**
-	 * @return the updateVersion
-	 */
-	public Integer getUpdateVersion() {
-		return updateVersion;
-	}
-	/**
-	 * @param updateVersion the updateVersion to set
-	 */
-	public void setUpdateVersion(Integer updateVersion) {
-		this.updateVersion = updateVersion;
 	}
 	/**
 	 * @return the latitudeE6
@@ -273,21 +233,42 @@ public class GameJoinRequest {
 			GameTemplateVisibility newInstanceVisibility) {
 		this.newInstanceVisibility = newInstanceVisibility;
 	}
+	/**
+	 * @return the characteristicsJson
+	 */
+	public String getCharacteristicsJson() {
+		return characteristicsJson;
+	}
+	/**
+	 * @param characteristicsJson the characteristicsJson to set
+	 */
+	public void setCharacteristicsJson(String characteristicsJson) {
+		this.characteristicsJson = characteristicsJson;
+	}
+	/**
+	 * @return the characteristics
+	 */
+	public JSONObject getCharacteristics() {
+		return characteristics;
+	}
+	/**
+	 * @param characteristics the characteristics to set
+	 */
+	public void setCharacteristics(JSONObject characteristics) {
+		this.characteristics = characteristics;
+	}
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public String toString() {
-		return "GameJoinRequest [clientId=" + clientId + ", clientTitle="
-				+ clientTitle + ", clientType=" + clientType + ", deviceId="
-				+ deviceId + ", gameSlotId=" + gameSlotId + ", latitudeE6="
-				+ latitudeE6 + ", longitudeE6=" + longitudeE6
-				+ ", majorVersion=" + majorVersion + ", minorVersion="
-				+ minorVersion + ", newInstanceStartTime="
-				+ newInstanceStartTime + ", newInstanceVisibility="
-				+ newInstanceVisibility + ", nickname=" + nickname + ", seqNo="
-				+ seqNo + ", time=" + time + ", type=" + type
-				+ ", updateVersion=" + updateVersion + ", version=" + version
-				+ "]";
+		return "GameJoinRequest [characteristicsJson=" + characteristicsJson
+				+ ", clientId=" + clientId + ", clientTitle=" + clientTitle
+				+ ", deviceId=" + deviceId + ", gameSlotId=" + gameSlotId
+				+ ", latitudeE6=" + latitudeE6 + ", longitudeE6=" + longitudeE6
+				+ ", newInstanceStartTime=" + newInstanceStartTime
+				+ ", newInstanceVisibility=" + newInstanceVisibility
+				+ ", nickname=" + nickname + ", seqNo=" + seqNo + ", time="
+				+ time + ", type=" + type + ", version=" + version + "]";
 	}
 }

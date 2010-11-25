@@ -24,6 +24,8 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
+import org.json.JSONObject;
+
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 
@@ -45,14 +47,19 @@ public class GameClient {
     private String nickname;
     /** shared secret */
     private String sharedSecret;
+    /** client characteristics - JSON encoded object, i.e. set of property names & values */
+    private String characteristicsJson;
+    /** cache of parsed characteristics */
+    private transient JSONObject characteristics;
+    // the following have become characteristics OSName and OSVersion
     /** client type, e.g. "Android" */
-    private String clientType;
+    //private String clientType;
     /** min major version */
-    private Integer majorVersion;
+    //private Integer majorVersion;
     /** min minor version (or 0) */
-    private Integer minorVersion;
+    //private Integer minorVersion;
     /** min update (or 0) */
-    private Integer updateVersion;
+    //private Integer updateVersion;
     /** IMEI */
     private String imei;
     /** created date/time */
@@ -131,54 +138,6 @@ public class GameClient {
 		this.sharedSecret = sharedSecret;
 	}
 	/**
-	 * @return the clientType
-	 */
-	public String getClientType() {
-		return clientType;
-	}
-	/**
-	 * @param clientType the clientType to set
-	 */
-	public void setClientType(String clientType) {
-		this.clientType = clientType;
-	}
-	/**
-	 * @return the majorVersion
-	 */
-	public Integer getMajorVersion() {
-		return majorVersion;
-	}
-	/**
-	 * @param majorVersion the majorVersion to set
-	 */
-	public void setMajorVersion(Integer majorVersion) {
-		this.majorVersion = majorVersion;
-	}
-	/**
-	 * @return the minorVersion
-	 */
-	public Integer getMinorVersion() {
-		return minorVersion;
-	}
-	/**
-	 * @param minorVersion the minorVersion to set
-	 */
-	public void setMinorVersion(Integer minorVersion) {
-		this.minorVersion = minorVersion;
-	}
-	/**
-	 * @return the updateVersion
-	 */
-	public Integer getUpdateVersion() {
-		return updateVersion;
-	}
-	/**
-	 * @param updateVersion the updateVersion to set
-	 */
-	public void setUpdateVersion(Integer updateVersion) {
-		this.updateVersion = updateVersion;
-	}
-	/**
 	 * @return the imei
 	 */
 	public String getImei() {
@@ -249,5 +208,29 @@ public class GameClient {
 	 */
 	public void setStatus(GameClientStatus status) {
 		this.status = status;
+	}
+	/**
+	 * @return the characteristicsJson
+	 */
+	public String getCharacteristicsJson() {
+		return characteristicsJson;
+	}
+	/**
+	 * @param characteristicsJson the characteristicsJson to set
+	 */
+	public void setCharacteristicsJson(String characteristicsJson) {
+		this.characteristicsJson = characteristicsJson;
+	}
+	/**
+	 * @return the characteristics
+	 */
+	public JSONObject getCharacteristics() {
+		return characteristics;
+	}
+	/**
+	 * @param characteristics the characteristics to set
+	 */
+	public void setCharacteristics(JSONObject characteristics) {
+		this.characteristics = characteristics;
 	}
 }

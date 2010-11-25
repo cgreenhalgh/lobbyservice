@@ -174,6 +174,16 @@ public class ClientRequestServlet extends HttpServlet implements Constants {
 		// hopefully :)
 		cresp.setStatus(ClientResponseStatus.OK);
 
+		if (creq.getScope()==null) {
+			// default to CLIENT
+			creq.setScope(ClientRequestScope.CLIENT);
+		}
+
+		cresp.setGames(getGameList(gc, account, creq.getScope(), creq.getIncludePlanned(), creq.getIncludeAvailable(), creq.getIncludeEnded()));
+		return cresp;
+	}
+	public static List<GameTemplateInfo> getGameList(GameClient gc, Account account, ClientRequestScope scope, Boolean includePlanned, Boolean includeAvailable, Boolean includeEnded) throws JoinException {
+
 		ServerConfiguration sc = ConfigurationUtils.getServerConfiguration();
 		
 		// need to get suitable games...
@@ -184,11 +194,7 @@ public class ClientRequestServlet extends HttpServlet implements Constants {
 		// readonly - no transaction?!
 		try {
 			Query q = null;
-			if (creq.getScope()==null) {
-				// default to CLIENT
-				creq.setScope(ClientRequestScope.CLIENT);
-			}
-			switch (creq.getScope()) {
+			switch (scope) {
 			case ACCOUNT:
 				if (account==null) 
 					throw new JoinException(GameJoinResponseStatus.ERROR_USER_AUTHENTICATION_REQUIRED, "Account-scope query requires user authentication");
@@ -218,16 +224,16 @@ public class ClientRequestServlet extends HttpServlet implements Constants {
 				switch (gi.getNominalStatus()) {
 				case CANCELLED:
 				case ENDED:
-					if (creq.getIncludeEnded()!=null || creq.getIncludeEnded()==true)
+					if (includeEnded==null || includeEnded==true)
 						include = true;
 					break;
 				case PLANNED:
-					if (creq.getIncludePlanned()!=null || creq.getIncludePlanned()==true)
+					if (includePlanned==null || includePlanned==true)
 						include = true;
 					break;
 				case TEMPORARILY_UNAVAILABLE:
 				case AVAILABLE:
-					if (creq.getIncludeAvailable()!=null || creq.getIncludeAvailable()==true)
+					if (includeAvailable==null || includeAvailable==true)
 						include = true;
 					break;
 				}
@@ -247,7 +253,6 @@ public class ClientRequestServlet extends HttpServlet implements Constants {
 			em.close();
 		}
 		
-		cresp.setGames(gtis);
-		return cresp;
+		return gtis;
 	}
 }

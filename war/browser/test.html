@@ -38,10 +38,10 @@
 					'<p>'+item.description+'</p></table>');
 			if (item2.newInstanceUrl!=undefined) {
 				$('#join_json').attr('value', 
-						'{"version":1,"type":"NEW_INSTANCE","newInstanceStartTime":'+item2.firstStartTime+',"clientType":"ANDROID","majorVersion":1,"minorVersion":6,"updateVersion":0}');
+						'{"version":1,"type":"NEW_INSTANCE","newInstanceStartTime":'+item2.firstStartTime+',"characteristics":"{\\"OSName\\":\\"Android\\",\\"OSVersion\\":\\"1.6\\"}"}');
 			} else {
 				$('#join_json').attr('value', 
-						'{"version":1,"type":"PLAY","clientType":"ANDROID","majorVersion":1,"minorVersion":6,"updateVersion":0}');
+						'{"version":1,"type":"PLAY","characteristics":"{\\"OSName\\":\\"Android\\",\\"OSVersion\\":\\"1.6\\"}"}');
 			}
 		}
 
@@ -82,7 +82,7 @@
 				for (var ci=0; ci<item.clientTemplates.length; ci++) {
 					var ct = item.clientTemplates[ci];
 					clients = clients+'<td>'+ct.title+
-					'<br>('+ct.clientType+' '+ct.minMajorVersion+'.'+ct.minMinorVersion+'.'+ct.minUpdateVersion+')';
+					'<br>('+ct.requirementsJson+')';
 					if (ct.locationSpecific)
 						clients = clients+'<br>Located!';
 					clients = clients+'</td>';
@@ -217,11 +217,8 @@
     	<ul>
     		<li>{</li>
     		<li>"version":1</li>
-    		<li>"clientType":"ANDROID"</li>
+    		<li>"characteristics":"{}"</li>
     		<li>"clientTitle":"..."</li>
-    		<li>"majorVersion":1</li>
-    		<li>"minorVersion":1</li>
-    		<li>"updateVersion":1</li>
     		<li>"latitudeE6":1</li>
     		<li>"longitudeE6":1</li>
     		<li>"locationConstraint":{</li>
@@ -267,16 +264,13 @@
     		<li>"startTime":... (for instance factory join)</li>
     		<li>"nickname":"..."</li>
     		<li>"type":"RESERVE" (or "RELEASE" or "PLAY" or "NEW_INSTANCE")</li>
-    		<li>"clientType":"ANDROID"</li>
+    		<li>"characteristics":"{}"</li>
     		<li>"clientTitle":"..."</li>
-    		<li>"majorVersion":1</li>
-    		<li>"minorVersion":1</li>
-    		<li>"updateVersion":1</li>
     		<li>"latitudeE6":1</li>
     		<li>"longitudeE6":1</li>
     		<li>}</li>
     	</ul>
-		<p><textarea cols="40" rows="5" id="join_json">{"version":1,"type":"PLAY","clientType":"ANDROID","majorVersion":1,"minorVersion":6,"updateVersion":0}</textarea></p>
+		<p><textarea cols="40" rows="5" id="join_json">{"version":1,"type":"PLAY","characteristics":"{\\"OSName\\":\\"Android\\",\\"OSVersion\\":\\"1.6\\"}"}</textarea></p>
 		<p><input type="submit" value="Do join"/></p>
 		<p><textarea cols="40" rows="5" id="join_resp"></textarea></p>
     </form>

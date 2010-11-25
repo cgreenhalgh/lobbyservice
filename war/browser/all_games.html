@@ -49,8 +49,8 @@
 				var clients = '';
 				for (var ci=0; ci<item.clientTemplates.length; ci++) {
 					var ct = item.clientTemplates[ci];
-					clients = clients+'<td>'+ct.title+
-					'<br>('+ct.clientType+' '+ct.minMajorVersion+'.'+ct.minMinorVersion+'.'+ct.minUpdateVersion+')';
+					clients = clients+'<td>'+ct.title+' ('+ct.role+')'+
+					'<br>('+ct.requirementsJson+')';
 					if (ct.locationSpecific)
 						clients = clients+'<br>Located!';
 					clients = clients+'</td>';

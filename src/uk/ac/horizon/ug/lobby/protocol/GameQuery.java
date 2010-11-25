@@ -19,6 +19,8 @@
  */
 package uk.ac.horizon.ug.lobby.protocol;
 
+import org.json.JSONObject;
+
 /** Query from client to server, looking for a specific game.
  * 
  * @author cmg
@@ -35,16 +37,22 @@ public class GameQuery {
 	private String deviceId;
 	/** game template id (may be implicit in the way the query is sent) */
 	private String gameTemplateId;
+    /** client characteristics - JSON encoded object, i.e. set of property names & values */
+    private String characteristicsJson;
+    /** cache of parsed characteristics */
+    private transient JSONObject characteristics;
+    // now characteristic OSName
 	/** client type - optional */
-	private String clientType;
+	//private String clientType;
 	/** preferred/required client (template) name - optional */
 	private String clientTitle;
+    // now characteristic OSVersion
 	/** client version - optional */
-	private Integer majorVersion;
+	//private Integer majorVersion;
 	/** client version - optional */
-	private Integer minorVersion;
+	//private Integer minorVersion;
 	/** client version - optional */
-	private Integer updateVersion;
+	//private Integer updateVersion;
 	/** client location constraint - optional */
 	private LocationConstraint locationConstraint;
 	/** client current location - optional */
@@ -85,18 +93,6 @@ public class GameQuery {
 		this.gameTemplateId = gameTemplateId;
 	}
 	/**
-	 * @return the clientType
-	 */
-	public String getClientType() {
-		return clientType;
-	}
-	/**
-	 * @param clientType the clientType to set
-	 */
-	public void setClientType(String clientType) {
-		this.clientType = clientType;
-	}
-	/**
 	 * @return the clientTitle
 	 */
 	public String getClientTitle() {
@@ -107,42 +103,6 @@ public class GameQuery {
 	 */
 	public void setClientTitle(String clientTitle) {
 		this.clientTitle = clientTitle;
-	}
-	/**
-	 * @return the majorVersion
-	 */
-	public Integer getMajorVersion() {
-		return majorVersion;
-	}
-	/**
-	 * @param majorVersion the majorVersion to set
-	 */
-	public void setMajorVersion(Integer majorVersion) {
-		this.majorVersion = majorVersion;
-	}
-	/**
-	 * @return the minorVersion
-	 */
-	public Integer getMinorVersion() {
-		return minorVersion;
-	}
-	/**
-	 * @param minorVersion the minorVersion to set
-	 */
-	public void setMinorVersion(Integer minorVersion) {
-		this.minorVersion = minorVersion;
-	}
-	/**
-	 * @return the updateVersion
-	 */
-	public Integer getUpdateVersion() {
-		return updateVersion;
-	}
-	/**
-	 * @param updateVersion the updateVersion to set
-	 */
-	public void setUpdateVersion(Integer updateVersion) {
-		this.updateVersion = updateVersion;
 	}
 	/**
 	 * @return the locationConstraint
@@ -241,19 +201,43 @@ public class GameQuery {
 	public void setDeviceId(String deviceId) {
 		this.deviceId = deviceId;
 	}
+	/**
+	 * @return the characteristicsJson
+	 */
+	public String getCharacteristicsJson() {
+		return characteristicsJson;
+	}
+	/**
+	 * @param characteristicsJson the characteristicsJson to set
+	 */
+	public void setCharacteristicsJson(String characteristicsJson) {
+		this.characteristicsJson = characteristicsJson;
+	}
+	/**
+	 * @return the characteristics
+	 */
+	public JSONObject getCharacteristics() {
+		return characteristics;
+	}
+	/**
+	 * @param characteristics the characteristics to set
+	 */
+	public void setCharacteristics(JSONObject characteristics) {
+		this.characteristics = characteristics;
+	}
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public String toString() {
-		return "GameQuery [clientTitle=" + clientTitle + ", clientType="
-				+ clientType + ", gameTemplateId=" + gameTemplateId
-				+ ", includeFullGames=" + includeFullGames + ", latitudeE6="
-				+ latitudeE6 + ", locationConstraint=" + locationConstraint
-				+ ", longitudeE6=" + longitudeE6 + ", majorVersion="
-				+ majorVersion + ", minorVersion=" + minorVersion
-				+ ", timeConstraint=" + timeConstraint + ", updateVersion="
-				+ updateVersion + ", version=" + version + "]";
+		return "GameQuery [characteristicsJson=" + characteristicsJson
+				+ ", clientId=" + clientId + ", clientTitle=" + clientTitle
+				+ ", deviceId=" + deviceId + ", gameTemplateId="
+				+ gameTemplateId + ", includeFullGames=" + includeFullGames
+				+ ", latitudeE6=" + latitudeE6 + ", locationConstraint="
+				+ locationConstraint + ", longitudeE6=" + longitudeE6
+				+ ", maxResults=" + maxResults + ", timeConstraint="
+				+ timeConstraint + ", version=" + version + "]";
 	}
 	
 }

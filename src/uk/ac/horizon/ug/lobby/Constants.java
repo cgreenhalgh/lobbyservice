@@ -5,15 +5,19 @@ public interface Constants {
 	public static final String ALLOW_ANONYMOUS_CLIENTS = "allowAnonymousClients";	
 	public static final String ALLOW_PRIVATE_INSTANCES = "allowPrivateInstances";	
 	public static final String APP_LAUNCH_URL = "appLaunchUrl";
-	public static final String APP_MARKET_URL = "appMarketUrl";
+	// now handled as characteristics
+//	public static final String APP_MARKET_URL = "appMarketUrl";
 	public static final String BASE_URL = "baseUrl";	
+	public static final String CHARACTERISTIC = "characteristic";
+	public static final String CHARACTERISTICS_JSON = "characteristicsJson";
 	public static final String CLIENT_HMAC = "clientHmac";
 	public static final String CLIENT_ID = "clientId";
 	public static final String CLIENT_IP = "clientIp";
 	public static final String CLIENT_TEMPLATES = "clientTemplates";
 	public static final String CLIENT_TIME = "clientTime";
 	public static final String CLIENT_TITLE = "clientTitle";
-	public static final String CLIENT_TYPE = "clientType";
+	// now handled as characteristics
+//	public static final String CLIENT_TYPE = "clientType";
 	public static final String CREATE_FOR_ANONYMOUS_CLIENT = "createForAnonymousClient";
 	public static final String CREATE_FOR_NO_CLIENT = "createForNoClient";
 	public static final String CREATED_TIME = "createdTime";
@@ -26,6 +30,10 @@ public interface Constants {
 	public static final String DURATION_MS = "durationMs";
 	public static final String ENCODING = "UTF-8";
 	public static final String END_TIME = "endTime";
+	public static final String EXPRESSION = "expression";
+	public static final String FAILURE = "failure";
+	public static final String FAILURE_MSG = "failureMsg";
+	public static final String FAILURE_URL = "failureUrl";
 	public static final String FIRST_START_TIME = "firstStartTime";
 	public static final String FULL = "full";
 	public static final String GAME_CLIENT_KEY = "gameClientKey";
@@ -72,7 +80,8 @@ public interface Constants {
 	public static final String LOCATION_SPECIFIC = "locationSpecific";
 	public static final String LOCATION_TYPE = "locationType";
 	public static final String LONGITUDE_E6 = "longitudeE6";
-	public static final String MAJOR_VERSION = "majorVersion";
+	// now handled as characteristics
+//	public static final String MAJOR_VERSION = "majorVersion";
 	public static final String MAX_DURATION_MS = "maxDurationMs";
 	public static final String MAX_NEW_INSTANCE_TOKENS_MAX = "maxNewInstanceTokensMax";
 	public static final String MAX_NEW_INSTANCE_TOKENS_PER_HOUR = "maxNewInstanceTokensPerHour";
@@ -91,11 +100,15 @@ public interface Constants {
 	public static final String NEW_STATUS = "newStatus";
 	public static final String NICKNAME = "nickname";
 	public static final String MIN_DURATION_MS = "minDurationMs";
-	public static final String MIN_MINOR_VERSION = "minMinorVersion";
-	public static final String MIN_MAJOR_VERSION = "minMajorVersion";
-	public static final String MIN_UPDATE_VERSION = "minUpdateVersion";
+	// now handled as characteristics
+//	public static final String MIN_MINOR_VERSION = "minMinorVersion";
+	// now handled as characteristics
+//	public static final String MIN_MAJOR_VERSION = "minMajorVersion";
+	// now handled as characteristics
+//	public static final String MIN_UPDATE_VERSION = "minUpdateVersion";
 	public static final String MIN_TIME = "minTime";
-	public static final String MINOR_VERSION = "minorVersion";
+	// now handled as characteristics
+//	public static final String MINOR_VERSION = "minorVersion";
 	public static final String NOMINAL_STATUS = "nominalStatus";
 	public static final String NUM_SLOTS_ALLOCATED = "numSlotsAllocated";
 	public static final String OPTIONS = "options";
@@ -105,6 +118,8 @@ public interface Constants {
 	public static final String PLAY_URL = "playUrl";
 	public static final String QUERY_URL = "queryUrl";
 	public static final String RADIUS_METRES = "radiusMetres";
+	public static final String REQUIREMENTS_JSON = "requirementsJson";
+	public static final String ROLE = "role";
 	public static final String SCOPE = "scope";
 	public static final String SECOND = "second";
 	public static final String SEQ_NO = "seqNo";
@@ -119,6 +134,7 @@ public interface Constants {
 	public static final String START_TIME_OPTIONS_JSON = "startTimeOptionsJson";
 	public static final String STATUS = "status";
 	public static final String SUBTITLE = "subtitle";
+	public static final String SUCCESS_MSG = "successMsg";
 	public static final String TARGET_STATUS = "targetStatus";
 	public static final String TIME = "time";
 	public static final String TIME_CONSTRAINT = "timeConstraint";
@@ -128,7 +144,8 @@ public interface Constants {
 	public static final String TRUSTED_TO_TIME = "trustedToTime";
 	public static final String TTL_MINUTES = "ttlMinutes";
 	public static final String TYPE = "type";
-	public static final String UPDATE_VERSION = "updateVersion";
+// now handled as characteristics
+//	public static final String UPDATE_VERSION = "updateVersion";
 	public static final String URL_NAME = "urlName";
 	public static final String USER_ID = "userId";
 	public static final String VERSION = "version";

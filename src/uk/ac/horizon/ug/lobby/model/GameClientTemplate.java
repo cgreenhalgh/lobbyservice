@@ -19,10 +19,14 @@
  */
 package uk.ac.horizon.ug.lobby.model;
 
+import java.util.List;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+
+import uk.ac.horizon.ug.lobby.protocol.ClientRequirement;
 
 import com.google.appengine.api.datastore.Key;
 
@@ -40,19 +44,27 @@ public class GameClientTemplate {
     private String gameTemplateId;
     /** client template title */
     private String title;
+    /** client role (optional) */
+    private String role;
+    /** client requirements (JSON-encoded array of objects) */
+    private String requirementsJson;
+    /** cache for unpacked ClientRequirements */
+    private transient List<ClientRequirement> requirements;
+    // the following have become ClientRequirement OSName and OSVersion
     /** OS type, e.g. "Android" */
-    private String clientType;
+    //private String clientType;
     /** OS min major version */
-    private int minMajorVersion;
+    //private int minMajorVersion;
     /** OS min minor version (or 0) */
-    private int minMinorVersion;
+    //private int minMinorVersion;
     /** OS min update (or 0) */
-    private int minUpdateVersion;
+    //private int minUpdateVersion;
     /** TODO additional requirements? */
     /** Url to use to launch the application. */
     private String appLaunchUrl;
+    // this is now handled by ClientRequirement AppID/AppVersion failureUrl
     /** Url to use to access market info about client */
-    private String appMarketUrl;
+    //private String appMarketUrl;
     /** is this client-type location-specific? */
     private boolean locationSpecific;
 	/**
@@ -98,54 +110,6 @@ public class GameClientTemplate {
 		this.title = title;
 	}
 	/**
-	 * @return the clientType
-	 */
-	public String getClientType() {
-		return clientType;
-	}
-	/**
-	 * @param clientType the clientType to set
-	 */
-	public void setClientType(String clientType) {
-		this.clientType = clientType;
-	}
-	/**
-	 * @return the minMajorVersion
-	 */
-	public int getMinMajorVersion() {
-		return minMajorVersion;
-	}
-	/**
-	 * @param minMajorVersion the minMajorVersion to set
-	 */
-	public void setMinMajorVersion(int minMajorVersion) {
-		this.minMajorVersion = minMajorVersion;
-	}
-	/**
-	 * @return the minMinorVersion
-	 */
-	public int getMinMinorVersion() {
-		return minMinorVersion;
-	}
-	/**
-	 * @param minMinorVersion the minMinorVersion to set
-	 */
-	public void setMinMinorVersion(int minMinorVersion) {
-		this.minMinorVersion = minMinorVersion;
-	}
-	/**
-	 * @return the minUpdateVersion
-	 */
-	public int getMinUpdateVersion() {
-		return minUpdateVersion;
-	}
-	/**
-	 * @param minUpdateVersion the minUpdateVersion to set
-	 */
-	public void setMinUpdateVersion(int minUpdateVersion) {
-		this.minUpdateVersion = minUpdateVersion;
-	}
-	/**
 	 * @return the locationSpecific
 	 */
 	public boolean isLocationSpecific() {
@@ -170,16 +134,40 @@ public class GameClientTemplate {
 		this.appLaunchUrl = appLaunchUrl;
 	}
 	/**
-	 * @return the appMarketUrl
+	 * @return the role
 	 */
-	public String getAppMarketUrl() {
-		return appMarketUrl;
+	public String getRole() {
+		return role;
 	}
 	/**
-	 * @param appMarketUrl the appMarketUrl to set
+	 * @param role the role to set
 	 */
-	public void setAppMarketUrl(String appMarketUrl) {
-		this.appMarketUrl = appMarketUrl;
+	public void setRole(String role) {
+		this.role = role;
+	}
+	/**
+	 * @return the requirementsJson
+	 */
+	public String getRequirementsJson() {
+		return requirementsJson;
+	}
+	/**
+	 * @param requirementsJson the requirementsJson to set
+	 */
+	public void setRequirementsJson(String requirementsJson) {
+		this.requirementsJson = requirementsJson;
+	}
+	/**
+	 * @return the requirements
+	 */
+	public List<ClientRequirement> getRequirements() {
+		return requirements;
+	}
+	/**
+	 * @param requirements the requirements to set
+	 */
+	public void setRequirements(List<ClientRequirement> requirements) {
+		this.requirements = requirements;
 	}
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
@@ -187,11 +175,10 @@ public class GameClientTemplate {
 	@Override
 	public String toString() {
 		return "GameClientTemplate [appLaunchUrl=" + appLaunchUrl
-				+ ", appMarketUrl=" + appMarketUrl + ", clientType="
-				+ clientType + ", gameTemplateId=" + gameTemplateId + ", key="
-				+ key + ", locationSpecific=" + locationSpecific
-				+ ", minMajorVersion=" + minMajorVersion + ", minMinorVersion="
-				+ minMinorVersion + ", minUpdateVersion=" + minUpdateVersion
+				+ ", gameTemplateId=" + gameTemplateId + ", key=" + key
+				+ ", locationSpecific=" + locationSpecific
+				+ ", requirementsJson=" + requirementsJson + ", role=" + role
 				+ ", title=" + title + "]";
 	}
+	
 }

@@ -176,12 +176,7 @@ public class ExplodingPlacesServerProtocol implements ServerProtocol {
 			addElement(doc, "conversationId", gs.getClientSharedSecret());
 			gjresp.getPlayData().put("conversationId", gs.getClientSharedSecret());
 			
-			if (!GameClientKnownType.Android.toString().equals(gc.getClientType())) {
-				logger.warning("ExplodingPlaces only supports ANDROID clientType");
-				gjresp.setStatus(GameJoinResponseStatus.ERROR_UNSUPPORTED_CLIENT);
-				gjresp.setMessage("Sorry - this game only supports Android client(s)");
-				return;
-			}
+			// TODO client role?
 			addElement(doc, "clientType", "AndroidDevclient");
 			addElement(doc, "clientVersion", "1");
 			String nickname = gs.getNickname();

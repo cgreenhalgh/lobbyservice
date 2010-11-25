@@ -34,6 +34,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.persistence.EntityManager;
@@ -42,6 +43,7 @@ import javax.persistence.EntityTransaction;
 import javax.persistence.Query;
 import javax.servlet.http.*;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONWriter;
@@ -69,6 +71,7 @@ import uk.ac.horizon.ug.lobby.model.GameTemplate;
 import uk.ac.horizon.ug.lobby.model.GameTemplateVisibility;
 import uk.ac.horizon.ug.lobby.model.ServerConfiguration;
 import uk.ac.horizon.ug.lobby.protocol.ClientRequestScope;
+import uk.ac.horizon.ug.lobby.protocol.ClientRequirement;
 import uk.ac.horizon.ug.lobby.protocol.GameJoinResponseStatus;
 import uk.ac.horizon.ug.lobby.protocol.GameQuery;
 import uk.ac.horizon.ug.lobby.protocol.GameTemplateInfo;
@@ -664,11 +667,10 @@ public class QueryGameTemplateServlet extends HttpServlet implements Constants {
 	}
 
 	private static List<GameClientTemplate> getGameClientTemplates(GameQuery gq, String gameTemplateId) {
-		return getGameClientTemplates(gq.getClientTitle(), gq.getClientType(), gameTemplateId, gq.getMajorVersion(), gq.getMinorVersion(), gq.getUpdateVersion());
+		return getGameClientTemplates(gq.getClientTitle(), gq.getCharacteristicsJson(), gameTemplateId);
 	}
-	static List<GameClientTemplate> getGameClientTemplates(String clientTitle, String clientType,
-			String gameTemplateId, Integer majorVersion, Integer minorVersion,
-			Integer updateVersion) {
+	static List<GameClientTemplate> getGameClientTemplates(String clientTitle, String characteristicsJson,
+			String gameTemplateId) {
 		EntityManager em = EMF.get().createEntityManager();
 		try {
 			// Check GameClientTemplate for clientType, clientTitle, locationSpecific and version
@@ -676,18 +678,9 @@ public class QueryGameTemplateServlet extends HttpServlet implements Constants {
 			StringBuilder qb = new StringBuilder();
 			qb.append("SELECT x FROM GameClientTemplate x WHERE x."+GAME_TEMPLATE_ID+" = :"+GAME_TEMPLATE_ID);
 			qps.put(GAME_TEMPLATE_ID, gameTemplateId);
-			if (clientType!=null) {
-				qb.append(" AND x."+CLIENT_TYPE+" = :"+CLIENT_TYPE);
-				qps.put(CLIENT_TYPE, clientType);
-			}
 			if (clientTitle!=null) {
 				qb.append(" AND x."+CLIENT_TITLE+" = :"+CLIENT_TITLE);
 				qps.put(CLIENT_TITLE, clientTitle);
-			}
-			// can only check inequality on one value, so make that MAJOR_VERSION
-			if (majorVersion!=null) {
-				qb.append(" AND x."+MIN_MAJOR_VERSION+" <= :"+MAJOR_VERSION);
-				qps.put(MAJOR_VERSION, majorVersion);
 			}
 			// post-check minor version & update version
 			Query q = em.createQuery(qb.toString());
@@ -697,23 +690,26 @@ public class QueryGameTemplateServlet extends HttpServlet implements Constants {
 			List<GameClientTemplate> posgcts = (List<GameClientTemplate>)q.getResultList();
 			// post-filter
 			List<GameClientTemplate> gcts = new LinkedList<GameClientTemplate>();
-			for (GameClientTemplate gct : posgcts) {
-				if (majorVersion!=null && majorVersion==gct.getMinMajorVersion()) {
-					// threshold major - check minor
-					if (minorVersion!=null) {
-						if (minorVersion < gct.getMinMajorVersion())
-							continue; // no good
-						if (minorVersion==gct.getMinMinorVersion()) {
-							// threshold minor - check update
-							if (updateVersion!=null) {
-								if (updateVersion<gct.getMinUpdateVersion())
-									continue; // no good
-							}
-						}
+			try {
+				JSONObject characteristics = characteristicsJson!=null ? new JSONObject(characteristicsJson) : new JSONObject();
+				for (GameClientTemplate gct : posgcts) {
+					try {
+						List<ClientRequirement> crs = gct.getRequirementsJson()==null ? 
+								new LinkedList<ClientRequirement>() :
+									JSONUtils.parseClientRequirements(new JSONArray(gct.getRequirementsJson()));
+						if (JoinUtils.satisfiesClientRequirements(characteristics, crs)==JoinUtils.SatisfiesClientRequirements.NO)
+							continue;
 					}
+					catch (Exception e) {
+						logger.log(Level.WARNING,"Error checking client requirements", e);
+						continue;
+					}
+					// add gcts (if location ok)
+					gcts.add(gct);
 				}
-				// add gcts (if location ok)
-				gcts.add(gct);
+			}
+			catch (Exception e) {
+				logger.log(Level.WARNING,"Error checking client requirements", e);
 			}
 			return gcts;
 		}
@@ -721,6 +717,7 @@ public class QueryGameTemplateServlet extends HttpServlet implements Constants {
 			em.close();
 		}
 	}
+
 	/** make a 'GameTemplateInfo' just to convey a problem or alternative, not a game */
 	private static GameTemplateInfo getGameIndexMessage(String message, String detail, String imageUrl) {
 		GameTemplate gt = new GameTemplate();

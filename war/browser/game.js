@@ -322,6 +322,25 @@ function append_instance_table_item(table, item, ix) {
 	for (var ci=0; item.clientTemplates!=undefined && ci<item.clientTemplates.length; ci++) {
 		var ct = item.clientTemplates[ci];
 		clients = clients+'<p>'+ct.title;
+		if (ct.role!=undefined)
+			clients += ' ('+ct.role+')';
+		try {
+			if (ct.requirementsJson!=undefined) {
+				// should be array of objects
+				var requirements = $.parseJSON(ct.requirementsJson);
+				var requiresApp = false;
+				for (var ri=0; ri<requirements.length; ri++) {
+					var requirement = requirements[ri];
+					if (requirement.characteristic=='AppID')
+						requiresApp = true;
+				}
+				if (requiresApp)
+					clients += ' - App';
+				else
+					clients += ' - no App';
+			}
+		}
+		catch (err) {}
 		//+'<br>('+ct.clientType+' '+ct.minMajorVersion+'.'+ct.minMinorVersion+'.'+ct.minUpdateVersion+')';
 		if (ct.locationSpecific)
 			clients = clients+' (Located!)';
@@ -607,18 +626,26 @@ function add_hmac(line, url) {
 	return line+'\n'+hmac;
 }
 
+// get client characteristics 
+function get_characteristics_json() {
+	var characteristics = {};
+	if (os!=null && $('input[name=includeClient]').attr('checked')==true) {
+		characteristics.OSName = os[0];
+		if (os[1].length>0) {
+			characteristics.OSVersion = os[1];
+			if (os[2].length>0)
+				characteristics.OSVersion += '.'+os[2];
+		}
+	} 
+	return $.toJSON(characteristics);
+}
+
 // do search 
 function do_query() {
 	var query = {version:1};
 	// deviceId
 	query.deviceId = get_client_id();
-	if (os!=null && $('input[name=includeClient]').attr('checked')==true) {
-		query.clientType = os[0];
-		if (os[1].length>0)
-			query.majorVersion = Number(os[1]);
-		if (os[2].length>0)
-			query.minorVersion = Number(os[2]);
-	} 
+	query.characteristicsJson = get_characteristics_json();
 	if (coords!=null) {
 		query.latitudeE6 = Math.round(coords.latitude*1000000);
 		query.longitudeE6 = Math.round(coords.longitude*1000000);
@@ -690,9 +717,7 @@ function getGameClientTemplate() {
 		return undefined;
 	if (instanceItem.clientTemplates!=undefined) {
 		if (instanceItem.clientTemplates.length>0) {
-			if (instanceItem.clientTemplates[0].appLaunchUrl!=undefined) {
-				return instanceItem.clientTemplates[0];
-			}		
+			return instanceItem.clientTemplates[0];
 		}
 	}
 	return undefined;
@@ -709,10 +734,25 @@ function join_game(ix) {
 		var clientUrl = undefined;
 		// don't show the check for embedded, game specific.
 		// don't show the check if there are no client templates.
-		if (get_game()==undefined && getGameClientTemplate()!=undefined) {
-			clientUrl = getGameClientTemplate().appMarketUrl;
-			if (clientUrl!=undefined && clientUrl!=null)
-				disableCheckClient = false;
+		if (get_game()==undefined) {
+			var ct = getGameClientTemplate();
+			if (ct!=undefined) {
+				try {
+					if (ct.requirementsJson!=undefined) {
+						var requirements = $.parseJSON(ct.requirementsJson);
+						var requiresApp = false;
+						for (var ri=0; ri<requirements.length; ri++) {
+							var requirement = requirements[ri];
+							if ((requirement.characteristic=='AppID' || requirement.characteristic=='AppVersion') && requirement.failureUrl!=undefined) {
+								clientUrl = requirement.failureUrl;
+							}
+						}
+					}
+				}
+				catch (err) {}
+				if (clientUrl!=undefined && clientUrl!=null)
+					disableCheckClient = false;
+			}
 		}
 		table.append('<tr><td><input class="queryOption" type="button" name="do_join" value="Join Game" onclick="do_join()"/>'+
 				(disableCheckClient ? '' : '<a href="'+clientUrl+'" target="client_check">Check Client</a>')+
@@ -744,13 +784,7 @@ function get_game_join_request(type) {
 	// clientId
 	if (is_authenticated())
 		request.clientId = get_client_id(); // unauthenticated!
-	if (os!=null) {
-		request.clientType = os[0];
-		if (os[1].length>0)
-			request.majorVersion = Number(os[1]);
-		if (os[2].length>0)
-			request.minorVersion = Number(os[2]);
-	} 
+	request.characteristicsJson = get_characteristics_json();
 	if (coords!=null) {
 		request.latitudeE6 = Math.round(coords.latitude*1000000);
 		request.longitudeE6 = Math.round(coords.longitude*1000000);
@@ -866,7 +900,7 @@ function handle_play_ok(response) {
 			if (get_lobbyclient()!=undefined)
 				get_lobbyclient().open(appLaunchUrl);
 			else
-				window.open(appLaunchUrl,'_blank','fullscreen=yes');//,'gameclient','fullscreen=yes',false);
+				window.open(appLaunchUrl,'_blank');//,'gameclient','fullscreen=yes',false);
 		}
 		catch(err) {
 			alert('Sorry - could not start game ('+err.message+')');
@@ -955,13 +989,7 @@ function do_register() {
 	}
 	var request = {version:1, clientId:get_client_id(), sharedSecret:sharedSecret};
 	request.time = currentTimeMillis();
-	if (os!=null) {
-		request.clientType = os[0];
-		if (os[1].length>0)
-			request.majorVersion = Number(os[1]);
-		if (os[2].length>0)
-			request.minorVersion = Number(os[2]);
-	}
+	request.characteristicsJson = get_characteristics_json();
 	// queryUrl , e.g. http://128.243.22.74:8888/browser/QueryGameTemplate/165acda5-8f63-4dd1-a883-cb39a61f1d94
 	// -> RegisterClient URL
 	if (queryUrl==null || queryUrl==undefined) {
@@ -1075,7 +1103,7 @@ function do_online_account2() {
 		if (get_lobbyclient()!=undefined)
 			get_lobbyclient().open(url);
 		else
-			window.open(url,'_blank','fullscreen=yes');//,'account');
+			window.open(url,'_blank');//,'account');
 	}
 	catch (e) {
 		alert('Sorry - '+e.name+': '+e.message);

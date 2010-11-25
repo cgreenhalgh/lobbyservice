@@ -134,14 +134,8 @@ public class RegisterClientServlet extends HttpServlet {
 				// OK
 				gc.setSharedSecret(sharedSecret);
 				// update properties
-				if (rcreq.getClientType()!=null)
-					gc.setClientType(rcreq.getClientType());
-				if (rcreq.getMajorVersion()!=null) 
-					gc.setMajorVersion(rcreq.getMajorVersion());
-				if (rcreq.getMinorVersion()!=null) 
-					gc.setMinorVersion(rcreq.getMinorVersion());
-				if (rcreq.getUpdateVersion()!=null) 
-					gc.setUpdateVersion(rcreq.getUpdateVersion());
+				if (rcreq.getCharacteristicsJson()!=null)
+					gc.setCharacteristicsJson(rcreq.getCharacteristicsJson());
 				if (rcreq.getNickname()!=null) 
 					gc.setNickname(rcreq.getNickname());
 				et.commit();

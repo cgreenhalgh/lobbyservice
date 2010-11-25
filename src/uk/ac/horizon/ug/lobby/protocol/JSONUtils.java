@@ -121,25 +121,19 @@ public class JSONUtils implements Constants {
 					jw.key(TITLE);
 					jw.value(gameClientTemplate.getTitle());
 				}
-				if (gameClientTemplate.getClientType()!=null) {
-					jw.key(CLIENT_TYPE);
-					jw.value(gameClientTemplate.getClientType().toString());
+				if (gameClientTemplate.getRole()!=null) {
+					jw.key(ROLE);
+					jw.value(gameClientTemplate.getRole());
 				}
-				jw.key(MIN_MAJOR_VERSION);
-				jw.value(gameClientTemplate.getMinMajorVersion());
-				jw.key(MIN_MINOR_VERSION);
-				jw.value(gameClientTemplate.getMinMinorVersion());
-				jw.key(MIN_UPDATE_VERSION);
-				jw.value(gameClientTemplate.getMinUpdateVersion());
+				if (gameClientTemplate.getRequirementsJson()!=null) {
+					jw.key(REQUIREMENTS_JSON);
+					jw.value(gameClientTemplate.getRequirementsJson());
+				}
 				jw.key(LOCATION_SPECIFIC);
 				jw.value(gameClientTemplate.isLocationSpecific());
 				if (gameClientTemplate.getAppLaunchUrl()!=null) {
 					jw.key(APP_LAUNCH_URL);
 					jw.value(gameClientTemplate.getAppLaunchUrl());
-				}
-				if (gameClientTemplate.getAppMarketUrl()!=null) {
-					jw.key(APP_MARKET_URL);
-					jw.value(gameClientTemplate.getAppMarketUrl());
 				}
 				jw.endObject();
 			}	
@@ -308,22 +302,15 @@ public class JSONUtils implements Constants {
 //			logger.info("GCT: "+key+"="+json.getObject(key));
 			if (key.equals(TITLE))
 				gct.setTitle(json.getString(TITLE));
-			else if (key.equals(CLIENT_TYPE))
-				gct.setClientType(json.getString(CLIENT_TYPE));
-			else if (key.equals(MIN_MAJOR_VERSION))
-				gct.setMinMajorVersion(json.getInt(MIN_MAJOR_VERSION));
-			else if (key.equals(MIN_MINOR_VERSION))
-				gct.setMinMinorVersion(json.getInt(MIN_MINOR_VERSION));
-			else if (key.equals(MIN_UPDATE_VERSION))
-				gct.setMinUpdateVersion(json.getInt(MIN_UPDATE_VERSION));
+			else if (key.equals(ROLE))
+				gct.setRole(json.getString(ROLE));
+			else if (key.equals(REQUIREMENTS_JSON))
+				gct.setRequirementsJson(json.getString(REQUIREMENTS_JSON));
 			else if (key.equals(APP_LAUNCH_URL))
 				gct.setAppLaunchUrl(json.getString(APP_LAUNCH_URL));
 			else if (key.equals(LOCATION_SPECIFIC))
 				gct.setLocationSpecific(json.getBoolean(LOCATION_SPECIFIC));
-			else if (key.equals(APP_MARKET_URL)) {
-				gct.setAppMarketUrl(json.getString(APP_MARKET_URL));
 				//logger.info("ApplicationMarketId="+gct.getApplicationMarketId());
-			}
 			else 
 				throw new JSONException("Unsupported key '"+key+"' in GameClientTemplate: "+json);
 		}
@@ -951,8 +938,8 @@ public class JSONUtils implements Constants {
 				o.setClientId(json.getString(key));
 			else if (key.equals(CLIENT_TITLE))
 				o.setClientTitle(json.getString(key));
-			else if (key.equals(CLIENT_TYPE))
-				o.setClientType(json.getString(key));
+			else if (key.equals(CHARACTERISTICS_JSON))
+				o.setCharacteristicsJson(json.getString(key));
 			else if (key.equals(DEVICE_ID))
 				o.setDeviceId(json.getString(key));
 			else if (key.equals(GAME_TEMPLATE_ID))
@@ -963,16 +950,10 @@ public class JSONUtils implements Constants {
 				o.setLocationConstraint(parseLocationConstraint(json.getJSONObject(key)));
 			else if (key.equals(LONGITUDE_E6))
 				o.setLongitudeE6(json.getInt(key));
-			else if (key.equals(MAJOR_VERSION))
-				o.setMajorVersion(json.getInt(key));
 			else if (key.equals(MAX_RESULTS))
 				o.setMaxResults(json.getInt(key));
-			else if (key.equals(MINOR_VERSION))
-				o.setMinorVersion(json.getInt(key));
 			else if (key.equals(TIME_CONSTRAINT))
 				o.setTimeConstraint(parseTimeConstraint(json.getJSONObject(key)));
-			else if (key.equals(UPDATE_VERSION))
-				o.setUpdateVersion(json.getInt(key));
 			else if (key.equals(VERSION))
 				o.setVersion(json.getInt(key));
 			else
@@ -991,8 +972,8 @@ public class JSONUtils implements Constants {
 				o.setClientTitle(json.getString(key));
 			else if (key.equals(CLIENT_ID))
 				o.setClientId(json.getString(key));
-			else if (key.equals(CLIENT_TYPE))
-				o.setClientType(json.getString(key));
+			else if (key.equals(CHARACTERISTICS_JSON))
+				o.setCharacteristicsJson(json.getString(key));
 			else if (key.equals(DEVICE_ID))
 				o.setDeviceId(json.getString(key));
 			else if (key.equals(GAME_SLOT_ID))
@@ -1001,24 +982,18 @@ public class JSONUtils implements Constants {
 				o.setLatitudeE6(json.getInt(key));
 			else if (key.equals(LONGITUDE_E6))
 				o.setLongitudeE6(json.getInt(key));
-			else if (key.equals(MAJOR_VERSION))
-				o.setMajorVersion(json.getInt(key));
 			else if (key.equals(NEW_INSTANCE_START_TIME))
 				o.setNewInstanceStartTime(json.getLong(key));
 			else if (key.equals(NEW_INSTANCE_VISIBILITY))
 				o.setNewInstanceVisibility(GameTemplateVisibility.valueOf(json.getString(key)));
 			else if (key.equals(NICKNAME))
 				o.setNickname(json.getString(key));
-			else if (key.equals(MINOR_VERSION))
-				o.setMinorVersion(json.getInt(key));
 			else if (key.equals(SEQ_NO))
 				o.setSeqNo(json.getInt(key));
 			else if (key.equals(TIME))
 				o.setTime(json.getLong(key));
 			else if (key.equals(TYPE))
 				o.setType(GameJoinRequestType.valueOf(json.getString(key)));
-			else if (key.equals(UPDATE_VERSION))
-				o.setUpdateVersion(json.getInt(key));
 			else if (key.equals(VERSION))
 				o.setVersion(json.getInt(key));
 			else
@@ -1320,20 +1295,14 @@ public class JSONUtils implements Constants {
 				o.setClientId(json.getString(key));
 			else if (key.equals(SHARED_SECRET))
 				o.setSharedSecret(json.getString(key));
-			else if (key.equals(CLIENT_TYPE))
-				o.setClientType(json.getString(key));
-			else if (key.equals(MAJOR_VERSION))
-				o.setMajorVersion(json.getInt(key));
-			else if (key.equals(MINOR_VERSION))
-				o.setMinorVersion(json.getInt(key));
+			else if (key.equals(CHARACTERISTICS_JSON))
+				o.setCharacteristicsJson(json.getString(key));
 			else if (key.equals(NICKNAME))
 				o.setNickname(json.getString(key));
 			else if (key.equals(SEQ_NO))
 				o.setSeqNo(json.getInt(key));
 			else if (key.equals(TIME))
 				o.setTime(json.getLong(key));
-			else if (key.equals(UPDATE_VERSION))
-				o.setUpdateVersion(json.getInt(key));
 			else if (key.equals(VERSION))
 				o.setVersion(json.getInt(key));
 			else 
@@ -1369,9 +1338,9 @@ public class JSONUtils implements Constants {
 	 * @throws JSONException */
 	public static void writeGameClient(JSONWriter jw, GameClient o) throws JSONException {
 		jw.object();
-		if (o.getClientType()!=null) {
-			jw.key(CLIENT_TYPE);
-			jw.value(o.getClientType());
+		if (o.getCharacteristicsJson()!=null) {
+			jw.key(CHARACTERISTICS_JSON);
+			jw.value(o.getCharacteristicsJson());
 		}	
 		jw.key(CREATED_TIME);
 		jw.value(o.getCreatedTime());
@@ -1382,14 +1351,6 @@ public class JSONUtils implements Constants {
 		if (o.getImei()!=null) {
 			jw.key(IMEI);
 			jw.value(o.getImei());
-		}
-		if (o.getMajorVersion()!=null) {
-			jw.key(MAJOR_VERSION);
-			jw.value(o.getMajorVersion());
-		}
-		if (o.getMinorVersion()!=null) {
-			jw.key(MINOR_VERSION);
-			jw.value(o.getMinorVersion());
 		}
 		if (o.getNickname()!=null) {
 			jw.key(NICKNAME);
@@ -1406,10 +1367,6 @@ public class JSONUtils implements Constants {
 		if (o.getTrustedToTime()!=null) {
 			jw.key(TRUSTED_TO_TIME);
 			jw.value(o.getTrustedToTime());
-		}
-		if (o.getUpdateVersion()!=null) {
-			jw.key(UPDATE_VERSION);
-			jw.value(o.getUpdateVersion());
 		}
 		jw.endObject();
 	}
@@ -1488,5 +1445,61 @@ public class JSONUtils implements Constants {
 			throw new IOException(je);
 		}
 		w.close();
+	}
+	/** write ClientRequirement object 
+	 * @throws JSONException */
+	public static void writeClientRequirement(JSONWriter jw, ClientRequirement o) throws JSONException {
+		jw.object();
+		jw.key(CHARACTERISTIC);
+		jw.value(o.getCharacteristic());
+		jw.key(EXPRESSION);
+		jw.value(o.getExpression());
+		jw.key(FAILURE);
+		jw.value(o.getFailure().toString());
+		if (o.getSuccessMsg()!=null) {
+			jw.key(SUCCESS_MSG);
+			jw.value(o.getSuccessMsg());
+		}
+		if (o.getFailureMsg()!=null) {
+			jw.key(FAILURE_MSG);
+			jw.value(o.getFailureMsg());
+		}
+		if (o.getFailureUrl()!=null) {
+			jw.key(FAILURE_URL);
+			jw.value(o.getFailureUrl());
+		}
+		jw.endObject();
+	}
+	/** parse JSON Object to ClientRequirement
+	 * @throws JSONException */
+	public static ClientRequirement parseClientRequirement(JSONObject json) throws JSONException {
+		ClientRequirement o = new ClientRequirement();
+		Iterator keys = json.keys();
+		while(keys.hasNext()) {
+			String key = (String)keys.next();
+			if (key.equals(CHARACTERISTIC))
+				o.setCharacteristic(json.getString(key));
+			else if (key.equals(EXPRESSION))
+				o.setExpression(json.getString(key));
+			else if (key.equals(FAILURE))
+				o.setFailure(ClientRequirementFailureType.valueOf(json.getString(key)));
+			else if (key.equals(SUCCESS_MSG))
+				o.setSuccessMsg(json.getString(key));
+			else if (key.equals(FAILURE_MSG))
+				o.setFailureMsg(json.getString(key));
+			else if (key.equals(FAILURE_URL))
+				o.setFailureUrl(json.getString(key));
+			else 
+				throw new JSONException("Unsupported key '"+key+"' in ClientRequirement: "+json);
+		}
+		return o;
+	}
+	/** parse JSON Array to ClientRequirement List
+	 * @throws JSONException */
+	public static List<ClientRequirement> parseClientRequirements(JSONArray jsona) throws JSONException {
+		List<ClientRequirement> os = new LinkedList<ClientRequirement>();
+		for (int i=0; i<jsona.length(); i++) 
+			os.add(parseClientRequirement(jsona.getJSONObject(i)));
+		return os;
 	}
 }
